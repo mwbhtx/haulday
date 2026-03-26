@@ -162,7 +162,7 @@ export function OrdersTable({
                     {formatWeight(order.weight)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{order.trailer_type}</Badge>
+                    <Badge variant="secondary">{order.trailer_type?.split(" - ")[0] ?? order.trailer_type}</Badge>
                   </TableCell>
                   <TableCell>{order.ltl ? "Yes" : "No"}</TableCell>
                   <TableCell>{order.twic ? "Yes" : "No"}</TableCell>

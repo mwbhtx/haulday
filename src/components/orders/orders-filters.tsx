@@ -159,7 +159,7 @@ function FilterControls({
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Any" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={NONE}>Any</SelectItem>
             {US_STATES.map((st) => (
               <SelectItem key={st} value={st}>
@@ -181,7 +181,7 @@ function FilterControls({
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Any" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={NONE}>Any</SelectItem>
             {US_STATES.map((st) => (
               <SelectItem key={st} value={st}>
@@ -203,7 +203,7 @@ function FilterControls({
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Any" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={NONE}>Any</SelectItem>
             {TRAILER_TYPES.map((tt) => (
               <SelectItem key={tt.value} value={tt.value}>
