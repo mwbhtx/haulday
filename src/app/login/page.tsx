@@ -85,7 +85,7 @@ export default function LoginPage() {
       <MarketingNav variant="light" hideAuth />
 
       <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-20 sm:pt-28 pb-20">
-        <div className="w-full max-w-sm rounded-2xl bg-[#0f0d0f] p-8">
+        <div className="w-full max-w-sm rounded-2xl bg-black/20 border border-white/[0.06] backdrop-blur-sm p-8">
           <h2 className="text-3xl font-normal tracking-wide mb-8 text-white" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
             {needsNewPassword ? "Set new password" : "Log in to Haulvisor"}
           </h2>
@@ -102,7 +102,7 @@ export default function LoginPage() {
               <Input type={isDev ? "text" : "email"} placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11 bg-white/[0.06] border-white/[0.1] text-sm px-4 text-white placeholder:text-white/30 focus-visible:!border-[#ff5601] focus-visible:!ring-[#ff5601]/50" autoFocus {...(!isDev ? { required: true } : {})} />
               <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 bg-white/[0.06] border-white/[0.1] text-sm px-4 text-white placeholder:text-white/30 focus-visible:!border-[#ff5601] focus-visible:!ring-[#ff5601]/50" {...(!isDev ? { required: true } : {})} />
               {error && <p className="text-xs text-destructive">{error}</p>}
-              <button type="submit" className="w-full h-11 mt-1 rounded-lg bg-[#0b090c] text-white text-sm font-semibold hover:bg-[#0b090c]/80 transition-colors">Log in</button>
+              <button type="submit" className="w-full h-11 mt-1 rounded-lg bg-white/[0.1] border border-white/[0.12] text-white text-sm font-semibold hover:bg-white/[0.15] transition-colors">Log in</button>
             </form>
           )}
 

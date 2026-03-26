@@ -71,39 +71,39 @@ export default function HomePage() {
           animate="on"
           brightness={1.2}
           cAzimuthAngle={180}
-          cDistance={3.61}
-          cPolarAngle={90}
+          cDistance={2.4}
+          cPolarAngle={95}
           cameraZoom={1}
-          color1="#ff5005"
-          color2="#dbba95"
-          color3="#e1a194"
-          envPreset="lobby"
-          grain="on"
-          lightType="env"
-          positionX={-1.4}
-          positionY={0}
+          color1="#ff6a1a"
+          color2="#c73c00"
+          color3="#FD4912"
+          envPreset="city"
+          grain="off"
+          lightType="3d"
+          positionX={0}
+          positionY={-2.1}
           positionZ={0}
           reflection={0.1}
           rotationX={0}
-          rotationY={10}
-          rotationZ={50}
+          rotationY={0}
+          rotationZ={225}
           shader="defaults"
           type="waterPlane"
-          uAmplitude={1}
-          uDensity={3.6}
+          uAmplitude={0}
+          uDensity={1.8}
           uFrequency={5.5}
-          uSpeed={0.04}
-          uStrength={4}
-          uTime={0}
+          uSpeed={0.2}
+          uStrength={3}
+          uTime={0.2}
           wireframe={false}
         />
       </ShaderGradientCanvas>
 
-      <div className="relative overflow-hidden min-h-[50vh]">
+      <div className="relative overflow-hidden min-h-[50vh] flex flex-col">
         <MarketingNav />
 
         {/* ── Hero ── */}
-        <div className="relative z-10 flex flex-col items-center text-center px-6 pt-24 sm:pt-16 pb-20 sm:pb-16">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
           <h1 className="font-normal tracking-wide leading-[0.85] text-white" style={{ fontFamily: 'var(--font-bebas-neue)', fontSize: '95px' }}>
             HAULVISOR
           </h1>
