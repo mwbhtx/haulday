@@ -13,7 +13,7 @@ Route optimization platform for owner-operator truck drivers. Analyze every rout
 
 ```bash
 npm install
-cd frontend && npm run dev
+npm run dev
 ```
 
 ## License

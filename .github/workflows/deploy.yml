@@ -27,8 +27,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build frontend
-        run: cd frontend && npm run build
+      - name: Build
+        run: npm run build
         env:
           NEXT_PUBLIC_API_URL: /api
           NEXT_PUBLIC_COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
@@ -42,7 +42,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy to S3
-        run: aws s3 sync frontend/out s3://haulvisor-frontend --delete
+        run: aws s3 sync out s3://haulvisor-frontend --delete
 
       - name: Invalidate CloudFront
         run: |

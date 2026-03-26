@@ -23,11 +23,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Frontend typecheck
-        run: cd frontend && npx tsc --noEmit
+      - name: Typecheck
+        run: npx tsc --noEmit
 
-      - name: Frontend test
-        run: cd frontend && npm test
+      - name: Test
+        run: npm test
 
-      - name: Frontend build
-        run: cd frontend && npm run build
+      - name: Build
+        run: npm run build
