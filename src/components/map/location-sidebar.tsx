@@ -470,18 +470,26 @@ function RoundTripChainCard({
     return `Order ${legNum}: Low confidence`;
   };
 
-  // Compute overall date range (first pickup to last delivery)
+  // Compute overall date range: first pickup → estimated arrival at final destination
   const startDates = chain.legs
     .flatMap((l) => [l.pickup_date_early])
     .filter(Boolean) as string[];
-  const endDates = chain.legs
-    .flatMap((l) => [l.delivery_date_late, l.delivery_date_early, l.pickup_date_late])
-    .filter(Boolean) as string[];
-  const dateRange = startDates.length > 0 && endDates.length > 0
-    ? formatPickupDates(
-        startDates.reduce((a, b) => (a < b ? a : b)),
-        endDates.reduce((a, b) => (a > b ? a : b)),
-      )
+  const firstPickup = startDates.length > 0
+    ? startDates.reduce((a, b) => (a < b ? a : b))
+    : undefined;
+  // Use simulator total_hours to compute estimated end date from first pickup
+  const estimatedEnd = firstPickup && chain.trip_summary
+    ? new Date(new Date(firstPickup).getTime() + chain.trip_summary.total_hours * 3_600_000).toISOString()
+    : undefined;
+  // Fall back to order dates if no simulator data
+  const fallbackEnd = (() => {
+    const endDates = chain.legs
+      .flatMap((l) => [l.delivery_date_late, l.delivery_date_early, l.pickup_date_late])
+      .filter(Boolean) as string[];
+    return endDates.length > 0 ? endDates.reduce((a, b) => (a > b ? a : b)) : undefined;
+  })();
+  const dateRange = firstPickup
+    ? formatPickupDates(firstPickup, estimatedEnd ?? fallbackEnd)
     : "";
 
   const [showCosts, setShowCosts] = useState(false);
