@@ -196,11 +196,11 @@ export function LocationSidebar({ location, selectedIndex, onSelectIndex, onClos
     : sortedRoutes.length;
 
   return (
-    <div className="flex h-full w-full bg-[#19191a] border border-white/10 rounded-2xl flex-col overflow-hidden relative">
+    <div className="flex h-full w-full bg-[#111111e8] border border-white/10 rounded-2xl flex-col overflow-hidden relative">
 
       {/* Sort bar + watchlist toggle */}
       {hasResults && !isLoading && (
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-black/80 rounded-xl mx-2 mt-2">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[#111111e8] rounded-xl mx-2 mt-2">
           <span className="text-sm text-muted-foreground mr-1">Sort</span>
           {SORT_OPTIONS.map((opt) => (
             <button

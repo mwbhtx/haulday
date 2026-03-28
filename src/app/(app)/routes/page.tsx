@@ -269,7 +269,7 @@ export default function MapPage() {
 
       {/* Desktop: Filter bar + results panel */}
       <div className="hidden md:flex absolute top-4 left-4 right-4 bottom-4 z-10 flex-col gap-3 pointer-events-none">
-        <div className="pointer-events-auto bg-black/80 border border-white/10 rounded-2xl p-3 w-full">
+        <div className="pointer-events-auto bg-[#111111e8] border border-white/10 rounded-2xl p-3 w-full">
           <SearchFilters
             onSearch={handleSearch}
             onSearchRoundTrip={handleSearchRoundTrip}
