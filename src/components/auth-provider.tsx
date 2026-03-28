@@ -157,17 +157,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     if (isDemoUser()) {
       logoutDemo();
-      // Restore real user's session state that was stashed before demo
       try {
+        // Clear demo's session state first
+        sessionStorage.removeItem("hv-route-filters");
+        sessionStorage.removeItem("hv-tour-dismissed");
+        // Then restore real user's stashed state (overwrites cleared keys)
         const raw = sessionStorage.getItem("hv-pre-demo-stash");
         if (raw) {
           const stash = JSON.parse(raw) as Record<string, string>;
           for (const [k, v] of Object.entries(stash)) sessionStorage.setItem(k, v);
           sessionStorage.removeItem("hv-pre-demo-stash");
         }
-        // Clear demo's own session state
-        sessionStorage.removeItem("hv-route-filters");
-        sessionStorage.removeItem("hv-tour-dismissed");
       } catch {}
     } else {
       authLogout();
