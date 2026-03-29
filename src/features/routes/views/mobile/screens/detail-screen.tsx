@@ -32,10 +32,18 @@ function getDeadheadPct(chain: RouteChain | RoundTripChain): number {
   return chain.deadhead_pct ?? 0;
 }
 
-function formatDate(iso?: string): string {
-  if (!iso) return "--";
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
+    " " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+function formatDateRange(early?: string, late?: string): string {
+  if (!early) return "";
+  const e = formatDateTime(early);
+  if (!late || late === early) return e;
+  const l = formatDateTime(late);
+  return `${e} – ${l}`;
 }
 
 export function DetailScreen({ chain, isRoundTrip, originCity, onBack }: DetailScreenProps) {
@@ -212,13 +220,13 @@ function SegmentCard({ leg, index }: { leg: RouteLeg | RoundTripLeg; index: numb
         {leg.pickup_date_early && (
           <div className="flex justify-between">
             <span>Pickup</span>
-            <span>{formatDate(leg.pickup_date_early)}</span>
+            <span>{formatDateRange(leg.pickup_date_early, leg.pickup_date_late)}</span>
           </div>
         )}
         {leg.delivery_date_early && (
           <div className="flex justify-between">
             <span>Delivery</span>
-            <span>{formatDate(leg.delivery_date_early)}</span>
+            <span>{formatDateRange(leg.delivery_date_early, leg.delivery_date_late)}</span>
           </div>
         )}
         {leg.deadhead_miles > 0 && (
