@@ -77,11 +77,12 @@ export function MobileRoutesView() {
     return [];
   }, [isRoundTrip, roundTripQuery.data, oneWayQuery.data]);
 
-  // Build search text for results screen
+  // Build search text for results screen (city, state only — drop country)
   const searchText = useMemo(() => {
+    const short = (name: string) => name.split(",").slice(0, 2).map(s => s.trim()).join(", ");
     if (!origin) return "Search Routes";
-    if (destination) return `${origin.name} → ${destination.name}`;
-    return origin.name;
+    if (destination) return `${short(origin.name)} → ${short(destination.name)}`;
+    return short(origin.name);
   }, [origin, destination]);
 
   // Build query params from current state
