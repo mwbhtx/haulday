@@ -218,12 +218,12 @@ export function MobileRoutesView() {
   if (!activeCompanyId) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base text-muted-foreground">
           No company assigned to your account. Please contact your administrator.
         </p>
         <button
           onClick={logout}
-          className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+          className="text-base text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
         >
           Sign Out
         </button>

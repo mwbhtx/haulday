@@ -35,11 +35,11 @@ export function RouteCard({ chain, isRoundTrip, onClick, className }: RouteCardP
         <span className="text-base font-medium truncate">
           {origin} → {dest}
         </span>
-        <span className="ml-auto shrink-0 rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <span className="ml-auto shrink-0 rounded-full bg-white/10 px-2.5 py-0.5 text-sm font-medium uppercase tracking-wider text-muted-foreground">
           {isRoundTrip ? "Round trip" : "One way"}
         </span>
       </div>
-      <div className="flex items-center gap-4 text-sm">
+      <div className="flex items-center gap-4 text-base">
         {dailyProfit !== null && (
           <span className="flex items-center gap-1.5">
             <TrendingUp className={cn("h-4 w-4", color)} />

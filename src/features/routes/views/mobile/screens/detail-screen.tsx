@@ -52,13 +52,13 @@ export function DetailScreen({ chain, isRoundTrip, originCity, onBack }: DetailS
             <ArrowLeft className="h-5 w-5 text-black" />
           </button>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 text-sm font-semibold">
+            <div className="flex items-center gap-1.5 text-base font-semibold">
               <span className="truncate">{origin}</span>
               <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
               <span className="truncate">{dest}</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
+              <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wider">
                 {isRoundTrip ? "Round trip" : "One way"}
               </span>
               <span>{legCount} {legCount === 1 ? "leg" : "legs"}</span>
@@ -156,7 +156,7 @@ function MetricCard({
 }) {
   return (
     <div className="rounded-xl border border-white/10 bg-card p-3">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
+      <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
       <p className={`${sub ? "text-base" : "text-lg"} font-semibold tabular-nums ${valueClassName ?? ""}`}>{value}</p>
     </div>
   );
@@ -253,7 +253,7 @@ function SegmentDetailsCollapsible({
         className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
       >
         <span>Trip Itinerary</span>
-        {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        {open ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
       </button>
       {open && (
         <div className="border-t border-white/[0.05]">

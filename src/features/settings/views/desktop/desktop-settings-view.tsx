@@ -276,7 +276,7 @@ export function DesktopSettingsView() {
               }
               onSelect={handleLocationSelect}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {homeCity && homeState
                 ? "Route searches will find the best way home."
                 : "Set a home location to enable Routes Home."}
@@ -308,7 +308,7 @@ export function DesktopSettingsView() {
               onChange={(e) => handleNumberChange("cost_per_mile", e.target.value, setCostPerMile)}
               placeholder="e.g. 1.50"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Flat override — when set, replaces the detailed cost breakdown below.
             </p>
           </div>
@@ -318,14 +318,14 @@ export function DesktopSettingsView() {
           {/* Operating Costs */}
           <div className="space-y-1">
             <h3 className="text-sm font-semibold">Operating Costs</h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Fine-tune your cost model. Leave blank to use industry defaults.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-medium block">Diesel ($/gal)</label>
+              <label className="text-sm font-medium block">Diesel ($/gal)</label>
               <Input
                 type="number"
                 min={1}
@@ -337,7 +337,7 @@ export function DesktopSettingsView() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium block">Maintenance ($/mi)</label>
+              <label className="text-sm font-medium block">Maintenance ($/mi)</label>
               <Input
                 type="number"
                 min={0.01}
@@ -349,7 +349,7 @@ export function DesktopSettingsView() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium block">Tires ($/mi)</label>
+              <label className="text-sm font-medium block">Tires ($/mi)</label>
               <Input
                 type="number"
                 min={0.01}
@@ -361,7 +361,7 @@ export function DesktopSettingsView() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium block">Truck payment ($/day)</label>
+              <label className="text-sm font-medium block">Truck payment ($/day)</label>
               <Input
                 type="number"
                 min={0}
@@ -373,7 +373,7 @@ export function DesktopSettingsView() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium block">Insurance ($/day)</label>
+              <label className="text-sm font-medium block">Insurance ($/day)</label>
               <Input
                 type="number"
                 min={0}
@@ -385,7 +385,7 @@ export function DesktopSettingsView() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium block">Per diem ($/day)</label>
+              <label className="text-sm font-medium block">Per diem ($/day)</label>
               <Input
                 type="number"
                 min={0}
@@ -397,7 +397,7 @@ export function DesktopSettingsView() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium block">Truck Avg. MPG</label>
+              <label className="text-sm font-medium block">Truck Avg. MPG</label>
               <Input
                 type="number"
                 min={3}
@@ -409,7 +409,7 @@ export function DesktopSettingsView() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium block">Avg. Driving Hours/Day</label>
+              <label className="text-sm font-medium block">Avg. Driving Hours/Day</label>
               <Input
                 type="number"
                 min={6}
@@ -451,7 +451,7 @@ export function DesktopSettingsView() {
               <option value="2">2</option>
               <option value="3">3</option>
             </select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               How many orders you can carry at once. Loads beyond this are speculative.
             </p>
           </div>
@@ -471,7 +471,7 @@ export function DesktopSettingsView() {
               <option value="96">4 Days</option>
               <option value="120">5 Days</option>
             </select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Maximum idle time between delivering one load and picking up the next.
               This sets your default — you can still override it on the filter bar.
             </p>
@@ -501,7 +501,7 @@ export function DesktopSettingsView() {
                 );
               })}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {trailerLabels.length === 0
                 ? "No filter — all trailer types shown."
                 : `Filtering to ${trailerLabels.join(", ")} and compatible combos.`}
@@ -586,7 +586,7 @@ export function DesktopSettingsView() {
                 Weekdays only
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Routes won&apos;t include pickups or deliveries on your off days.
               Select all or leave empty to disable.
             </p>

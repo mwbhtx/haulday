@@ -63,7 +63,7 @@ export function SearchSheet({
           <button
             type="button"
             onClick={() => setTripMode("one-way")}
-            className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex-1 py-2.5 text-base font-medium transition-colors ${
               tripMode === "one-way"
                 ? "bg-white/10 text-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -74,7 +74,7 @@ export function SearchSheet({
           <button
             type="button"
             onClick={() => setTripMode("round-trip")}
-            className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex-1 py-2.5 text-base font-medium transition-colors ${
               tripMode === "round-trip"
                 ? "bg-white/10 text-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -86,7 +86,7 @@ export function SearchSheet({
 
         {/* Origin */}
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             Origin
           </label>
           <PlaceAutocomplete
@@ -99,7 +99,7 @@ export function SearchSheet({
         {/* Destination — one-way only */}
         {tripMode === "one-way" && (
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Destination
             </label>
             <PlaceAutocomplete

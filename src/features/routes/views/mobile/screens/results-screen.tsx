@@ -43,8 +43,8 @@ export function ResultsScreen({
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSearchBarTap(); }}
           className="flex w-full items-center gap-3 rounded-full border border-white/10 bg-card px-4 py-3 text-left cursor-pointer"
         >
-          <Search className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="flex-1 text-sm truncate">{searchText}</span>
+          <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+          <span className="flex-1 text-base truncate">{searchText}</span>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export function ResultsScreen({
             onClick={onFiltersTap}
             className="ml-auto flex items-center justify-center h-9 w-9 rounded-full bg-white shrink-0"
           >
-            <SlidersHorizontal className="h-4 w-4 text-black" />
+            <SlidersHorizontal className="h-5 w-5 text-black" />
           </button>
         </div>
       )}
@@ -90,7 +90,7 @@ export function ResultsScreen({
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Search className="h-8 w-8 text-muted-foreground/30 mb-3" />
             <p className="text-sm font-medium text-muted-foreground/70 mb-1">No routes found</p>
-            <p className="text-xs text-muted-foreground/40">Try adjusting your search or filters</p>
+            <p className="text-sm text-muted-foreground/40">Try adjusting your search or filters</p>
           </div>
         )}
 

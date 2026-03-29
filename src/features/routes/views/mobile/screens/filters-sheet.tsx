@@ -186,7 +186,7 @@ export function FiltersSheet({ onBack, onApply, initialFilters }: FiltersSheetPr
               max={MAX_DEADHEAD_PCT}
               step={5}
             />
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>{MIN_DEADHEAD_PCT}%</span>
               <span>{MAX_DEADHEAD_PCT}%</span>
             </div>
