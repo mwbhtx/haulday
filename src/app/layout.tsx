@@ -27,7 +27,7 @@ export const viewport = {
 
 export const metadata: Metadata = {
   title: "haulvisor",
-  description: "The load board that doesn't suck.",
+  description: "Stop guessing. Start hauling.",
 };
 
 export default function RootLayout({

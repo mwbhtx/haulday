@@ -108,7 +108,7 @@ export default function HomePage() {
             haulvisor
           </h1>
           <p className="text-white font-normal whitespace-nowrap" style={{ fontSize: '25px', marginTop: '15px' }}>
-            The load board that doesn&apos;t suck.
+            Stop guessing. Start hauling.
           </p>
 
           <ShaderGradientButton onClick={handleDemo} />

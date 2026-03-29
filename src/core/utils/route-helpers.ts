@@ -28,6 +28,19 @@ export function getNetPerMile(chain: RouteChain | RoundTripChain): number | null
   return null;
 }
 
+/** Get unique state abbreviations for the route path, e.g. "TX → LA" or "TX → CO → TX" */
+export function getRouteStates(chain: RouteChain | RoundTripChain): string {
+  const states: string[] = [];
+  for (const leg of chain.legs) {
+    const os = leg.origin_state;
+    const ds = leg.destination_state;
+    if (os && (states.length === 0 || states[states.length - 1] !== os)) states.push(os);
+    if (ds && states[states.length - 1] !== ds) states.push(ds);
+  }
+  // Deduplicate consecutive same states but keep the path order
+  return states.join(" → ");
+}
+
 export function getDeadheadPct(chain: RouteChain | RoundTripChain): number {
   return chain.deadhead_pct ?? 0;
 }

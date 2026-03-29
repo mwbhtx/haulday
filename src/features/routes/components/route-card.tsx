@@ -3,7 +3,7 @@
 import { MapPin, TrendingUp } from "lucide-react";
 import { cn } from "@/core/utils";
 import { routeProfitColor } from "@/core/utils/rate-color";
-import { getOriginCity, getDestCity, getDailyProfit, getNetProfit, getNetPerMile, getEstimatedDays, formatCurrency, formatRpm } from "@/core/utils/route-helpers";
+import { getOriginCity, getDestCity, getDailyProfit, getNetProfit, getNetPerMile, getEstimatedDays, getRouteStates, formatCurrency, formatRpm } from "@/core/utils/route-helpers";
 import type { RouteChain, RoundTripChain } from "@/core/types";
 
 interface RouteCardProps {
@@ -14,8 +14,7 @@ interface RouteCardProps {
 }
 
 export function RouteCard({ chain, isRoundTrip, onClick, className }: RouteCardProps) {
-  const origin = getOriginCity(chain);
-  const dest = getDestCity(chain);
+  const routeStates = getRouteStates(chain);
   const dailyProfit = getDailyProfit(chain);
   const netProfit = getNetProfit(chain);
   const netPerMile = getNetPerMile(chain);
@@ -31,16 +30,19 @@ export function RouteCard({ chain, isRoundTrip, onClick, className }: RouteCardP
         className,
       )}
     >
-      <div className="flex items-center gap-2.5 mb-2.5">
+      {/* Row 1: Route states + trip type */}
+      <div className="flex items-center gap-2.5 mb-2">
         <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" />
-        <span className="text-base font-medium truncate">
-          {origin} → {dest}
+        <span className="text-base font-medium">
+          {routeStates}
         </span>
         <span className="ml-auto shrink-0 rounded-full bg-white/10 px-2.5 py-0.5 text-sm font-medium uppercase tracking-wider text-muted-foreground">
           {isRoundTrip ? "Round trip" : "One way"}
         </span>
       </div>
-      <div className="flex items-center gap-4 text-base">
+
+      {/* Row 2: Key metrics */}
+      <div className="flex items-center gap-4 text-base mb-1">
         {dailyProfit !== null && (
           <span className="flex items-center gap-1.5">
             <TrendingUp className={cn("h-5 w-5", color)} />
@@ -59,12 +61,14 @@ export function RouteCard({ chain, isRoundTrip, onClick, className }: RouteCardP
             {formatRpm(netPerMile)}
           </span>
         )}
-        {estDays !== null && (
-          <span className="text-muted-foreground">
-            {estDays % 1 === 0 ? estDays : estDays.toFixed(1)} {estDays === 1 ? "Day" : "Days"}
-          </span>
-        )}
       </div>
+
+      {/* Row 3: Est. days */}
+      {estDays !== null && (
+        <div className="text-sm text-muted-foreground">
+          {estDays % 1 === 0 ? estDays : estDays.toFixed(1)} {estDays === 1 ? "Day" : "Days"} est.
+        </div>
+      )}
     </button>
   );
 }
