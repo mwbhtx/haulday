@@ -205,14 +205,26 @@ function SegmentCard({ leg, index }: { leg: RouteLeg | RoundTripLeg; index: numb
         </div>
         {leg.pickup_date_early && (
           <div className="flex justify-between">
-            <span>Pickup</span>
-            <span>{formatDateRange(leg.pickup_date_early, leg.pickup_date_late)}</span>
+            <span>Pickup Early</span>
+            <span>{formatDateTime(leg.pickup_date_early)}</span>
+          </div>
+        )}
+        {leg.pickup_date_late && leg.pickup_date_late !== leg.pickup_date_early && (
+          <div className="flex justify-between">
+            <span>Pickup Late</span>
+            <span>{formatDateTime(leg.pickup_date_late)}</span>
           </div>
         )}
         {leg.delivery_date_early && (
           <div className="flex justify-between">
-            <span>Delivery</span>
-            <span>{formatDateRange(leg.delivery_date_early, leg.delivery_date_late)}</span>
+            <span>Delivery Early</span>
+            <span>{formatDateTime(leg.delivery_date_early)}</span>
+          </div>
+        )}
+        {leg.delivery_date_late && leg.delivery_date_late !== leg.delivery_date_early && (
+          <div className="flex justify-between">
+            <span>Delivery Late</span>
+            <span>{formatDateTime(leg.delivery_date_late)}</span>
           </div>
         )}
         {leg.deadhead_miles > 0 && (
