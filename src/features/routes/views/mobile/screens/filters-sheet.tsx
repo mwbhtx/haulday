@@ -60,12 +60,12 @@ function FilterRow({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between px-4 py-3.5"
+        className="flex w-full items-center justify-between px-4 py-4"
       >
-        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className="text-base text-muted-foreground">{label}</span>
         <span className="flex items-center gap-2">
-          <span className="text-sm font-medium">{value}</span>
-          <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", expanded && "rotate-180")} />
+          <span className="text-base font-medium">{value}</span>
+          <ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", expanded && "rotate-180")} />
         </span>
       </button>
       <AnimatePresence>

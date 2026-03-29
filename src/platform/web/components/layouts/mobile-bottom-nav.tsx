@@ -18,7 +18,7 @@ export function MobileBottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-white/10 bg-[#111111]"
-      style={{ height: "calc(4rem + var(--safe-area-bottom))", paddingBottom: "var(--safe-area-bottom)" }}
+      style={{ height: "calc(4.5rem + var(--safe-area-bottom))", paddingBottom: "var(--safe-area-bottom)" }}
     >
       {tabs.map((tab) => {
         const isActive = pathname.startsWith(tab.href);
@@ -27,13 +27,13 @@ export function MobileBottomNav() {
             key={tab.href}
             href={tab.href}
             className={cn(
-              "flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs transition-colors",
+              "flex flex-col items-center gap-1 px-3 py-2 text-sm transition-colors",
               isActive
                 ? "text-white"
                 : "text-white/40 active:text-white/70",
             )}
           >
-            <tab.icon className={cn("h-5 w-5", isActive && "text-primary")} />
+            <tab.icon className={cn("h-6 w-6", isActive && "text-primary")} />
             <span>{tab.label}</span>
           </Link>
         );
