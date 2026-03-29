@@ -119,7 +119,7 @@ export function DetailScreen({ chain, isRoundTrip, originCity, onBack }: DetailS
             ))}
 
             {/* Collapsible timeline details */}
-            {isRoundTrip && (chain as RoundTripChain).trip_summary && (
+            {isRoundTrip && (
               <SegmentDetailsCollapsible
                 chain={chain as RoundTripChain}
                 originCity={originCity}
