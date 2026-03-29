@@ -13,13 +13,13 @@ function Calendar({ className, classNames, ...props }: CalendarProps) {
       classNames={{
         months: "flex flex-col sm:flex-row gap-2",
         month: "flex flex-col gap-4",
-        month_caption: "flex items-center justify-center pt-1 relative h-10",
+        month_caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",
-        nav: "absolute inset-x-0 top-0 flex items-center justify-between h-10 px-1",
+        nav: "flex items-center gap-1",
         button_previous:
-          "h-9 w-9 inline-flex items-center justify-center rounded-full bg-white text-black hover:bg-white/80 transition-colors",
+          "absolute left-1 h-9 w-9 inline-flex items-center justify-center rounded-full bg-white text-black hover:bg-white/80 transition-colors",
         button_next:
-          "h-9 w-9 inline-flex items-center justify-center rounded-full bg-white text-black hover:bg-white/80 transition-colors",
+          "absolute right-1 h-9 w-9 inline-flex items-center justify-center rounded-full bg-white text-black hover:bg-white/80 transition-colors",
         month_grid: "w-full border-collapse",
         weekdays: "flex",
         weekday:
