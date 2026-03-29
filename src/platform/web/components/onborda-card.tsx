@@ -34,14 +34,25 @@ export function OnbordaCard({
   useEffect(() => {
     const el = cardRef.current;
     if (!el) return;
-    requestAnimationFrame(() => {
+    // Use a small delay to let onborda finish positioning
+    const timer = setTimeout(() => {
       const rect = el.getBoundingClientRect();
-      if (rect.left < 8) {
-        el.style.transform = `translateX(${8 - rect.left}px)`;
-      } else if (rect.right > window.innerWidth - 8) {
-        el.style.transform = `translateX(${window.innerWidth - 8 - rect.right}px)`;
+      const pad = 8;
+      let dx = 0;
+      let dy = 0;
+      if (rect.left < pad) dx = pad - rect.left;
+      else if (rect.right > window.innerWidth - pad) dx = window.innerWidth - pad - rect.right;
+      if (rect.top < pad) dy = pad - rect.top;
+      else if (rect.bottom > window.innerHeight - pad) dy = window.innerHeight - pad - rect.bottom;
+      if (dx !== 0 || dy !== 0) {
+        el.style.marginLeft = `${dx}px`;
+        el.style.marginTop = `${dy}px`;
+      } else {
+        el.style.marginLeft = "";
+        el.style.marginTop = "";
       }
-    });
+    }, 50);
+    return () => clearTimeout(timer);
   }, [currentStep]);
 
   return (
