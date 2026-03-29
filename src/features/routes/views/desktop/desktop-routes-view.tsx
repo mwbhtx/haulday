@@ -57,6 +57,7 @@ export function DesktopRoutesView() {
 
   // Start onboarding tour if no search is active and user hasn't completed it
   const tourStarted = useRef(false);
+  const [isTourActive, setIsTourActive] = useState(false);
   const updateSettings = useUpdateSettings();
   // Reset tour guard when user changes (e.g. sign out → try demo again)
   useEffect(() => {
@@ -80,6 +81,7 @@ export function DesktopRoutesView() {
         overlayOpacity: 0.7,
         popoverClass: "hv-tour-popover",
         onDestroyed: () => {
+          setIsTourActive(false);
           if (isDemoUser()) {
             sessionStorage.setItem("hv-tour-dismissed", "1");
           } else {
@@ -87,6 +89,7 @@ export function DesktopRoutesView() {
           }
         },
       });
+      setIsTourActive(true);
       driverObj.drive();
     }, 500);
     return () => clearTimeout(timer);
@@ -245,7 +248,7 @@ export function DesktopRoutesView() {
             onOriginChange={setOriginFilter}
             onDestinationChange={setDestFilter}
             onFilterPending={() => setFilterPending(true)}
-            isOnboarding={false}
+            isOnboarding={isTourActive}
             hasHome={hasHomeBase}
             resetKey={filterResetKey}
             initialTripType="round-trip"
