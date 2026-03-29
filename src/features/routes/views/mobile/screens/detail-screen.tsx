@@ -75,7 +75,7 @@ export function DetailScreen({ chain, isRoundTrip, originCity, onBack }: DetailS
         </TabsList>
 
         {/* Overview tab */}
-        <TabsContent value="overview" className="flex-1 overflow-y-auto px-4 py-4">
+        <TabsContent value="overview" className="flex-1 overflow-y-auto px-4 py-4 pb-24">
           {/* Key metrics — matches desktop card layout: $/Day, Profit, Net/mi, Miles */}
           <div className="grid grid-cols-2 gap-3 mb-2">
             <MetricCard
