@@ -69,16 +69,6 @@ export function ResultsScreen({
         >
           <Search className="h-4 w-4 text-muted-foreground shrink-0" />
           <span className="flex-1 text-sm truncate">{searchText}</span>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onFiltersTap();
-            }}
-            className="rounded-full p-1 hover:bg-white/10 transition-colors"
-          >
-            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-          </button>
         </div>
       </div>
 
