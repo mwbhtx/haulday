@@ -224,7 +224,7 @@ export function FiltersSheet({ onBack, onApply, initialFilters }: FiltersSheetPr
           expanded={expandedRow === "homeBy"}
           onToggle={() => toggle("homeBy")}
         >
-          <div className="rounded-lg border border-white/10 overflow-hidden">
+          <div className="rounded-lg border border-white/10 overflow-hidden mt-3">
             <Calendar
               mode="single"
               selected={selectedDate}
