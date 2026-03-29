@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import type { CardComponentProps } from "onborda";
 import { useOnborda } from "onborda";
 import { X } from "lucide-react";
@@ -18,8 +18,6 @@ export function OnbordaCard({
   const { closeOnborda } = useOnborda();
   const updateSettings = useUpdateSettings();
   const cardRef = useRef<HTMLDivElement>(null);
-  const [clamped, setClamped] = useState(false);
-  const [clampStyle, setClampStyle] = useState<React.CSSProperties>({});
 
   const dismiss = () => {
     if (isDemoUser()) {
@@ -30,58 +28,36 @@ export function OnbordaCard({
     closeOnborda();
   };
 
-  // Clamp card to viewport — reposition with fixed positioning if overflowing
+  // Nudge card back into viewport if it overflows — preserves onborda's
+  // positioning and arrow, just shifts enough to stop clipping.
   useEffect(() => {
-    setClamped(false);
-    setClampStyle({});
-
     const el = cardRef.current;
     if (!el) return;
+    el.style.transform = "";
 
-    // Multiple attempts — onborda repositions asynchronously
-    const attempts = [50, 150, 300];
-    const timers = attempts.map((delay) =>
-      setTimeout(() => {
-        const rect = el.getBoundingClientRect();
-        const pad = 12;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
+    const timer = setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      let dx = 0;
+      let dy = 0;
 
-        const overflowLeft = rect.left < pad;
-        const overflowRight = rect.right > vw - pad;
-        const overflowTop = rect.top < pad;
-        const overflowBottom = rect.bottom > vh - pad;
+      // Only nudge if actually clipped (negative position or past viewport)
+      if (rect.left < 0) dx = -rect.left + 8;
+      else if (rect.right > vw) dx = vw - rect.right - 8;
+      if (rect.top < 0) dy = -rect.top + 8;
+      else if (rect.bottom > vh) dy = vh - rect.bottom - 8;
 
-        if (overflowLeft || overflowRight || overflowTop || overflowBottom) {
-          // Calculate clamped position
-          let left = rect.left;
-          let top = rect.top;
+      if (dx !== 0 || dy !== 0) {
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
+    }, 100);
 
-          if (overflowLeft) left = pad;
-          if (overflowRight) left = vw - rect.width - pad;
-          if (overflowTop) top = pad;
-          if (overflowBottom) top = vh - rect.height - pad;
-
-          setClamped(true);
-          setClampStyle({
-            position: "fixed",
-            left: `${Math.max(pad, left)}px`,
-            top: `${Math.max(pad, top)}px`,
-            zIndex: 9999,
-          });
-        }
-      }, delay),
-    );
-
-    return () => timers.forEach(clearTimeout);
+    return () => clearTimeout(timer);
   }, [currentStep]);
 
   return (
-    <div
-      ref={cardRef}
-      className="relative w-72 rounded-lg border border-border bg-card p-4 shadow-xl"
-      style={clamped ? clampStyle : undefined}
-    >
+    <div ref={cardRef} className="relative w-72 rounded-lg border border-border bg-card p-4 shadow-xl">
       {/* Close button */}
       <button
         onClick={dismiss}
@@ -126,8 +102,8 @@ export function OnbordaCard({
         </div>
       )}
 
-      {/* Arrow — hide when card is repositioned since it won't point correctly */}
-      {!clamped && arrow}
+      {/* Arrow pointing at the target element */}
+      {arrow}
     </div>
   );
 }
