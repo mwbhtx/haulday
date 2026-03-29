@@ -902,7 +902,7 @@ export function SearchFilters({
   if (mobile) {
     const activeFilterCount = [
       homeBy,
-      maxDeadheadPct !== 15,
+      maxDeadheadPct !== DEFAULT_MAX_DEADHEAD_PCT,
       maxIdle !== 48,
       risk !== "any",
     ].filter(Boolean).length;
