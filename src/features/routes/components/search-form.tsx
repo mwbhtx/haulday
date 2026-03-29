@@ -20,7 +20,7 @@ import { ChevronDown, ChevronUpIcon, LocateIcon, SlidersHorizontal, XIcon } from
 import { BorderBeam } from "@/platform/web/components/ui/border-beam";
 import { Calendar } from "@/platform/web/components/ui/calendar";
 import { useSettings, useUpdateSettings } from "@/core/hooks/use-settings";
-import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_LEGS_ONE_WAY, DEFAULT_LEGS_ROUND_TRIP, DEFAULT_MAX_DEADHEAD_PCT, DEFAULT_MAX_IDLE_HOURS, MIN_DEADHEAD_PCT, MAX_DEADHEAD_PCT } from "@mwbhtx/haulvisor-core";
+import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_LEGS_ONE_WAY, DEFAULT_LEGS_ROUND_TRIP, DEFAULT_MAX_DEADHEAD_PCT, DEFAULT_MAX_IDLE_HOURS, MIN_DEADHEAD_PCT, MAX_DEADHEAD_PCT, DEFAULT_COST_PER_MILE } from "@mwbhtx/haulvisor-core";
 import type { RouteSearchParams, RoundTripSearchParams } from "@/core/hooks/use-routes";
 
 export type SearchParams = RouteSearchParams;
@@ -489,7 +489,7 @@ export function SearchFilters({
     twic_card: settings.twic_card ?? undefined,
     team_driver: settings.team_driver ?? undefined,
     max_assigned_orders: settings.max_assigned_orders ?? undefined,
-    cost_per_mile: settings.cost_per_mile ?? undefined,
+    cost_per_mile: (settings.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE,
     diesel_price_per_gallon: settings.diesel_price_per_gallon ?? undefined,
     maintenance_per_mile: settings.maintenance_per_mile ?? undefined,
     tires_per_mile: settings.tires_per_mile ?? undefined,

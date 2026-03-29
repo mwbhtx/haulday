@@ -180,8 +180,8 @@ export function DesktopRoutesView() {
       routeChains: [],
       roundTripChains: homeRoutes,
     });
-    setSelectedItemIndex(0);
-    setSelectedRouteLegs(homeRoutes[0]?.legs ?? null);
+    setSelectedItemIndex(-1);
+    setSelectedRouteLegs(null);
   }, [roundTripResults, roundTripParams]);
 
   // Populate sidebar when one-way results arrive
@@ -199,8 +199,8 @@ export function DesktopRoutesView() {
       routeChains: allRouteChains,
       roundTripChains: [],
     });
-    setSelectedItemIndex(0);
-    setSelectedRouteLegs(allRouteChains[0]?.legs ?? null);
+    setSelectedItemIndex(-1);
+    setSelectedRouteLegs(null);
   }, [routes, searchParams]);
 
   if (!activeCompanyId) {

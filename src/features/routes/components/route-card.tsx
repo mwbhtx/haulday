@@ -2,6 +2,7 @@
 
 import { MapPin, TrendingUp, Truck } from "lucide-react";
 import { cn } from "@/core/utils";
+import { routeProfitColor } from "@/core/utils/rate-color";
 import type { RouteChain, RoundTripChain } from "@/core/types";
 
 interface RouteCardProps {
@@ -71,7 +72,7 @@ export function RouteCard({ chain, isRoundTrip, onClick, className }: RouteCardP
         {dailyProfit !== null && (
           <span className="flex items-center gap-1">
             <TrendingUp className="h-3 w-3" />
-            <span className={cn("font-semibold", dailyProfit >= 0 ? "text-emerald-400" : "text-red-400")}>
+            <span className={cn("font-semibold", routeProfitColor(dailyProfit))}>
               ${Math.round(dailyProfit)}/day
             </span>
           </span>

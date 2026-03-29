@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, TrendingUp, Truck, MapPin, Gauge } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/platform/web/components/ui/tabs";
 import { RouteInspector } from "@/features/routes/components/route-inspector";
+import { routeProfitColor } from "@/core/utils/rate-color";
 import type { RouteChain, RoundTripChain, RoundTripLeg, RouteLeg } from "@/core/types";
 
 interface DetailScreenProps {
@@ -92,7 +93,7 @@ export function DetailScreen({ chain, isRoundTrip, originCity, onBack }: DetailS
               icon={<TrendingUp className="h-4 w-4" />}
               label="Daily Profit"
               value={`$${Math.round(dailyProfit)}/day`}
-              valueClassName={dailyProfit >= 0 ? "text-emerald-400" : "text-red-400"}
+              valueClassName={routeProfitColor(dailyProfit)}
             />
             <MetricCard
               icon={<Truck className="h-4 w-4" />}
