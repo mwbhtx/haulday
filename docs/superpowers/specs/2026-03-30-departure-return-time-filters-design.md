@@ -171,7 +171,23 @@ The `MaxIdlePill` in `search-form.tsx` already renders `IDLE_OPTIONS` dynamicall
 |------|--------|
 | `haulvisor-core/src/search-defaults.ts` | Replace `IDLE_OPTIONS` array, update `DEFAULT_MAX_IDLE_HOURS` |
 
-## 9. Out of Scope
+## 9. Onboarding Tour Updates
+
+The app uses `driver.js` for an onboarding tour (`src/platform/web/components/tour-steps.tsx`). Each filter pill has an `#onborda-*` ID that the tour targets.
+
+### Changes
+
+1. **Add tour step for "Leave By"** — new `#onborda-leave-by` ID on the Leave By pill, with a new `DriveStep` explaining departure date/time simulation
+2. **Update "Home By" step** — mention the new time picker ("Set a date and time you need to be home by...")
+3. **Update "Max Idle" step** — reflect the new hour-based presets ("Choose how long you're willing to wait between loads — from 2 hours to keep rolling, up to 24 hours for maximum flexibility")
+
+### Files to Modify
+| File | Change |
+|------|--------|
+| `src/platform/web/components/tour-steps.tsx` | Add Leave By step, update Home By and Max Idle descriptions |
+| `src/features/routes/components/search-form.tsx` | Add `id="onborda-leave-by"` wrapper on Leave By pill |
+
+## 10. Out of Scope
 
 - Backend implementation of `depart_by`, `depart_by_time`, `home_by_time` query handling
 - Mobile view updates (will follow separately)
