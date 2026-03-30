@@ -8,6 +8,9 @@ import { Input } from "@/platform/web/components/ui/input";
 import { useAuth } from "@/core/services/auth-provider";
 import { MarketingNav } from "@/platform/web/components/marketing-nav";
 import { BackgroundBeams } from "@/platform/web/components/ui/beams";
+import { SHADER_PRESETS, DEFAULT_SHADER } from "@/core/constants/shader-presets";
+const ShaderGradientCanvas = dynamic(() => import("@shadergradient/react").then(m => ({ default: m.ShaderGradientCanvas })), { ssr: false });
+const ShaderGradient = dynamic(() => import("@shadergradient/react").then(m => ({ default: m.ShaderGradient })), { ssr: false });
 
 export default function LoginPage() {
   const router = useRouter();
@@ -80,14 +83,36 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="dark min-h-screen bg-surface-deep text-foreground relative">
-      <div className="opacity-0 animate-[fade-in_1s_ease-in_forwards]">
+    <div className="dark min-h-screen text-foreground relative" style={{ backgroundColor: '#000000' }}>
+      {/* Layer 1: Shader gradient (fixed background) */}
+      {(() => {
+        const preset = SHADER_PRESETS.find(p => p.name === DEFAULT_SHADER) ?? SHADER_PRESETS[0];
+        return (
+          <ShaderGradientCanvas
+            style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0, animation: "fade-in 1s ease-in 0.5s forwards" }}
+            pixelDensity={2}
+            fov={preset.fov}
+          >
+            <ShaderGradient {...preset.props} />
+          </ShaderGradientCanvas>
+        );
+      })()}
+
+      {/* Layer 2: Full-page glass overlay */}
+      <div className="fixed inset-0 z-[1] bg-black/40 backdrop-blur-xl" />
+
+      {/* Layer 3: Beams */}
+      <div className="opacity-0 animate-[fade-in_1s_ease-in_forwards] relative z-[2]">
         <BackgroundBeams />
       </div>
-      <MarketingNav variant="light" hideAuth />
 
-      <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-20 sm:pt-28 pb-20">
-        <div className="w-full max-w-sm rounded-2xl bg-black/20 border border-white/[0.06] backdrop-blur-sm p-8">
+      {/* Layer 4: Content */}
+      <div className="relative z-[3]">
+        <MarketingNav variant="light" hideAuth />
+      </div>
+
+      <div className="relative z-[3] flex flex-col items-center justify-center px-6 pt-20 sm:pt-28 pb-20">
+        <div className="w-full max-w-sm rounded-2xl bg-black/30 border border-white/[0.08] backdrop-blur-md p-8">
           <h2 className="font-display text-3xl font-normal tracking-wide mb-8 text-white">
             {needsNewPassword ? "Set new password" : "Log in to Haulvisor"}
           </h2>
