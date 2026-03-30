@@ -2,17 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/core/services/auth-provider";
-import { RoutePathsBackground } from "@/platform/web/components/route-paths-background";
 import { MarketingNav } from "@/platform/web/components/marketing-nav";
 import { ArrowRight, CalendarCheck, Bookmark, DollarSign, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
 import ShaderGradientButton from "@/platform/web/components/shader-gradient-button";
-import { SHADER_PRESETS, DEFAULT_SHADER } from "@/core/constants/shader-presets";
-const ShaderGradientCanvas = dynamic(() => import("@shadergradient/react").then(m => ({ default: m.ShaderGradientCanvas })), { ssr: false });
-const ShaderGradient = dynamic(() => import("@shadergradient/react").then(m => ({ default: m.ShaderGradient })), { ssr: false });
 
 const FEATURES = [
   {
@@ -61,20 +55,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="dark min-h-screen text-foreground" style={{ backgroundColor: '#000000' }}>
-      {(() => {
-        const preset = SHADER_PRESETS.find(p => p.name === DEFAULT_SHADER) ?? SHADER_PRESETS[0];
-        return (
-          <ShaderGradientCanvas
-            style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0, animation: "fade-in 1s ease-in 0.5s forwards" }}
-            pixelDensity={2}
-            fov={preset.fov}
-          >
-            <ShaderGradient {...preset.props} />
-          </ShaderGradientCanvas>
-        );
-      })()}
-
+    <>
       <div className="relative overflow-hidden min-h-[50vh] flex flex-col">
         <MarketingNav />
 
@@ -194,6 +175,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-    </div>
+    </>
   );
 }

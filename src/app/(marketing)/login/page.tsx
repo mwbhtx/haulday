@@ -2,15 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-import { Button } from "@/platform/web/components/ui/button";
 import { Input } from "@/platform/web/components/ui/input";
 import { useAuth } from "@/core/services/auth-provider";
 import { MarketingNav } from "@/platform/web/components/marketing-nav";
 import { BackgroundBeams } from "@/platform/web/components/ui/beams";
-import { SHADER_PRESETS, DEFAULT_SHADER } from "@/core/constants/shader-presets";
-const ShaderGradientCanvas = dynamic(() => import("@shadergradient/react").then(m => ({ default: m.ShaderGradientCanvas })), { ssr: false });
-const ShaderGradient = dynamic(() => import("@shadergradient/react").then(m => ({ default: m.ShaderGradient })), { ssr: false });
 
 export default function LoginPage() {
   const router = useRouter();
@@ -73,7 +68,7 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
           <p className="text-sm text-muted-foreground">Signing in...</p>
@@ -83,30 +78,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="dark min-h-screen text-foreground relative" style={{ backgroundColor: '#000000' }}>
-      {/* Layer 1: Shader gradient (fixed background) */}
-      {(() => {
-        const preset = SHADER_PRESETS.find(p => p.name === DEFAULT_SHADER) ?? SHADER_PRESETS[0];
-        return (
-          <ShaderGradientCanvas
-            style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0, animation: "fade-in 1s ease-in 0.5s forwards" }}
-            pixelDensity={2}
-            fov={preset.fov}
-          >
-            <ShaderGradient {...preset.props} />
-          </ShaderGradientCanvas>
-        );
-      })()}
-
-      {/* Layer 2: Full-page glass overlay */}
+    <>
+      {/* Glass overlay */}
       <div className="fixed inset-0 z-[1] bg-black/40 backdrop-blur-xl" />
 
-      {/* Layer 3: Beams */}
+      {/* Beams */}
       <div className="fixed inset-0 z-[2] opacity-0 animate-[fade-in_1s_ease-in_forwards] pointer-events-none">
         <BackgroundBeams />
       </div>
 
-      {/* Layer 4: Content */}
+      {/* Content */}
       <div className="relative z-[3]">
         <MarketingNav variant="light" hideAuth />
       </div>
@@ -139,6 +120,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }
