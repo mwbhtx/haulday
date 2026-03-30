@@ -1,10 +1,17 @@
-# Departure & Return Time Filters + Bookmark Fix
+# Departure & Return Time Filters, Idle Presets, Bookmark Fix
 
 **Date:** 2026-03-30
 
 ## Overview
 
-Add departure date/time ("Leave By") and return time ("Home By" time) filters to the route search. All route results are simulated from the departure date/time to determine if route requirements (delivery, pickup, home by) can be met. Also restore the bookmark icon on the route detail panel.
+Three changes to route search:
+
+1. **Leave By filter** — new date+time picker for departure simulation start
+2. **Home By time** — add time preset to existing date-only filter
+3. **Max idle presets** — replace day-based options with driver-friendly hour-based presets (2h, 4h, 8h, 24h, Any)
+4. **Bookmark fix** — restore missing bookmark icon on route detail panel
+
+All route results are simulated from the departure date/time to determine if route requirements (delivery, pickup, home by) can be met.
 
 ## 1. New Filter: "Leave By"
 
@@ -135,7 +142,36 @@ Either way, the result is `RouteDetailPanel` receives both props and the bookmar
 | `src/features/routes/views/desktop/route-list.tsx` | Expose watchlist state to parent |
 | Filter state type (wherever defined) | Add `depart_by`, `depart_by_time`, `home_by_time` fields |
 
-## 8. Out of Scope
+## 8. Updated Max Idle Time Options
+
+### Current State
+`IDLE_OPTIONS` in `haulvisor-core/src/search-defaults.ts` uses day-based increments (1–5 Days + Any).
+
+### New Options
+Replace with driver-friendly presets:
+
+```typescript
+export const IDLE_OPTIONS = [
+  { value: 2,  label: "2 Hours",  description: "Keep me rolling" },
+  { value: 4,  label: "4 Hours",  description: "Meal and short break" },
+  { value: 8,  label: "8 Hours",  description: "A shift, maybe overnight" },
+  { value: 24, label: "24 Hours", description: "Flexible, rest or appointments" },
+  { value: 0,  label: "Any",      description: "No limit, show everything" },
+] as const;
+```
+
+### Default
+Update `DEFAULT_MAX_IDLE_HOURS` from `48` to `24` (closest reasonable default in the new set).
+
+### UI
+The `MaxIdlePill` in `search-form.tsx` already renders `IDLE_OPTIONS` dynamically — no UI code change needed beyond optionally showing the description as helper text beneath each button.
+
+### Files to Modify
+| File | Change |
+|------|--------|
+| `haulvisor-core/src/search-defaults.ts` | Replace `IDLE_OPTIONS` array, update `DEFAULT_MAX_IDLE_HOURS` |
+
+## 9. Out of Scope
 
 - Backend implementation of `depart_by`, `depart_by_time`, `home_by_time` query handling
 - Mobile view updates (will follow separately)
