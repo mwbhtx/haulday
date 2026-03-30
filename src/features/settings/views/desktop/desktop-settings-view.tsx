@@ -46,11 +46,22 @@ function useDebouncedSave(delayMs = 800) {
   return save;
 }
 
+const NAV_SECTIONS = [
+  { id: "general", label: "General" },
+  { id: "costs", label: "Operating Costs" },
+  { id: "truck", label: "Truck & Capacity" },
+  { id: "trailers", label: "Trailer Types" },
+  { id: "certifications", label: "Certifications" },
+  { id: "schedule", label: "Schedule" },
+  { id: "appearance", label: "Appearance" },
+] as const;
+
 export function DesktopSettingsView() {
   const { data: settings, isLoading } = useSettings();
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
   const save = useDebouncedSave();
+  const [activeSection, setActiveSection] = useState<string>("general");
 
   // Local state for form fields
   const [homeCity, setHomeCity] = useState("");
@@ -78,6 +89,30 @@ export function DesktopSettingsView() {
 
   // Track whether initial sync has happened to avoid triggering saves
   const initialized = useRef(false);
+
+  // Scroll to section on nav click
+  const scrollToSection = (id: string) => {
+    setActiveSection(id);
+    document.getElementById(`settings-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Track active section on scroll
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      for (const section of NAV_SECTIONS) {
+        const el = document.getElementById(`settings-${section.id}`);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 120) setActiveSection(section.id);
+        }
+      }
+    };
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
 
 
   // Sync from API on load
@@ -183,14 +218,6 @@ export function DesktopSettingsView() {
     }
   }
 
-  function handleLocationClear() {
-    setHomeCity("");
-    setHomeState("");
-    setHomeLat(null);
-    setHomeLng(null);
-    if (initialized.current) saveLocation("", "", null, null);
-  }
-
   function handleNumberChange(
     key: string,
     value: string,
@@ -242,29 +269,63 @@ export function DesktopSettingsView() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Theme */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-          Appearance
-        </h3>
-        <ThemeSelector />
-      </div>
+    <div className="flex h-full -m-6 w-[calc(100%+3rem)]">
+      {/* Side navigation */}
+      <nav className="w-48 shrink-0 border-r border-border/50 p-4 space-y-1">
+        {NAV_SECTIONS.map((section) => (
+          <button
+            key={section.id}
+            type="button"
+            onClick={() => scrollToSection(section.id)}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+              activeSection === section.id
+                ? "bg-accent text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            }`}
+          >
+            {section.label}
+          </button>
+        ))}
 
-      <Separator />
+        {user?.role === "admin" && (
+          <>
+            <Separator className="my-2" />
+            <Link
+              href="/admin"
+              className="flex w-full items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+            >
+              <Shield className="h-3.5 w-3.5" />
+              Admin Panel
+            </Link>
+          </>
+        )}
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Driver Profile</CardTitle>
-          <CardDescription>
-            These settings filter which orders appear in route searches. Clear a field to disable it.
-          </CardDescription>
-        </CardHeader>
+        {isMobile && (
+          <>
+            <Separator className="my-2" />
+            <button
+              type="button"
+              onClick={logout}
+              className="flex w-full items-center gap-2 px-3 py-2 rounded-md text-sm text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign Out
+            </button>
+          </>
+        )}
+      </nav>
 
-        <CardContent className="space-y-8">
-          {/* Home Location */}
+      {/* Content */}
+      <div ref={contentRef} className="flex-1 overflow-y-auto p-6 space-y-10">
+        {/* General */}
+        <section id="settings-general" className="max-w-2xl space-y-6">
+          <div>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">General</h3>
+            <p className="text-xs text-muted-foreground mt-1">Home location and search defaults.</p>
+          </div>
+
           <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Home Location</label>
+            <label className="text-sm font-medium block">Home Location</label>
             <PlaceAutocomplete
               placeholder="Search city, state..."
               value={
@@ -281,9 +342,8 @@ export function DesktopSettingsView() {
             </p>
           </div>
 
-          {/* Max Deadhead */}
           <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Max Deadhead (mi.)</label>
+            <label className="text-sm font-medium block">Max Deadhead (mi.)</label>
             <Input
               type="number"
               min={10}
@@ -294,9 +354,8 @@ export function DesktopSettingsView() {
             />
           </div>
 
-          {/* Cost Per Mile */}
           <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Cost Per Mile ($)</label>
+            <label className="text-sm font-medium block">Cost Per Mile ($)</label>
             <Input
               type="number"
               min={0.5}
@@ -307,142 +366,79 @@ export function DesktopSettingsView() {
               placeholder="e.g. 1.50"
             />
             <p className="text-sm text-muted-foreground">
-              Flat override — when set, replaces the detailed cost breakdown below.
+              Flat override — when set, replaces the detailed cost breakdown.
             </p>
           </div>
+        </section>
 
-          <Separator />
+        <Separator />
 
-          {/* Operating Costs */}
-          <div className="space-y-1">
-            <h3 className="text-sm font-semibold">Operating Costs</h3>
-            <p className="text-sm text-muted-foreground">
-              Fine-tune your cost model. Leave blank to use industry defaults.
-            </p>
+        {/* Operating Costs */}
+        <section id="settings-costs" className="max-w-2xl space-y-6">
+          <div>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Operating Costs</h3>
+            <p className="text-xs text-muted-foreground mt-1">Fine-tune your cost model. Leave blank to use industry defaults.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium block">Diesel ($/gal)</label>
-              <Input
-                type="number"
-                min={1}
-                max={15}
-                step={0.01}
-                value={dieselPrice}
-                onChange={(e) => handleNumberChange("diesel_price_per_gallon", e.target.value, setDieselPrice)}
-                placeholder="3.85"
-              />
+              <Input type="number" min={1} max={15} step={0.01} value={dieselPrice} onChange={(e) => handleNumberChange("diesel_price_per_gallon", e.target.value, setDieselPrice)} placeholder="3.85" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium block">Maintenance ($/mi)</label>
-              <Input
-                type="number"
-                min={0.01}
-                max={1}
-                step={0.01}
-                value={maintenancePerMile}
-                onChange={(e) => handleNumberChange("maintenance_per_mile", e.target.value, setMaintenancePerMile)}
-                placeholder="0.15"
-              />
+              <Input type="number" min={0.01} max={1} step={0.01} value={maintenancePerMile} onChange={(e) => handleNumberChange("maintenance_per_mile", e.target.value, setMaintenancePerMile)} placeholder="0.15" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium block">Tires ($/mi)</label>
-              <Input
-                type="number"
-                min={0.01}
-                max={0.5}
-                step={0.01}
-                value={tiresPerMile}
-                onChange={(e) => handleNumberChange("tires_per_mile", e.target.value, setTiresPerMile)}
-                placeholder="0.04"
-              />
+              <Input type="number" min={0.01} max={0.5} step={0.01} value={tiresPerMile} onChange={(e) => handleNumberChange("tires_per_mile", e.target.value, setTiresPerMile)} placeholder="0.04" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium block">Truck payment ($/day)</label>
-              <Input
-                type="number"
-                min={0}
-                max={500}
-                step={1}
-                value={truckPaymentPerDay}
-                onChange={(e) => handleNumberChange("truck_payment_per_day", e.target.value, setTruckPaymentPerDay)}
-                placeholder="65"
-              />
+              <Input type="number" min={0} max={500} step={1} value={truckPaymentPerDay} onChange={(e) => handleNumberChange("truck_payment_per_day", e.target.value, setTruckPaymentPerDay)} placeholder="65" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium block">Insurance ($/day)</label>
-              <Input
-                type="number"
-                min={0}
-                max={300}
-                step={1}
-                value={insurancePerDay}
-                onChange={(e) => handleNumberChange("insurance_per_day", e.target.value, setInsurancePerDay)}
-                placeholder="40"
-              />
+              <Input type="number" min={0} max={300} step={1} value={insurancePerDay} onChange={(e) => handleNumberChange("insurance_per_day", e.target.value, setInsurancePerDay)} placeholder="40" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium block">Per diem ($/day)</label>
-              <Input
-                type="number"
-                min={0}
-                max={200}
-                step={1}
-                value={perDiemPerDay}
-                onChange={(e) => handleNumberChange("per_diem_per_day", e.target.value, setPerDiemPerDay)}
-                placeholder="69"
-              />
+              <Input type="number" min={0} max={200} step={1} value={perDiemPerDay} onChange={(e) => handleNumberChange("per_diem_per_day", e.target.value, setPerDiemPerDay)} placeholder="69" />
             </div>
+          </div>
+        </section>
+
+        <Separator />
+
+        {/* Truck & Capacity */}
+        <section id="settings-truck" className="max-w-2xl space-y-6">
+          <div>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Truck & Capacity</h3>
+            <p className="text-xs text-muted-foreground mt-1">Vehicle specs and load limits.</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium block">Truck Avg. MPG</label>
-              <Input
-                type="number"
-                min={3}
-                max={12}
-                step={0.1}
-                value={avgMpg}
-                onChange={(e) => handleNumberChange("avg_mpg", e.target.value, setAvgMpg)}
-                placeholder="6.0"
-              />
+              <Input type="number" min={3} max={12} step={0.1} value={avgMpg} onChange={(e) => handleNumberChange("avg_mpg", e.target.value, setAvgMpg)} placeholder="6.0" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium block">Avg. Driving Hours/Day</label>
-              <Input
-                type="number"
-                min={6}
-                max={11}
-                step={1}
-                value={avgDrivingHours}
-                onChange={(e) => handleNumberChange("avg_driving_hours_per_day", e.target.value, setAvgDrivingHours)}
-                placeholder="11"
-              />
+              <Input type="number" min={6} max={11} step={1} value={avgDrivingHours} onChange={(e) => handleNumberChange("avg_driving_hours_per_day", e.target.value, setAvgDrivingHours)} placeholder="11" />
             </div>
           </div>
 
-          <Separator />
-
-          {/* Max Weight */}
           <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Max Weight (lbs)</label>
-            <Input
-              type="number"
-              min={1000}
-              max={80000}
-              step={1000}
-              value={maxWeight}
-              onChange={(e) => handleNumberChange("max_weight", e.target.value, setMaxWeight)}
-              placeholder="e.g. 45000"
-            />
+            <label className="text-sm font-medium block">Max Weight (lbs)</label>
+            <Input type="number" min={1000} max={80000} step={1000} value={maxWeight} onChange={(e) => handleNumberChange("max_weight", e.target.value, setMaxWeight)} placeholder="e.g. 45000" />
           </div>
 
-          {/* Max Assigned Orders */}
           <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Max Assigned Orders</label>
+            <label className="text-sm font-medium block">Max Assigned Orders</label>
             <select
               value={maxAssigned}
               onChange={(e) => handleNumberChange("max_assigned_orders", e.target.value, setMaxAssigned)}
-              className="flex h-12 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="">Not set</option>
               <option value="1">1</option>
@@ -454,85 +450,87 @@ export function DesktopSettingsView() {
             </p>
           </div>
 
-          {/* Max Idle Between Loads */}
           <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Max Idle Between Loads</label>
+            <label className="text-sm font-medium block">Max Idle Between Loads</label>
             <select
               value={maxIdle}
               onChange={(e) => handleNumberChange("max_idle_hours", e.target.value, setMaxIdle)}
-              className="flex h-12 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="">Not set (use filter bar)</option>
-              <option value="24">1 Day</option>
-              <option value="48">2 Days</option>
-              <option value="72">3 Days</option>
-              <option value="96">4 Days</option>
-              <option value="120">5 Days</option>
+              <option value="2">2 Hours</option>
+              <option value="4">4 Hours</option>
+              <option value="8">8 Hours</option>
+              <option value="24">24 Hours</option>
             </select>
             <p className="text-sm text-muted-foreground">
               Maximum idle time between delivering one load and picking up the next.
               This sets your default — you can still override it on the filter bar.
             </p>
           </div>
+        </section>
 
-          <Separator />
+        <Separator />
 
-          {/* Trailer Types */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Trailer Types</label>
-            <div className="flex flex-wrap gap-2">
-              {TRAILER_CATEGORIES.map((cat) => {
-                const selected = trailerLabels.includes(cat.label);
-                return (
-                  <button
-                    key={cat.label}
-                    type="button"
-                    onClick={() => handleTrailerToggle(cat.label)}
-                    className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
-                      selected
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-input bg-transparent hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {trailerLabels.length === 0
-                ? "No filter — all trailer types shown."
-                : `Filtering to ${trailerLabels.join(", ")} and compatible combos.`}
-            </p>
+        {/* Trailer Types */}
+        <section id="settings-trailers" className="max-w-2xl space-y-6">
+          <div>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Trailer Types</h3>
+            <p className="text-xs text-muted-foreground mt-1">Select the trailers you can haul.</p>
           </div>
 
-          <Separator />
+          <div className="flex flex-wrap gap-2">
+            {TRAILER_CATEGORIES.map((cat) => {
+              const selected = trailerLabels.includes(cat.label);
+              return (
+                <button
+                  key={cat.label}
+                  type="button"
+                  onClick={() => handleTrailerToggle(cat.label)}
+                  className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                    selected
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-input bg-transparent hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {trailerLabels.length === 0
+              ? "No filter — all trailer types shown."
+              : `Filtering to ${trailerLabels.join(", ")} and compatible combos.`}
+          </p>
+        </section>
 
-          {/* Certifications */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Certifications</label>
-            <CertToggle
-              label="Hazmat Certified"
-              checked={hazmatCertified}
-              onChange={() => handleBoolToggle("hazmat_certified", hazmatCertified, setHazmatCertified)}
-            />
-            <CertToggle
-              label="TWIC Card"
-              checked={twicCard}
-              onChange={() => handleBoolToggle("twic_card", twicCard, setTwicCard)}
-            />
-            <CertToggle
-              label="Team Driver"
-              checked={teamDriver}
-              onChange={() => handleBoolToggle("team_driver", teamDriver, setTeamDriver)}
-            />
+        <Separator />
+
+        {/* Certifications */}
+        <section id="settings-certifications" className="max-w-2xl space-y-6">
+          <div>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Certifications</h3>
+            <p className="text-xs text-muted-foreground mt-1">Endorsements and qualifications.</p>
           </div>
 
-          <Separator />
+          <div className="space-y-2">
+            <CertToggle label="Hazmat Certified" checked={hazmatCertified} onChange={() => handleBoolToggle("hazmat_certified", hazmatCertified, setHazmatCertified)} />
+            <CertToggle label="TWIC Card" checked={twicCard} onChange={() => handleBoolToggle("twic_card", twicCard, setTwicCard)} />
+            <CertToggle label="Team Driver" checked={teamDriver} onChange={() => handleBoolToggle("team_driver", teamDriver, setTeamDriver)} />
+          </div>
+        </section>
 
-          {/* Work Days */}
+        <Separator />
+
+        {/* Schedule */}
+        <section id="settings-schedule" className="max-w-2xl space-y-6">
+          <div>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Schedule</h3>
+            <p className="text-xs text-muted-foreground mt-1">Set your available work days.</p>
+          </div>
+
           <div className="space-y-3">
-            <label className="text-sm font-medium mb-2 block">Work Days</label>
             <div className="flex flex-wrap gap-2">
               {(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const).map((day) => {
                 const allSelected = workDays.length === 0 || workDays.length === 7;
@@ -563,10 +561,7 @@ export function DesktopSettingsView() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setWorkDays([]);
-                  if (initialized.current) save({ work_days: null });
-                }}
+                onClick={() => { setWorkDays([]); if (initialized.current) save({ work_days: null }); }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 All days
@@ -574,11 +569,7 @@ export function DesktopSettingsView() {
               <span className="text-sm text-muted-foreground">/</span>
               <button
                 type="button"
-                onClick={() => {
-                  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-                  setWorkDays(weekdays);
-                  if (initialized.current) save({ work_days: weekdays });
-                }}
+                onClick={() => { const wd = ["Mon", "Tue", "Wed", "Thu", "Fri"]; setWorkDays(wd); if (initialized.current) save({ work_days: wd }); }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Weekdays only
@@ -586,42 +577,22 @@ export function DesktopSettingsView() {
             </div>
             <p className="text-sm text-muted-foreground">
               Routes won&apos;t include pickups or deliveries on your off days.
-              Select all or leave empty to disable.
             </p>
           </div>
+        </section>
 
-          <Separator />
+        <Separator />
 
-          {/* Admin */}
-          {user?.role === "admin" && (
-            <Link
-              href="/admin"
-              className="flex w-full items-center justify-between rounded-lg border px-4 py-3 text-sm font-medium transition-colors hover:bg-accent/50"
-            >
-              <span className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Admin Panel
-              </span>
-              <span className="text-muted-foreground">&#8250;</span>
-            </Link>
-          )}
+        {/* Appearance */}
+        <section id="settings-appearance" className="max-w-2xl space-y-6">
+          <div>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Appearance</h3>
+            <p className="text-xs text-muted-foreground mt-1">Theme and display preferences.</p>
+          </div>
 
-          {/* Sign Out — mobile only */}
-          {isMobile && (
-            <div className="space-y-3">
-              <Button
-                variant="destructive"
-                onClick={logout}
-                className="w-full gap-2 h-12 text-base"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
-            </div>
-          )}
-
-        </CardContent>
-      </Card>
+          <ThemeSelector />
+        </section>
+      </div>
     </div>
   );
 }
