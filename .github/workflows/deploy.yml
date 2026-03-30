@@ -24,7 +24,9 @@ jobs:
           registry-url: https://npm.pkg.github.com
 
       - name: Swap local core link for registry package
-        run: sed -i 's|"file:../haulvisor-core"|"*"|' package.json
+        run: |
+          sed -i 's|"file:[^"]*haulvisor-core"|"*"|' package.json
+          rm -f package-lock.json
 
       - run: npm install
         env:
