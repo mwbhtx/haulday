@@ -6,7 +6,7 @@ export function MarketingNav({ variant = "dark", hideAuth = false }: { variant?:
   return (
     <header className="relative z-10 border-b border-black/20 bg-black/55 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-14">
-        <Link href="/" className={`text-3xl tracking-wide leading-none ${isDark ? "text-white" : "text-white"}`} style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+        <Link href="/" className={`font-display text-3xl tracking-wide leading-none ${isDark ? "text-white" : "text-white"}`}>
           HAULVISOR
         </Link>
         {!hideAuth && (

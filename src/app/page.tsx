@@ -104,7 +104,7 @@ export default function HomePage() {
 
         {/* ── Hero ── */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
-          <h1 className="font-normal tracking-wide leading-[0.85] text-white" style={{ fontFamily: 'var(--font-bebas-neue)', fontSize: '95px' }}>
+          <h1 className="font-display font-normal tracking-wide leading-[0.85] text-white text-[95px]">
             haulvisor
           </h1>
           <p className="text-white font-normal whitespace-nowrap" style={{ fontSize: '25px', marginTop: '15px' }}>
@@ -152,7 +152,7 @@ export default function HomePage() {
       {/* ── Bottom CTA ── */}
       <section className="relative z-10 border-t border-white/[0.06]">
         <div className="max-w-6xl mx-auto px-6 py-24 sm:py-32 text-center">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-wide leading-[0.9]" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-normal tracking-wide leading-[0.9]">
             Built for truckers.<br />Available today.
           </h2>
           <div className="mt-8 flex items-center justify-center gap-4">
@@ -173,7 +173,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-10">
           <div className="flex flex-col sm:flex-row gap-12 sm:gap-8">
             <div className="sm:w-40 shrink-0">
-              <span className="text-3xl tracking-wide leading-none" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+              <span className="font-display text-3xl tracking-wide leading-none">
                 Haulvisor
               </span>
             </div>

@@ -88,7 +88,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 flex flex-col items-center justify-center px-6 pt-20 sm:pt-28 pb-20">
         <div className="w-full max-w-sm rounded-2xl bg-black/20 border border-white/[0.06] backdrop-blur-sm p-8">
-          <h2 className="text-3xl font-normal tracking-wide mb-8 text-white" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+          <h2 className="font-display text-3xl font-normal tracking-wide mb-8 text-white">
             {needsNewPassword ? "Set new password" : "Log in to Haulvisor"}
           </h2>
 

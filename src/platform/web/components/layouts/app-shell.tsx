@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Top nav bar */}
       <header className="flex h-14 shrink-0 items-center border-b bg-sidebar px-4">
         {/* Logo */}
-        <Link href="/routes" className="text-3xl text-sidebar-foreground tracking-wide" style={{ fontFamily: 'var(--font-bebas-neue)' }}>
+        <Link href="/routes" className="font-display text-3xl text-sidebar-foreground tracking-wide">
           HAULVISOR
         </Link>
 
