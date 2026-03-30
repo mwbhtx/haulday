@@ -1,11 +1,12 @@
 import type { RouteChain, RoundTripChain } from "@/core/types";
+import type { RouteSortKey } from "@mwbhtx/haulvisor-core";
 
-export type SortKey = "profit" | "daily_profit" | "net_per_mile";
+export type SortKey = RouteSortKey;
 
 export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "daily_profit", label: "$/Day" },
   { key: "profit", label: "Profit" },
-  { key: "net_per_mile", label: "Net/mi" },
+  { key: "deadhead", label: "Deadhead" },
 ];
 
 export function sortRouteChains(chains: RouteChain[], sortBy: SortKey): RouteChain[] {
@@ -13,7 +14,7 @@ export function sortRouteChains(chains: RouteChain[], sortBy: SortKey): RouteCha
   switch (sortBy) {
     case "profit": sorted.sort((a, b) => b.profit - a.profit); break;
     case "daily_profit": sorted.sort((a, b) => b.daily_net_profit - a.daily_net_profit); break;
-    case "net_per_mile": sorted.sort((a, b) => b.effective_rpm - a.effective_rpm); break;
+    case "deadhead": sorted.sort((a, b) => a.deadhead_pct - b.deadhead_pct); break;
   }
   return sorted;
 }
@@ -23,7 +24,7 @@ export function sortRoundTripChains(chains: RoundTripChain[], sortBy: SortKey): 
   switch (sortBy) {
     case "profit": sorted.sort((a, b) => b.firm_profit - a.firm_profit); break;
     case "daily_profit": sorted.sort((a, b) => b.daily_net_profit - a.daily_net_profit); break;
-    case "net_per_mile": sorted.sort((a, b) => b.effective_rpm - a.effective_rpm); break;
+    case "deadhead": sorted.sort((a, b) => a.deadhead_pct - b.deadhead_pct); break;
   }
   return sorted;
 }

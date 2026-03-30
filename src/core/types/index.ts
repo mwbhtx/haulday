@@ -5,6 +5,7 @@ export type { RoundTripChain, RoundTripLeg, RoundTripSearchResult } from "@mwbht
 export type { RouteCostBreakdown } from "@mwbhtx/haulvisor-core";
 export type { TripPhase, TripPhaseKind, TripSimulationSummary } from "@mwbhtx/haulvisor-core";
 export { TRIP_DEFAULTS } from "@mwbhtx/haulvisor-core";
+export type { RouteSortKey, RiskLevel, WorkDay } from "@mwbhtx/haulvisor-core";
 
 // Analytics types (new API)
 export interface AnalyticsStats {

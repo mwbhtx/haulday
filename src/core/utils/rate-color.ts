@@ -1,4 +1,10 @@
-import { profitThresholds } from "@mwbhtx/haulvisor-core";
+import {
+  GROSS_RATE_GREEN_MULTIPLIER,
+  GROSS_RATE_YELLOW_MULTIPLIER,
+  NET_RATE_GREEN,
+  NET_RATE_YELLOW,
+  profitThresholds,
+} from "@mwbhtx/haulvisor-core";
 
 /**
  * Returns a Tailwind text color class for a GROSS rate per mile value
@@ -6,8 +12,8 @@ import { profitThresholds } from "@mwbhtx/haulvisor-core";
  */
 export function rateColor(ratePerMile: number, costPerMile: number): string {
   const ratio = ratePerMile / costPerMile;
-  if (ratio >= 1.7) return "text-green-500";
-  if (ratio >= 1.3) return "text-yellow-500";
+  if (ratio >= GROSS_RATE_GREEN_MULTIPLIER) return "text-green-500";
+  if (ratio >= GROSS_RATE_YELLOW_MULTIPLIER) return "text-yellow-500";
   return "text-red-500";
 }
 
@@ -15,8 +21,8 @@ export function rateColor(ratePerMile: number, costPerMile: number): string {
  * Returns a Tailwind text color class for a NET (after costs) rate per mile.
  */
 export function netRateColor(netPerMile: number): string {
-  if (netPerMile >= 1.0) return "text-green-500";
-  if (netPerMile >= 0.5) return "text-yellow-500";
+  if (netPerMile >= NET_RATE_GREEN) return "text-green-500";
+  if (netPerMile >= NET_RATE_YELLOW) return "text-yellow-500";
   return "text-red-500";
 }
 
