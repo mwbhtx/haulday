@@ -77,6 +77,7 @@ export function DesktopSettingsView() {
   const [insurancePerDay, setInsurancePerDay] = useState("");
   const [perDiemPerDay, setPerDiemPerDay] = useState("");
   const [avgMpg, setAvgMpg] = useState("");
+  const [tankSize, setTankSize] = useState("");
   const [avgDrivingHours, setAvgDrivingHours] = useState("");
   const [maxWeight, setMaxWeight] = useState("");
   const [maxAssigned, setMaxAssigned] = useState("");
@@ -131,6 +132,7 @@ export function DesktopSettingsView() {
     setInsurancePerDay(settings.insurance_per_day != null ? String(settings.insurance_per_day) : "");
     setPerDiemPerDay(settings.per_diem_per_day != null ? String(settings.per_diem_per_day) : "");
     setAvgMpg(settings.avg_mpg != null ? String(settings.avg_mpg) : "");
+    setTankSize((settings as any).tank_size_gallons != null ? String((settings as any).tank_size_gallons) : "");
     setAvgDrivingHours(settings.avg_driving_hours_per_day != null ? String(settings.avg_driving_hours_per_day) : "");
     setMaxWeight(settings.max_weight != null ? String(settings.max_weight) : "");
     setMaxAssigned(settings.max_assigned_orders != null ? String(settings.max_assigned_orders) : "");
@@ -168,6 +170,7 @@ export function DesktopSettingsView() {
     insurance_per_day: { min: 0, max: 300 },
     per_diem_per_day: { min: 0, max: 200 },
     avg_mpg: { min: 3, max: 12 },
+    tank_size_gallons: { min: 50, max: 300 },
     avg_driving_hours_per_day: { min: 6, max: 11 },
     max_weight: { min: 1000, max: 80000 },
     max_assigned_orders: { min: 1, max: 5 },
@@ -398,10 +401,19 @@ export function DesktopSettingsView() {
               <Input type="number" min={3} max={12} step={0.1} value={avgMpg} onChange={(e) => handleNumberChange("avg_mpg", e.target.value, setAvgMpg)} placeholder="6.0" />
             </div>
             <div className="space-y-2">
+              <label className="text-sm font-medium block">Tank Size (gallons)</label>
+              <Input type="number" min={50} max={300} step={1} value={tankSize} onChange={(e) => handleNumberChange("tank_size_gallons", e.target.value, setTankSize)} placeholder="150" />
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium block">Avg. Driving Hours/Day</label>
               <Input type="number" min={6} max={11} step={1} value={avgDrivingHours} onChange={(e) => handleNumberChange("avg_driving_hours_per_day", e.target.value, setAvgDrivingHours)} placeholder="11" />
             </div>
           </div>
+          {avgMpg && tankSize && (
+            <p className="text-sm text-muted-foreground">
+              Estimated fuel range: ~{Math.floor(Number(avgMpg) * Number(tankSize) * 0.9)} miles between stops
+            </p>
+          )}
 
           <div className="space-y-3">
             <label className="text-sm font-medium block">Max Weight (lbs)</label>
