@@ -161,7 +161,7 @@ export const IDLE_OPTIONS = [
 ```
 
 ### Default
-Update `DEFAULT_MAX_IDLE_HOURS` from `48` to `24` (closest reasonable default in the new set).
+Update `DEFAULT_MAX_IDLE_HOURS` from `48` to `0` (Any — widest results by default, drivers narrow down).
 
 ### UI
 The `MaxIdlePill` in `search-form.tsx` already renders `IDLE_OPTIONS` dynamically — no UI code change needed beyond optionally showing the description as helper text beneath each button.
