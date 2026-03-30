@@ -129,11 +129,11 @@ export function LocationSidebar({ location, selectedIndex, onSelectIndex, onClos
   }, [selectedIndex, isLoading, sortBy, sortedRoundTrips, sortedRoutes, isRoundTripMode, onSelectIndex]);
 
   return (
-    <div className="flex h-full w-full bg-[#111111e8] border border-white/10 rounded-2xl flex-col overflow-hidden relative">
+    <div className="flex h-full w-full bg-card/95 backdrop-blur border border-border rounded-2xl flex-col overflow-hidden relative">
 
       {/* Sort bar + watchlist toggle */}
       {hasResults && !isLoading && (
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-[#111111e8] rounded-xl mx-2 mt-2">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-card/95 rounded-xl mx-2 mt-2">
           <span className="text-sm text-muted-foreground mr-1">Sort</span>
           {ROUTE_SORT_OPTIONS.map((opt) => (
             <button
@@ -408,38 +408,38 @@ function RoundTripChainCard({
       {/* Route details */}
       <div
         className={`flex-1 min-w-0 transition-colors ${
-          isSelected ? "bg-[#111111]" : "rounded-xl bg-[#111111] hover:bg-[#161616]"
+          isSelected ? "bg-card" : "rounded-xl bg-card hover:bg-surface-elevated"
         }`}
       >
         {/* Key metrics + bookmark — click here to toggle selection */}
         <div onClick={onClick} className="flex justify-around text-center items-start px-4 py-3 border-b border-white/[0.05] cursor-pointer">
           <div>
-            <p className="text-sm uppercase tracking-wide" style={{ color: "rgba(205,205,205,0.5)" }}>$/Day</p>
+            <p className="text-sm uppercase tracking-wide text-text-secondary">$/Day</p>
             <p className={`text-xl font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
               {formatCurrency(chain.daily_net_profit)}
             </p>
-            <p className="text-xs tabular-nums mt-0.5" style={{ color: "rgba(205,205,205,0.4)" }}>{chain.estimated_days.toFixed(1)} days est.</p>
+            <p className="text-xs tabular-nums mt-0.5 text-text-tertiary">{chain.estimated_days.toFixed(1)} days est.</p>
           </div>
           <div>
-            <p className="text-sm uppercase tracking-wide" style={{ color: "rgba(205,205,205,0.5)" }}>Profit</p>
+            <p className="text-sm uppercase tracking-wide text-text-secondary">Profit</p>
             <p className={`text-xl font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
               {formatCurrency(profit)}
             </p>
-            <p className="text-xs tabular-nums mt-0.5" style={{ color: "rgba(205,205,205,0.4)" }}>{formatCurrency(chain.total_pay)} gross</p>
+            <p className="text-xs tabular-nums mt-0.5 text-text-tertiary">{formatCurrency(chain.total_pay)} gross</p>
           </div>
           <div>
-            <p className="text-sm uppercase tracking-wide" style={{ color: "rgba(205,205,205,0.5)" }}>Net/mi</p>
+            <p className="text-sm uppercase tracking-wide text-text-secondary">Net/mi</p>
             <p className={`text-xl font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
               {formatRpm(chain.effective_rpm)}
             </p>
             {avgLoadedRpm !== null && (
-              <p className="text-xs tabular-nums mt-0.5" style={{ color: "rgba(205,205,205,0.4)" }}>${avgLoadedRpm.toFixed(2)}/mi loaded</p>
+              <p className="text-xs tabular-nums mt-0.5 text-text-tertiary">${avgLoadedRpm.toFixed(2)}/mi loaded</p>
             )}
           </div>
           <div>
-            <p className="text-sm uppercase tracking-wide" style={{ color: "rgba(205,205,205,0.5)" }}>Miles</p>
+            <p className="text-sm uppercase tracking-wide text-text-secondary">Miles</p>
             <p className="text-xl font-bold tabular-nums">{chain.total_miles.toLocaleString()}</p>
-            <p className="text-xs tabular-nums mt-0.5" style={{ color: chain.deadhead_pct > 30 ? "rgba(245,158,11,0.7)" : "rgba(205,205,205,0.4)" }}>{chain.deadhead_pct.toFixed(0)}% DH</p>
+            <p className={`text-xs tabular-nums mt-0.5 ${chain.deadhead_pct > 30 ? "text-warning" : "text-text-tertiary"}`}>{chain.deadhead_pct.toFixed(0)}% DH</p>
           </div>
           {onToggleWatchlist && (
             <button
@@ -458,7 +458,7 @@ function RoundTripChainCard({
             <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs tabular-nums text-muted-foreground">
               {chain.legs.length} {chain.legs.length === 1 ? "load" : "loads"}
             </span>
-            <span className="text-sm" style={{ color: "rgba(205,205,205,0.5)" }}>{dateRange}</span>
+            <span className="text-sm text-text-secondary">{dateRange}</span>
           </div>
         )}
 
@@ -476,19 +476,19 @@ function RoundTripChainCard({
           const returnCity = destCity || origin;
 
           return (
-            <div className="border-t border-white/[0.05] bg-[#1f1f1f]">
+            <div className="border-t border-white/[0.05] bg-surface-overlay">
               {/* Cost breakdown toggle */}
-              <div className="border-b border-white/[0.05] bg-[#111111]">
+              <div className="border-b border-white/[0.05] bg-card">
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 text-sm transition-colors w-full px-4 py-2.5" style={{ color: "rgba(205,205,205,0.5)" }}
+                  className="flex items-center gap-1.5 text-sm transition-colors w-full px-4 py-2.5 text-text-secondary"
                   onClick={(e) => { e.stopPropagation(); setShowCosts(!showCosts); }}
                 >
                   <span>Cost breakdown</span>
                   {showCosts ? <ChevronUpIcon className="h-3.5 w-3.5" /> : <ChevronDownIcon className="h-3.5 w-3.5" />}
                 </button>
                 {showCosts && (
-                  <div className="px-4 pb-3 grid grid-cols-[1fr_auto] gap-x-6 gap-y-1.5 text-sm" style={{ color: "#cdcdcd" }}>
+                  <div className="px-4 pb-3 grid grid-cols-[1fr_auto] gap-x-6 gap-y-1.5 text-sm text-text-body">
                     <span>Fuel</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.fuel)}</span>
                     <span>Maintenance</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.maintenance)}</span>
                     <span>Tires</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.tires)}</span>
@@ -501,20 +501,20 @@ function RoundTripChainCard({
 
               {/* Segments header */}
               <div className="px-4 pt-3 pb-1.5 border-b border-white/[0.05]">
-                <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(205,205,205,0.3)" }}>Segments</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle">Segments</p>
               </div>
 
               {/* Start deadhead */}
               {startDh > 0 && firstLeg.origin_city !== origin && (
-                <div className="flex items-stretch gap-3 pl-4 pr-4 border-b border-white/[0.05] bg-[#161616]">
+                <div className="flex items-stretch gap-3 pl-4 pr-4 border-b border-white/[0.05] bg-surface-elevated">
                   <div className="flex flex-col items-center shrink-0">
                     <div className="w-px flex-1 bg-white/[0.07]" />
-                    <div className="h-3.5 w-3.5 rounded-full border-2 border-white/20 bg-[#161616] shrink-0" />
+                    <div className="h-3.5 w-3.5 rounded-full border-2 border-white/20 bg-surface-elevated shrink-0" />
                     <div className="w-px flex-1 bg-white/[0.07]" />
                   </div>
                   <div className="flex items-center flex-1 gap-3 py-3">
-                    <span className="flex-1 text-base" style={{ color: "#cdcdcd" }}>{origin} → {firstLeg.origin_city}</span>
-                    <span className="text-base tabular-nums" style={{ color: "#ff6969" }}>−{formatCurrency(startDh * costPerDhMile)} DH</span>
+                    <span className="flex-1 text-base text-text-body">{origin} → {firstLeg.origin_city}</span>
+                    <span className="text-base tabular-nums text-negative">−{formatCurrency(startDh * costPerDhMile)} DH</span>
                   </div>
                 </div>
               )}
@@ -525,17 +525,17 @@ function RoundTripChainCard({
                 return (
                   <div key={leg.leg_number}>
                     {showBetweenDh && (
-                      <div className="flex items-stretch gap-3 pl-4 pr-4 border-b border-white/[0.05] bg-[#161616]">
+                      <div className="flex items-stretch gap-3 pl-4 pr-4 border-b border-white/[0.05] bg-surface-elevated">
                         <div className="flex flex-col items-center shrink-0">
                           <div className="w-px flex-1 bg-white/[0.07]" />
-                          <div className="h-3.5 w-3.5 rounded-full border-2 border-white/20 bg-[#161616] shrink-0" />
+                          <div className="h-3.5 w-3.5 rounded-full border-2 border-white/20 bg-surface-elevated shrink-0" />
                           <div className="w-px flex-1 bg-white/[0.07]" />
                         </div>
                         <div className="flex items-center flex-1 gap-3 py-3">
-                          <span className="flex-1 text-base" style={{ color: "#cdcdcd" }}>
+                          <span className="flex-1 text-base text-text-body">
                             {chain.legs[legIdx - 1].destination_city} → {leg.origin_city}
                           </span>
-                          <span className="text-base tabular-nums" style={{ color: "#ff6969" }}>
+                          <span className="text-base tabular-nums text-negative">
                             −{formatCurrency(leg.deadhead_miles * costPerDhMile)} DH
                           </span>
                         </div>
@@ -567,7 +567,7 @@ function RoundTripChainCard({
                             ) : (
                               <span className="truncate">{leg.origin_city} → {leg.destination_city}</span>
                             )}
-                            {leg.lane_rank != null && <FlameIcon className="h-4 w-4 text-primary shrink-0" />}
+                            {leg.lane_rank != null && <FlameIcon className="h-4 w-4 text-brand shrink-0" />}
                             {leg.order_id && leg.type === "firm" && onShowComments && (
                               <button
                                 type="button"
@@ -580,13 +580,13 @@ function RoundTripChainCard({
                             )}
                           </p>
                           <span className={`shrink-0 text-base font-semibold tabular-nums ${
-                            leg.type === "speculative" ? "text-[#cdcdcd]" : "text-green-400"
+                            leg.type === "speculative" ? "text-text-body" : "text-green-400"
                           }`}>
                             {leg.type === "speculative" ? `~${formatCurrency(leg.pay)}` : formatCurrency(leg.pay)}
                           </span>
                         </div>
                         {leg.type === "firm" ? (
-                          <div className="text-sm mt-1 space-y-0.5" style={{ color: "#cdcdcd" }}>
+                          <div className="text-sm mt-1 space-y-0.5 text-text-body">
                             <p>
                               {[leg.weight != null ? `${leg.weight.toLocaleString()} lbs` : null, leg.miles != null ? `${leg.miles.toLocaleString()} mi` : null].filter(Boolean).join(" · ")}
                               {leg.miles > 0 && <>{" · "}<span className={rateColor(leg.pay / leg.miles, costPerMile)}>${(leg.pay / leg.miles).toFixed(2)}/mi</span></>}
@@ -599,7 +599,7 @@ function RoundTripChainCard({
                             )}
                           </div>
                         ) : (
-                          <p className="text-sm mt-1" style={{ color: "#cdcdcd" }}>
+                          <p className="text-sm mt-1 text-text-body">
                             {[`${leg.miles.toLocaleString()} mi`, leg.lane_confidence ? `${leg.lane_confidence.loads_per_week.toFixed(1)} loads/wk` : null].filter(Boolean).join(" · ")}
                           </p>
                         )}
@@ -615,15 +615,15 @@ function RoundTripChainCard({
               })}
 
               {returnDh > 0 && lastLeg.destination_city !== returnCity && (
-                <div className="flex items-stretch gap-3 pl-4 pr-4 border-b border-white/[0.05] bg-[#161616]">
+                <div className="flex items-stretch gap-3 pl-4 pr-4 border-b border-white/[0.05] bg-surface-elevated">
                   <div className="flex flex-col items-center shrink-0">
                     <div className="w-px flex-1 bg-white/[0.07]" />
-                    <div className="h-3.5 w-3.5 rounded-full border-2 border-white/20 bg-[#161616] shrink-0" />
+                    <div className="h-3.5 w-3.5 rounded-full border-2 border-white/20 bg-surface-elevated shrink-0" />
                     <div className="w-px flex-1 bg-white/[0.07]" />
                   </div>
                   <div className="flex items-center flex-1 gap-3 py-3">
-                    <span className="flex-1 text-base" style={{ color: "#cdcdcd" }}>{lastLeg.destination_city} → {returnCity}</span>
-                    <span className="text-base tabular-nums" style={{ color: "#ff6969" }}>−{formatCurrency(returnDh * costPerDhMile)} DH</span>
+                    <span className="flex-1 text-base text-text-body">{lastLeg.destination_city} → {returnCity}</span>
+                    <span className="text-base tabular-nums text-negative">−{formatCurrency(returnDh * costPerDhMile)} DH</span>
                   </div>
                 </div>
               )}
@@ -637,10 +637,10 @@ function RoundTripChainCard({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); setShowInspector(true); }}
-          className="flex items-center justify-center w-7 shrink-0 rounded-r-xl bg-[#161616] hover:bg-[#1e1e1e] border-l border-white/[0.05] transition-colors"
+          className="flex items-center justify-center w-7 shrink-0 rounded-r-xl bg-surface-elevated hover:bg-surface-overlay border-l border-white/[0.05] transition-colors"
           title="View segment breakdown"
         >
-          <ChevronLeftIcon className="h-4 w-4 text-[#cdcdcd]" />
+          <ChevronLeftIcon className="h-4 w-4 text-text-body" />
         </button>
       )}
 
@@ -657,13 +657,13 @@ function RoundTripChainCard({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setShowInspector(false); }}
-            className="flex items-center justify-center w-7 shrink-0 bg-[#303030] hover:bg-[#3a3a3a] border-r border-white/[0.05] transition-colors"
+            className="flex items-center justify-center w-7 shrink-0 bg-surface-muted hover:bg-surface-muted-hover border-r border-white/[0.05] transition-colors"
             title="Back to route"
           >
-            <ChevronRightIcon className="h-4 w-4 text-[#cdcdcd]" />
+            <ChevronRightIcon className="h-4 w-4 text-text-body" />
           </button>
           {/* Inspector content */}
-          <div className="flex-1 min-w-0 overflow-hidden bg-[#303030]">
+          <div className="flex-1 min-w-0 overflow-hidden bg-surface-muted">
             <RouteInspector
               chain={chain}
               originCity={originCity || "Origin"}
