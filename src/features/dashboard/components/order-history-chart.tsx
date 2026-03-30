@@ -27,18 +27,18 @@ import { useAnalyticsHistory } from "@/core/hooks/use-analytics";
 const activeConfig = {
   active_orders: {
     label: "Active",
-    color: "#06b6d4",
+    color: "var(--chart-cyan)",
   },
 } satisfies ChartConfig;
 
 const flowConfig = {
   added: {
     label: "Added",
-    color: "#8b5cf6",
+    color: "var(--chart-purple)",
   },
   removed: {
     label: "Removed",
-    color: "#ef4444",
+    color: "var(--chart-red)",
   },
 } satisfies ChartConfig;
 
@@ -120,8 +120,8 @@ export function ActiveOrdersChart({ companyId, from, to, bucket }: ChartProps) {
             <AreaChart data={data} accessibilityLayer>
               <defs>
                 <linearGradient id="gradActive" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="var(--chart-cyan)" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="var(--chart-cyan)" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} strokeOpacity={0.1} />
@@ -139,7 +139,7 @@ export function ActiveOrdersChart({ companyId, from, to, bucket }: ChartProps) {
                 type="monotone"
                 dataKey="active_orders"
                 name="Active"
-                stroke="#06b6d4"
+                stroke="var(--chart-cyan)"
                 strokeWidth={2}
                 fill="url(#gradActive)"
                 dot={false}
@@ -173,12 +173,12 @@ export function OrderFlowChart({ companyId, from, to, bucket }: ChartProps) {
             <AreaChart data={data} accessibilityLayer>
               <defs>
                 <linearGradient id="gradAdded" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="var(--chart-purple)" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="var(--chart-purple)" stopOpacity={0.02} />
                 </linearGradient>
                 <linearGradient id="gradRemoved" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.15} />
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="var(--chart-red)" stopOpacity={0.15} />
+                  <stop offset="100%" stopColor="var(--chart-red)" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} strokeOpacity={0.1} />
@@ -197,7 +197,7 @@ export function OrderFlowChart({ companyId, from, to, bucket }: ChartProps) {
                 type="monotone"
                 dataKey="added"
                 name="Added"
-                stroke="#8b5cf6"
+                stroke="var(--chart-purple)"
                 strokeWidth={2}
                 fill="url(#gradAdded)"
                 dot={false}
@@ -206,7 +206,7 @@ export function OrderFlowChart({ companyId, from, to, bucket }: ChartProps) {
                 type="monotone"
                 dataKey="removed"
                 name="Removed"
-                stroke="#ef4444"
+                stroke="var(--chart-red)"
                 strokeWidth={2}
                 fill="url(#gradRemoved)"
                 dot={false}

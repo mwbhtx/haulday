@@ -19,7 +19,7 @@ import { useAnalyticsTopCities } from "@/core/hooks/use-analytics";
 const chartConfig = {
   avg_count: {
     label: "Orders",
-    color: "#22c55e",
+    color: "var(--positive)",
   },
 } satisfies ChartConfig;
 
