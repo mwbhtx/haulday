@@ -66,7 +66,7 @@ export default function HomePage() {
         const preset = SHADER_PRESETS.find(p => p.name === DEFAULT_SHADER) ?? SHADER_PRESETS[0];
         return (
           <ShaderGradientCanvas
-            style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0, animation: "fade-in 0.5s ease-in 0.3s forwards" }}
+            style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0, animation: "fade-in 1s ease-in 0.5s forwards" }}
             pixelDensity={2}
             fov={preset.fov}
           >
@@ -93,7 +93,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Value prop + Feature sections (joined for beam effect) ── */}
-      <div className="relative z-10 border-t border-white/[0.06] bg-surface-deep flex flex-col items-center">
+      <div className="relative z-10 border-t border-white/[0.06] bg-black/40 backdrop-blur-xl flex flex-col items-center">
         <div className="relative max-w-4xl mx-auto px-6 py-16 sm:py-20 text-center w-full">
           <p className="text-xl sm:text-2xl md:text-[1.7rem] leading-relaxed text-text-body">
             Built for owner-operators who'd rather drive than stare at a load board. We analyze every route, calculate your real profit, and find the
@@ -106,7 +106,7 @@ export default function HomePage() {
             {FEATURES.map((feature, i) => (
               <motion.div
                 key={feature.title}
-                className="rounded-2xl bg-surface-deep p-8 sm:p-10 flex flex-col"
+                className="rounded-2xl bg-black p-8 sm:p-10 flex flex-col"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
@@ -126,7 +126,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Bottom CTA ── */}
-      <section className="relative z-10 border-t border-white/[0.06]">
+      <section className="relative z-10 border-t border-white/[0.06] bg-black/40 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 py-24 sm:py-32 text-center">
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-normal tracking-wide leading-[0.9]">
             Built for truckers.<br />Available today.
@@ -145,7 +145,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="relative z-10 border-t border-white/[0.06] bg-surface-deep">
+      <footer className="relative z-10 border-t border-white/[0.06] bg-black/40 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-10">
           <div className="flex flex-col sm:flex-row gap-12 sm:gap-8">
             <div className="sm:w-40 shrink-0">
