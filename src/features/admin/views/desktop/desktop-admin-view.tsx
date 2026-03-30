@@ -33,7 +33,7 @@ import { Badge } from "@/platform/web/components/ui/badge";
 import { Skeleton } from "@/platform/web/components/ui/skeleton";
 import { Input } from "@/platform/web/components/ui/input";
 import { toast } from "sonner";
-import { ChevronDownIcon, CheckIcon, ClockIcon } from "lucide-react";
+import { ChevronDownIcon, CheckIcon, ClockIcon, RefreshCwIcon, SearchIcon } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -61,6 +61,20 @@ interface Company {
   registered_at?: string;
   updated_at?: string;
   order_url_template?: string;
+  stale_order_refresh_config?: {
+    enabled: boolean;
+    timezone: string;
+    run_time: string;
+  };
+  last_stale_refresh?: {
+    timestamp: string;
+    stale_count: number;
+  };
+  last_available_orders_scan?: {
+    timestamp: string;
+    total_orders: number;
+    new_orders: number;
+  };
 }
 
 const DEFAULT_FETCH_SCHEDULE: FetchSchedule = {
@@ -305,6 +319,163 @@ function OrderUrlPopover({
               setOpen(false);
             }}
           />
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function StaleRefreshPopover({
+  company,
+  onSave,
+}: {
+  company: Company;
+  onSave: (companyId: string, config: Company["stale_order_refresh_config"]) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [config, setConfig] = useState(
+    company.stale_order_refresh_config ?? { enabled: false, timezone: "America/Chicago", run_time: "06:00" },
+  );
+  const [saving, setSaving] = useState(false);
+
+  function resetAndOpen() {
+    setConfig(company.stale_order_refresh_config ?? { enabled: false, timezone: "America/Chicago", run_time: "06:00" });
+    setOpen(true);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await onSave(company.company_id, config);
+      setOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const last = company.last_stale_refresh;
+  const tz = config.timezone;
+
+  return (
+    <Popover open={open} onOpenChange={(v) => (v ? resetAndOpen() : setOpen(false))}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={`inline-flex items-center justify-center rounded p-1 transition-colors hover:bg-accent ${company.stale_order_refresh_config?.enabled ? "text-primary" : "text-muted-foreground"}`}
+          title="Stale order refresh"
+        >
+          <RefreshCwIcon className="size-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4" align="start">
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium">Stale Order Refresh</h4>
+
+          {/* Enabled toggle */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-muted-foreground">Enabled</label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={config.enabled}
+              onClick={() => setConfig({ ...config, enabled: !config.enabled })}
+              className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${config.enabled ? "bg-primary" : "bg-muted"}`}
+            >
+              <span className={`pointer-events-none block h-4 w-4 rounded-full bg-background shadow-sm transition-transform ${config.enabled ? "translate-x-4" : "translate-x-0"}`} />
+            </button>
+          </div>
+
+          {/* Timezone */}
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">Timezone</label>
+            <Select value={config.timezone} onValueChange={(v) => setConfig({ ...config, timezone: v })}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIMEZONES.map((t) => (
+                  <SelectItem key={t} value={t}>{t.replace("_", " ")}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Run time */}
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">Run after</label>
+            <input
+              type="time"
+              className="h-8 w-full rounded border bg-background px-2 text-sm"
+              value={config.run_time}
+              onChange={(e) => setConfig({ ...config, run_time: e.target.value })}
+            />
+          </div>
+
+          {/* Last run */}
+          <div className="rounded-md border p-2 space-y-1">
+            <div className="text-xs font-medium text-muted-foreground">Last Run</div>
+            {last ? (
+              <>
+                <div className="text-sm">
+                  {new Date(last.timestamp).toLocaleString("en-US", { timeZone: tz, dateStyle: "medium", timeStyle: "short" })}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {last.stale_count === 0 ? "No stale orders found" : `${last.stale_count} stale order${last.stale_count === 1 ? "" : "s"} queued`}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground">Never run</div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button size="sm" disabled={saving} onClick={handleSave}>{saving ? "Saving..." : "Save"}</Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function LastScanPopover({ company }: { company: Company }) {
+  const scan = company.last_available_orders_scan;
+  const tz = company.fetch_schedule?.timezone ?? "America/Chicago";
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={`inline-flex items-center justify-center rounded p-1 transition-colors hover:bg-accent ${scan ? "text-primary" : "text-muted-foreground"}`}
+          title="Last available orders scan"
+        >
+          <SearchIcon className="size-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-4" align="start">
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium">Last Available Orders Scan</h4>
+          {scan ? (
+            <div className="space-y-2">
+              <div className="text-sm">
+                {new Date(scan.timestamp).toLocaleString("en-US", { timeZone: tz, dateStyle: "medium", timeStyle: "short" })}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-md border p-2 text-center">
+                  <div className="text-lg font-semibold tabular-nums">{scan.total_orders.toLocaleString()}</div>
+                  <div className="text-xs text-muted-foreground">Total</div>
+                </div>
+                <div className="rounded-md border p-2 text-center">
+                  <div className="text-lg font-semibold tabular-nums">{scan.new_orders.toLocaleString()}</div>
+                  <div className="text-xs text-muted-foreground">New</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">Never run</div>
+          )}
         </div>
       </PopoverContent>
     </Popover>
@@ -711,6 +882,8 @@ export function DesktopAdminView() {
                   <TableHead>Login Sync Interval</TableHead>
                   <TableHead>Fetch Schedule</TableHead>
                   <TableHead>Order URL</TableHead>
+                  <TableHead>Stale Refresh</TableHead>
+                  <TableHead>Last Scan</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -818,6 +991,32 @@ export function DesktopAdminView() {
                         company={company}
                         onSave={handleSaveOrderUrl}
                       />
+                    </TableCell>
+                    <TableCell>
+                      <StaleRefreshPopover
+                        company={company}
+                        onSave={async (companyId, config) => {
+                          try {
+                            await fetchApi(`companies/${companyId}/data-sync-settings`, {
+                              method: "PUT",
+                              body: JSON.stringify({ stale_order_refresh_config: config }),
+                            });
+                            setCompanies((prev) =>
+                              prev.map((c) =>
+                                c.company_id === companyId
+                                  ? { ...c, stale_order_refresh_config: config }
+                                  : c,
+                              ),
+                            );
+                            toast.success("Stale refresh config updated");
+                          } catch {
+                            toast.error("Failed to update stale refresh config");
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <LastScanPopover company={company} />
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
