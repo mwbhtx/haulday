@@ -50,7 +50,7 @@ function Calendar({ className, classNames, ...props }: CalendarProps) {
         day_button:
           "h-9 w-9 p-0 font-normal rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground inline-flex items-center justify-center transition-colors",
         selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-md",
+          "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground rounded-md",
         today: "bg-accent text-accent-foreground rounded-md",
         outside: "text-muted-foreground/50",
         disabled: "text-muted-foreground/30",
