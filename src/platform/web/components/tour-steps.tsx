@@ -31,10 +31,19 @@ export const tourSteps: DriveStep[] = [
     },
   },
   {
+    element: "#onborda-leave-by",
+    popover: {
+      title: "🚀 Leave By",
+      description: `Set a <strong class="${hl}">departure date and time</strong>. Routes are simulated from this point to check if pickups, deliveries, and return deadlines can be met.`,
+      side: "bottom",
+      align: "center",
+    },
+  },
+  {
     element: "#onborda-home-by",
     popover: {
-      title: "🏠 Home By Date",
-      description: `Set a date you need to be <strong class="${hl}">home by</strong>. Routes that can't get you back in time will be filtered out.`,
+      title: "🏠 Return By",
+      description: `Set a <strong class="${hl}">date and time</strong> you need to be back. Routes that can't get you home in time will be filtered out.`,
       side: "bottom",
       align: "center",
     },
@@ -43,7 +52,7 @@ export const tourSteps: DriveStep[] = [
     element: "#onborda-idle",
     popover: {
       title: "⏱️ Max Idle Time",
-      description: `Limit <strong class="${hl}">idle time</strong> between loads. Lower values keep you moving but may reduce available routes.`,
+      description: `Choose how long you're willing to <strong class="${hl}">wait between loads</strong> — from 2 hours to keep rolling, up to 24 hours for maximum flexibility.`,
       side: "bottom",
       align: "center",
     },
