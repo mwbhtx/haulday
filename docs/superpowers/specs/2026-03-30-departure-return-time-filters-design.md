@@ -187,7 +187,18 @@ The app uses `driver.js` for an onboarding tour (`src/platform/web/components/to
 | `src/platform/web/components/tour-steps.tsx` | Add Leave By step, update Home By and Max Idle descriptions |
 | `src/features/routes/components/search-form.tsx` | Add `id="onborda-leave-by"` wrapper on Leave By pill |
 
-## 10. Out of Scope
+## 10. Nudge Arrow Light Mode Fix
+
+The origin nudge box bouncing arrow (`search-form.tsx` ~line 962) has a hardcoded `bg-black` on the circle. In light mode this should be white.
+
+### Fix
+Change `bg-black` to `bg-background` (or `bg-card`) so it follows the theme. The arrow icon uses `text-primary` which already adapts.
+
+| File | Change |
+|------|--------|
+| `src/features/routes/components/search-form.tsx` | Replace `bg-black` with `bg-background` on nudge arrow circle |
+
+## 11. Out of Scope
 
 - Backend implementation of `depart_by`, `depart_by_time`, `home_by_time` query handling
 - Mobile view updates (will follow separately)
