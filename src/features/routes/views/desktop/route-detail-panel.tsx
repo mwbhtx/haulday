@@ -169,9 +169,9 @@ function RouteDetailContent({
                 }`}
               >
                 <span className="text-text-secondary">{row.label1}</span>
-                <span className={`text-right tabular-nums font-medium ${row.color1 || "text-text-body"}`}>{row.value1}</span>
+                <span className="text-right">{row.color1 ? <span className={`tabular-nums font-medium ${row.color1} bg-black px-1.5 py-0.5`}>{row.value1}</span> : <span className="tabular-nums font-medium text-text-body">{row.value1}</span>}</span>
                 <span className="text-text-secondary">{row.label2}</span>
-                <span className={`text-right tabular-nums font-medium ${row.color2 || "text-text-body"}`}>{row.value2}</span>
+                <span className="text-right">{row.color2 ? <span className={`tabular-nums font-medium ${row.color2} bg-black px-1.5 py-0.5`}>{row.value2}</span> : <span className="tabular-nums font-medium text-text-body">{row.value2}</span>}</span>
               </div>
             ))}
           </div>
@@ -270,8 +270,7 @@ function RouteDetailContent({
                 <div className="flex-1 py-3">
                   <div className="flex items-center gap-3">
                     <p
-                      className="flex-1 text-base font-bold flex items-center gap-1.5 min-w-0"
-                      style={{ color }}
+                      className="flex-1 text-base font-bold flex items-center gap-1.5 min-w-0 text-text-body"
                     >
                       {leg.order_id && orderUrlTemplate ? (
                         <a
@@ -318,7 +317,7 @@ function RouteDetailContent({
                         {leg.miles > 0 && (
                           <>
                             {" · "}
-                            <span className={rateColor(leg.pay / leg.miles, costPerMile)}>
+                            <span className={`${rateColor(leg.pay / leg.miles, costPerMile)} bg-black px-1.5 py-0.5`}>
                               ${(leg.pay / leg.miles).toFixed(2)}/mi
                             </span>
                           </>

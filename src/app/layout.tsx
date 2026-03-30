@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Archivo } from "next/font/google";
+
 import { Providers } from "@/platform/web/components/providers";
 import "./globals.css";
 
@@ -42,9 +42,18 @@ const sohneMono = localFont({
   variable: "--font-sohne-mono",
 });
 
-const archivo = Archivo({
+const sohne = localFont({
+  src: [
+    { path: "../../public/fonts/Test Söhne/test-soehne-extraleicht.woff2", weight: "200" },
+    { path: "../../public/fonts/Test Söhne/test-soehne-leicht.woff2", weight: "300" },
+    { path: "../../public/fonts/Test Söhne/test-soehne-buch.woff2", weight: "400" },
+    { path: "../../public/fonts/Test Söhne/test-soehne-kraftig.woff2", weight: "500" },
+    { path: "../../public/fonts/Test Söhne/test-soehne-halbfett.woff2", weight: "600" },
+    { path: "../../public/fonts/Test Söhne/test-soehne-fett.woff2", weight: "700" },
+    { path: "../../public/fonts/Test Söhne/test-soehne-dreiviertelfett.woff2", weight: "800" },
+    { path: "../../public/fonts/Test Söhne/test-soehne-extrafett.woff2", weight: "900" },
+  ],
   variable: "--font-archivo",
-  subsets: ["latin"],
 });
 
 export const viewport = {
@@ -66,7 +75,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${interstate.variable} ${malloy.variable} ${interstateMono.variable} ${sohneMono.variable} ${archivo.variable} ${gapSans.variable} h-full antialiased`}
+      className={`${interstate.variable} ${malloy.variable} ${interstateMono.variable} ${sohneMono.variable} ${sohne.variable} ${gapSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

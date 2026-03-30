@@ -136,7 +136,7 @@ export function RouteList({
     <div className="flex h-full w-full bg-sidebar flex-col overflow-hidden">
       {/* Sort bar + watchlist toggle */}
       {hasResults && !isLoading && (
-        <div className="flex items-center gap-1.5 p-3 bg-sidebar shrink-0">
+        <div className="flex items-center justify-center gap-1.5 p-3 bg-sidebar shrink-0">
           <span className="text-sm text-muted-foreground mr-1">Sort</span>
           {ROUTE_SORT_OPTIONS.map((opt) => (
             <button

@@ -10,6 +10,7 @@ import { ArrowRight, CalendarCheck, Bookmark, DollarSign, BarChart3 } from "luci
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import ShaderGradientButton from "@/platform/web/components/shader-gradient-button";
+import { SHADER_PRESETS, DEFAULT_SHADER } from "@/core/constants/shader-presets";
 const ShaderGradientCanvas = dynamic(() => import("@shadergradient/react").then(m => ({ default: m.ShaderGradientCanvas })), { ssr: false });
 const ShaderGradient = dynamic(() => import("@shadergradient/react").then(m => ({ default: m.ShaderGradient })), { ssr: false });
 
@@ -60,43 +61,19 @@ export default function HomePage() {
   };
 
   return (
-    <div className="dark min-h-screen text-foreground" style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 40%, black)' }}>
-      <ShaderGradientCanvas
-        style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0, animation: "fade-in 1s ease-in 0.5s forwards" }}
-        pixelDensity={2}
-        fov={40}
-      >
-        <ShaderGradient
-          animate="on"
-          brightness={0.2}
-          cAzimuthAngle={180}
-          cDistance={3.9}
-          cPolarAngle={115}
-          cameraZoom={1}
-          color1="#ff5eea"
-          color2="#8570fe"
-          color3="#35185e"
-          envPreset="dawn"
-          grain="off"
-          lightType="env"
-          positionX={-0.5}
-          positionY={-0.8}
-          positionZ={1}
-          reflection={0.6}
-          rotationX={30}
-          rotationY={20}
-          rotationZ={205}
-          shader="defaults"
-          type="waterPlane"
-          uAmplitude={0}
-          uDensity={1.1}
-          uFrequency={5.5}
-          uSpeed={0.01}
-          uStrength={2.7}
-          uTime={10.4}
-          wireframe={false}
-        />
-      </ShaderGradientCanvas>
+    <div className="dark min-h-screen text-foreground" style={{ backgroundColor: '#000000' }}>
+      {(() => {
+        const preset = SHADER_PRESETS.find(p => p.name === DEFAULT_SHADER) ?? SHADER_PRESETS[0];
+        return (
+          <ShaderGradientCanvas
+            style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: 0, animation: "fade-in 1s ease-in 0.5s forwards" }}
+            pixelDensity={2}
+            fov={preset.fov}
+          >
+            <ShaderGradient {...preset.props} />
+          </ShaderGradientCanvas>
+        );
+      })()}
 
       <div className="relative overflow-hidden min-h-[50vh] flex flex-col">
         <MarketingNav />

@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, TrendingUp } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { cn } from "@/core/utils";
 import { routeProfitColor } from "@/core/utils/rate-color";
 import { getOriginCity, getDestCity, getDailyProfit, getNetProfit, getNetPerMile, getEstimatedDays, getRouteStates, formatCurrency, formatRpm } from "@/core/utils/route-helpers";
@@ -44,20 +44,17 @@ export function RouteCard({ chain, isRoundTrip, onClick, className }: RouteCardP
       {/* Row 2: Key metrics */}
       <div className="flex items-center gap-4 text-base mb-1">
         {dailyProfit !== null && (
-          <span className="flex items-center gap-1.5">
-            <TrendingUp className={cn("h-5 w-5", color)} />
-            <span className={cn("font-semibold", color)}>
-              {formatCurrency(dailyProfit)}/day
-            </span>
+          <span className={cn("font-semibold bg-black px-1.5 py-0.5", color)}>
+            {formatCurrency(dailyProfit)}/day
           </span>
         )}
         {netProfit !== null && (
-          <span className={cn("font-semibold", color)}>
+          <span className={cn("font-semibold bg-black px-1.5 py-0.5", color)}>
             {formatCurrency(netProfit)}
           </span>
         )}
         {netPerMile !== null && (
-          <span className={cn("font-semibold", color)}>
+          <span className={cn("font-semibold bg-black px-1.5 py-0.5", color)}>
             {formatRpm(netPerMile)}
           </span>
         )}

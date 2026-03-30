@@ -172,7 +172,7 @@ function SegmentCard({ leg, index }: { leg: RouteLeg | RoundTripLeg; index: numb
         >
           {index + 1}
         </div>
-        <span className="text-base font-medium" style={{ color: LEG_COLORS[index % LEG_COLORS.length] }}>
+        <span className="text-base font-medium text-text-body">
           {leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}
         </span>
       </div>

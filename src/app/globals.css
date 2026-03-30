@@ -2,8 +2,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-
 @custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: 'Halfre';
+  src: url('/fonts/halfre-font/halfre.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 html, body {
   overscroll-behavior: none;
 }

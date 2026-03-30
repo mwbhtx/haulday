@@ -39,21 +39,21 @@ export function RouteRow({
       <div className="flex justify-around text-center items-start px-4 py-3">
         <div>
           <p className="text-sm uppercase tracking-wide text-text-secondary">$/Day</p>
-          <p className={`text-lg font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
+          <p className={`text-lg font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)} bg-black px-2 py-0.5 inline-block`}>
             {formatCurrency(chain.daily_net_profit)}
           </p>
           <p className="text-xs tabular-nums mt-0.5 text-text-tertiary">{chain.estimated_days.toFixed(1)} days est.</p>
         </div>
         <div>
           <p className="text-sm uppercase tracking-wide text-text-secondary">Profit</p>
-          <p className={`text-lg font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
+          <p className={`text-lg font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)} bg-black px-2 py-0.5 inline-block`}>
             {formatCurrency(profit)}
           </p>
           <p className="text-xs tabular-nums mt-0.5 text-text-tertiary">{formatCurrency(chain.total_pay)} gross</p>
         </div>
         <div>
           <p className="text-sm uppercase tracking-wide text-text-secondary">Net/mi</p>
-          <p className={`text-lg font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
+          <p className={`text-lg font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)} bg-black px-2 py-0.5 inline-block`}>
             {formatRpm(chain.effective_rpm)}
           </p>
           {avgLoadedRpm !== null && (

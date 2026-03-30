@@ -1,0 +1,78 @@
+export interface ShaderPreset {
+  name: string;
+  fov: number;
+  props: Record<string, unknown>;
+}
+
+export const SHADER_PRESETS: ShaderPreset[] = [
+  {
+    name: "amber-purple",
+    fov: 30,
+    props: {
+      animate: "on",
+      brightness: 1.5,
+      cAzimuthAngle: 180,
+      cDistance: 3.41,
+      cPolarAngle: 90,
+      cameraZoom: 1,
+      color1: "#8b098f",
+      color2: "#301900",
+      color3: "#504d00",
+      envPreset: "dawn",
+      grain: "on",
+      lightType: "env",
+      positionX: 0,
+      positionY: 0.1,
+      positionZ: 0,
+      reflection: 0.5,
+      rotationX: 55,
+      rotationY: 0,
+      rotationZ: 45,
+      shader: "defaults",
+      type: "waterPlane",
+      uAmplitude: 1,
+      uDensity: 1.8,
+      uFrequency: 5.5,
+      uSpeed: 0.02,
+      uStrength: 2.5,
+      uTime: 18.4,
+      wireframe: false,
+    },
+  },
+  {
+    name: "deep-blue",
+    fov: 50,
+    props: {
+      animate: "on",
+      brightness: 1.5,
+      cAzimuthAngle: 180,
+      cDistance: 1.59,
+      cPolarAngle: 90,
+      cameraZoom: 1,
+      color1: "#00001e",
+      color2: "#000b30",
+      color3: "#0000ff",
+      envPreset: "dawn",
+      grain: "off",
+      lightType: "env",
+      positionX: 0,
+      positionY: 0.1,
+      positionZ: 0,
+      reflection: 0.5,
+      rotationX: 35,
+      rotationY: 0,
+      rotationZ: 45,
+      shader: "defaults",
+      type: "waterPlane",
+      uAmplitude: 1,
+      uDensity: 1.3,
+      uFrequency: 5.5,
+      uSpeed: 0.1,
+      uStrength: 3.3,
+      uTime: 18.4,
+      wireframe: false,
+    },
+  },
+];
+
+export const DEFAULT_SHADER = "amber-purple";
