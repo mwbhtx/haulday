@@ -201,13 +201,13 @@ export function DesktopRoutesView() {
     }
   }, [displayLocation]);
 
-  // Resize map when detail panel transitions
+  // Resize map when layout changes (detail panel show/hide, search clear)
   useEffect(() => {
     const timer = setTimeout(() => {
       window.dispatchEvent(new Event("resize"));
     }, 350);
     return () => clearTimeout(timer);
-  }, [selectedChain]);
+  }, [selectedChain, hasActiveSearch]);
 
   const handleSearch = (p: RouteSearchParams) => {
     setFilterPending(false);
@@ -229,6 +229,7 @@ export function DesktopRoutesView() {
     setSearchParams(null);
     setRoundTripParams(null);
     setSelectedItemIndex(0);
+    setSelectedChain(null);
     setSelectedRouteLegs(null);
     setOriginFilter(null);
     setDestFilter(null);
