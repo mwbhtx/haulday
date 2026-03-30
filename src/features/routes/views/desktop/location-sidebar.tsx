@@ -190,7 +190,7 @@ export function LocationSidebar({ location, selectedIndex, onSelectIndex, onClos
           </div>
         ) : !hasResults ? (
           <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-            <p className="text-2xl font-bold tabular-nums tracking-tight whitespace-nowrap">0 Routes Found</p>
+            <p className="text-2xl font-bold tabular-nums tracking-tight whitespace-nowrap">0 Matches</p>
             <p className="mt-3 text-base text-foreground/70 leading-relaxed whitespace-nowrap">No routes found matching your filters.<br />Try adjusting your origin, destination,<br />or filter settings.</p>
             {onClearFilters && (
               <button
