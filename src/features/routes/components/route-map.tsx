@@ -15,8 +15,6 @@ interface RouteMapProps {
   originCoords?: { lat: number; lng: number } | null;
   /** User's selected destination (one-way) for drawing end deadhead */
   destCoords?: { lat: number; lng: number } | null;
-  /** Trip mode — determines which point the return deadhead targets */
-  tripMode?: "one-way" | "round-trip";
   /** Callback ref for imperative leg hover highlighting */
   onHoverLegRef?: React.MutableRefObject<((legIndex: number | null) => void) | null>;
   /** When true, map fills full container with even padding (no bottom card overlay) */
@@ -32,7 +30,6 @@ export function RouteMap({
   selectedRoute,
   originCoords,
   destCoords,
-  tripMode = "round-trip",
   onHoverLegRef,
   fullScreen = false,
 }: RouteMapProps) {
@@ -164,9 +161,8 @@ export function RouteMap({
         }
       }
 
-      // Return deadhead: last dropoff → origin (round-trip) or → destination (one-way)
-      // Skip return deadhead for one-way with no destination — there's nowhere to return to
-      const returnTarget = tripMode === "one-way" ? destCoords : (originCoords ?? destCoords);
+      // Return deadhead: last dropoff → destination (only if destination is set)
+      const returnTarget = destCoords;
       if (returnTarget && route) {
         const lastLegData = route.legs[route.legs.length - 1];
         const dropoffPt: [number, number] = [lastLegData.destination_lng, lastLegData.destination_lat];
@@ -342,7 +338,7 @@ export function RouteMap({
     };
     tryDraw();
     return () => { cancelled = true; clearTimeout(timerId); };
-  }, [selectedRoute, originCoords, destCoords, tripMode]);
+  }, [selectedRoute, originCoords, destCoords]);
 
   // Expose imperative hover handler — bypasses React render cycle for instant feedback
   const handleHoverLeg = useCallback((legIndex: number | null) => {

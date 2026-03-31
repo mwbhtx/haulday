@@ -319,7 +319,6 @@ export function DesktopRoutesView() {
             selectedRoute={ready ? selectedRoute : undefined}
             originCoords={originFilter}
             destCoords={destFilter}
-            tripMode="round-trip"
             onHoverLegRef={hoverLegRef}
           />
         </div>
