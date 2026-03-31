@@ -88,7 +88,7 @@ export function DesktopSettingsView() {
   const [teamDriver, setTeamDriver] = useState(false);
   const [workDays, setWorkDays] = useState<string[]>([]);
   const [workStartHour, setWorkStartHour] = useState<string>("6");
-  const [workEndHour, setWorkEndHour] = useState<string>("20");
+  const [workEndHour, setWorkEndHour] = useState<string>("16");
 
   // Track whether initial sync has happened to avoid triggering saves
   const initialized = useRef(false);
@@ -145,7 +145,7 @@ export function DesktopSettingsView() {
     setTeamDriver(settings.team_driver ?? false);
     setWorkDays(settings.work_days ?? []);
     setWorkStartHour(settings.work_start_hour != null ? String(settings.work_start_hour) : "6");
-    setWorkEndHour(settings.work_end_hour != null ? String(settings.work_end_hour) : "20");
+    setWorkEndHour(settings.work_end_hour != null ? String(settings.work_end_hour) : "16");
     // Mark initialized after a tick so the first render doesn't trigger saves
     setTimeout(() => { initialized.current = true; }, 100);
   }, [settings]);
