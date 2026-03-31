@@ -118,7 +118,6 @@ export function MobileRoutesView() {
 
       // Save recent search
       saveRecent.mutate({
-        tripMode: params.destination ? 'one_way' : 'round_trip',
         origin: { label: params.origin.name, coordinates: [params.origin.lat, params.origin.lng] },
         destination: {
           label: params.destination?.name ?? params.origin.name,
