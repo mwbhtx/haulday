@@ -518,6 +518,7 @@ export function SearchFilters({
     twic_card: settings.twic_card ?? undefined,
     team_driver: settings.team_driver ?? undefined,
     no_tarps: settings.no_tarps ?? undefined,
+    search_radius_miles: settings.preferred_radius_miles ?? undefined,
     max_assigned_orders: settings.max_assigned_orders ?? undefined,
     cost_per_mile: (settings.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE,
     diesel_price_per_gallon: settings.diesel_price_per_gallon ?? undefined,
@@ -976,6 +977,7 @@ function AllFiltersPopover({
   const [twic, setTwic] = useState(false);
   const [team, setTeam] = useState(false);
   const [noTarps, setNoTarps] = useState(false);
+  const [searchRadius, setSearchRadius] = useState(250);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -986,6 +988,7 @@ function AllFiltersPopover({
     setTwic(settings.twic_card ?? false);
     setTeam(settings.team_driver ?? false);
     setNoTarps(settings.no_tarps ?? false);
+    setSearchRadius(settings.preferred_radius_miles ?? 250);
     setTimeout(() => { initialized.current = true; }, 100);
   }, [settings]);
 
@@ -1016,6 +1019,7 @@ function AllFiltersPopover({
     twic,
     team,
     noTarps,
+    searchRadius !== 250,
     workDays.length > 0 && workDays.length < 7,
   ].filter(Boolean).length;
 
@@ -1091,6 +1095,30 @@ function AllFiltersPopover({
               }}
               placeholder="e.g. 45000"
             />
+          </div>
+
+          {/* Search Radius */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Search Radius</p>
+              <span className="text-sm text-muted-foreground">{searchRadius} mi</span>
+            </div>
+            <Slider
+              value={[searchRadius]}
+              min={50}
+              max={350}
+              step={25}
+              onValueChange={([v]) => {
+                setSearchRadius(v);
+              }}
+              onValueCommit={([v]) => {
+                if (initialized.current) save({ preferred_radius_miles: v });
+              }}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>50 mi</span>
+              <span>350 mi</span>
+            </div>
           </div>
 
           {/* Load Preferences */}

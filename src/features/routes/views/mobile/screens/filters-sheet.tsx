@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Calendar } from "@/platform/web/components/ui/calendar";
+import { Slider } from "@/platform/web/components/ui/slider";
 import { cn } from "@/core/utils";
 import { LEG_OPTIONS, DEFAULT_LEGS_ROUND_TRIP } from "@mwbhtx/haulvisor-core";
 
@@ -13,6 +14,7 @@ export interface AdvancedFilters {
   homeBy: string;
   trailerType: string;
   noTarps: boolean;
+  searchRadius: number;
 }
 
 interface FiltersSheetProps {
@@ -78,13 +80,14 @@ export function FiltersSheet({ onBack, onApply, initialFilters }: FiltersSheetPr
   const [homeBy, setHomeBy] = useState(initialFilters?.homeBy ?? "");
   const [trailerType, setTrailerType] = useState(initialFilters?.trailerType ?? "");
   const [noTarps, setNoTarps] = useState(initialFilters?.noTarps ?? false);
+  const [searchRadius, setSearchRadius] = useState(initialFilters?.searchRadius ?? 250);
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   const toggle = (row: string) => setExpandedRow((prev) => (prev === row ? null : row));
 
   const handleBack = () => {
-    onApply({ legs, homeBy, trailerType, noTarps });
+    onApply({ legs, homeBy, trailerType, noTarps, searchRadius });
   };
 
   const selectedDate = homeBy ? new Date(homeBy + "T00:00:00") : undefined;
@@ -182,6 +185,27 @@ export function FiltersSheet({ onBack, onApply, initialFilters }: FiltersSheetPr
             {noTarps && <span className="text-sm font-bold">✓</span>}
           </div>
         </button>
+
+        <FilterRow
+          label="Search Radius"
+          value={`${searchRadius} mi`}
+          expanded={expandedRow === "searchRadius"}
+          onToggle={() => toggle("searchRadius")}
+        >
+          <div className="space-y-3 pt-2">
+            <Slider
+              value={[searchRadius]}
+              min={50}
+              max={350}
+              step={25}
+              onValueChange={([v]) => setSearchRadius(v)}
+            />
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>50 mi</span>
+              <span>350 mi</span>
+            </div>
+          </div>
+        </FilterRow>
       </div>
 
     </motion.div>

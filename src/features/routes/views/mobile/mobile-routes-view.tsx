@@ -31,6 +31,7 @@ export function MobileRoutesView() {
     homeBy: "",
     trailerType: "",
     noTarps: false,
+    searchRadius: settings?.preferred_radius_miles ?? 250,
   });
 
   // Query params
@@ -95,6 +96,7 @@ export function MobileRoutesView() {
         departure_date: tomorrow,
         ...(dest ? { destination_lat: dest.lat, destination_lng: dest.lng } : {}),
         legs: filters.legs,
+        search_radius_miles: filters.searchRadius,
         ...driverProfile,
         // Override trailer_types from filters if user specified one
         ...(filters.trailerType ? { trailer_types: filters.trailerType } : {}),
@@ -151,6 +153,7 @@ export function MobileRoutesView() {
         homeBy: search.filters.homeBy ?? "",
         trailerType: search.filters.trailerType ?? "",
         noTarps: false,
+        searchRadius: settings?.preferred_radius_miles ?? 250,
       };
 
       setOrigin(orig);
