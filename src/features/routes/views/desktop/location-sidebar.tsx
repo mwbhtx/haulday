@@ -325,6 +325,7 @@ function RouteChainCard({
               {formatCurrency(profit)}
             </p>
             <p className="text-xs tabular-nums mt-0.5 text-text-tertiary">{formatCurrency(chain.total_pay)} gross</p>
+            <p className="text-xs tabular-nums text-text-tertiary">{formatCurrency(chain.cost_breakdown.total)} costs</p>
           </div>
           <div>
             <p className="text-sm uppercase tracking-wide text-text-secondary">Net/mi</p>
