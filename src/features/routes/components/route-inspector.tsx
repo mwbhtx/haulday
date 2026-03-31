@@ -122,46 +122,19 @@ export function RouteInspector({
 
   // Compute effective departure: explicit prop → chain.suggested_departure →
   // derive from first pickup minus pre-pickup phases (deadhead + loading transit).
-  // If the result falls outside working hours and the pickup window allows it,
-  // shift to work_start_hour so the driver departs at a reasonable time.
+  // The simulator already respects working hours, so we use its timeline as-is.
   const effectiveDeparture = departureTime
+    ?? (chain.suggested_departure ? new Date(chain.suggested_departure) : null)
     ?? (() => {
-      const raw = chain.suggested_departure ? new Date(chain.suggested_departure) : null;
-      const derived = raw ?? (() => {
-        const firstLeg = chain.legs.find((l) => l.pickup_date_early);
-        if (!firstLeg?.pickup_date_early) return null;
-        const pickupTime = new Date(firstLeg.pickup_date_early).getTime();
-        let prePickupHours = 0;
-        for (const phase of timeline) {
-          if (phase.kind === "loading") break;
-          prePickupHours += phase.duration_hours ?? 0;
-        }
-        return new Date(pickupTime - prePickupHours * 3_600_000);
-      })();
-      if (!derived) return null;
-      // Clamp to working hours if pickup window allows it
-      const hour = derived.getHours();
-      const WORK_START = 6; // match simulator default
-      if (hour < WORK_START) {
-        const firstLeg = chain.legs.find((l) => l.pickup_date_late);
-        if (firstLeg?.pickup_date_late) {
-          const latestPickup = new Date(firstLeg.pickup_date_late).getTime();
-          // Try shifting departure to work_start_hour on the same day
-          const clamped = new Date(derived);
-          clamped.setHours(WORK_START, 0, 0, 0);
-          // Check if arriving at the shifted time still fits within the pickup window
-          let prePickupHours = 0;
-          for (const phase of timeline) {
-            if (phase.kind === "loading") break;
-            prePickupHours += phase.duration_hours ?? 0;
-          }
-          const arrivalAtPickup = clamped.getTime() + prePickupHours * 3_600_000;
-          if (arrivalAtPickup <= latestPickup) {
-            return clamped;
-          }
-        }
+      const firstLeg = chain.legs.find((l) => l.pickup_date_early);
+      if (!firstLeg?.pickup_date_early) return null;
+      const pickupTime = new Date(firstLeg.pickup_date_early).getTime();
+      let prePickupHours = 0;
+      for (const phase of timeline) {
+        if (phase.kind === "loading") break;
+        prePickupHours += phase.duration_hours ?? 0;
       }
-      return derived;
+      return new Date(pickupTime - prePickupHours * 3_600_000);
     })();
 
   // Compute running timestamps
