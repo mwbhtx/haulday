@@ -182,7 +182,7 @@ function RouteDetailContent({
         <div>
           <button
             type="button"
-            className="flex items-center gap-1.5 text-sm transition-colors w-full px-4 py-2.5 text-text-secondary"
+            className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest transition-colors w-full px-4 py-2.5 text-text-subtle"
             onClick={onToggleCosts}
           >
             <span>Expenses</span>
@@ -370,7 +370,7 @@ function RouteDetailContent({
         <div className="">
           <button
             type="button"
-            className="flex items-center gap-1.5 text-sm transition-colors w-full px-4 py-2.5 text-text-secondary"
+            className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest transition-colors w-full px-4 py-2.5 text-text-subtle"
             onClick={onToggleInspector}
           >
             <span>Route Planner</span>
