@@ -213,7 +213,7 @@ function RouteDetailContent({
         {/* Routes section */}
         <div className="bg-[#ebeced] dark:bg-transparent">
         <div className="px-4 pt-3 pb-1.5 ">
-          <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle">Routes</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle">Route</p>
         </div>
 
         {/* Start deadhead */}
