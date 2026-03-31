@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { XIcon, ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, BookmarkIcon, ClipboardListIcon } from "lucide-react";
+import { XIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, BookmarkIcon, ClipboardListIcon } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/platform/web/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/platform/web/components/ui/tooltip";
@@ -288,7 +288,6 @@ function RouteChainCard({
     ? formatPickupDates(firstPickup, estimatedEnd ?? fallbackEnd)
     : "";
 
-  const [showCosts, setShowCosts] = useState(false);
   const [showInspector, setShowInspector] = useState(false);
   const profit = chain.profit;
 
@@ -373,26 +372,6 @@ function RouteChainCard({
             >
             <div className="overflow-hidden">
             <div className="border-t border-white/[0.05] bg-surface-overlay">
-              {/* Expenses toggle */}
-              <div className="border-b border-white/[0.05] bg-card">
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 text-sm transition-colors w-full px-4 py-2.5 text-text-secondary"
-                  onClick={(e) => { e.stopPropagation(); setShowCosts(!showCosts); }}
-                >
-                  <span>Expenses</span>
-                  {showCosts ? <ChevronUpIcon className="h-3.5 w-3.5" /> : <ChevronDownIcon className="h-3.5 w-3.5" />}
-                </button>
-                {showCosts && (
-                  <div className="px-4 pb-3 grid grid-cols-[1fr_auto] gap-x-6 gap-y-1.5 text-sm text-text-body">
-                    <span>Per-mile costs</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.mile_costs)}</span>
-                    <span>Daily costs</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.daily_costs)}</span>
-                    <span className="font-medium border-t border-white/[0.05] pt-1.5">Total</span>
-                    <span className="text-right tabular-nums font-medium border-t border-white/[0.05] pt-1.5">{formatCurrency(chain.cost_breakdown.total)}</span>
-                  </div>
-                )}
-              </div>
-
               {/* Routes header */}
               <div className="px-4 pt-3 pb-1.5 border-b border-white/[0.05]">
                 <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle">Route</p>

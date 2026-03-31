@@ -9,7 +9,6 @@ export interface Settings {
   home_base_state: string;
   preferred_radius_miles: number;
   cost_per_mile: number;
-  cost_per_day: number | null;
   trailer_types: string[];
   max_weight: number | null;
   max_assigned_orders: number | null;

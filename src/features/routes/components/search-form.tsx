@@ -535,7 +535,6 @@ export function SearchFilters({
     search_radius_miles: settings.preferred_radius_miles ?? undefined,
     max_assigned_orders: settings.max_assigned_orders ?? undefined,
     cost_per_mile: (settings.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE,
-    cost_per_day: settings.cost_per_day ?? undefined,
     avg_mpg: settings.avg_mpg ?? undefined,
   } : {};
 

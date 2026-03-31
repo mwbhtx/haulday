@@ -36,7 +36,6 @@ export function RouteDetailPanel({
   departureTime,
   returnByTime,
 }: RouteDetailPanelProps) {
-  const [showCosts, setShowCosts] = useState(false);
   const [showInspector, setShowInspector] = useState(false);
 
   const isExpanded = chain !== null;
@@ -71,8 +70,6 @@ export function RouteDetailPanel({
             onShowComments={onShowComments}
             isWatchlisted={isWatchlisted}
             onToggleWatchlist={onToggleWatchlist}
-            showCosts={showCosts}
-            onToggleCosts={() => setShowCosts((v) => !v)}
             showInspector={showInspector}
             onToggleInspector={() => setShowInspector((v) => !v)}
             departureTime={departureTime}
@@ -94,8 +91,6 @@ interface RouteDetailContentProps {
   orderUrlTemplate?: string;
   onHoverLeg?: (legIndex: number | null) => void;
   onShowComments?: (orderId: string) => void;
-  showCosts: boolean;
-  onToggleCosts: () => void;
   showInspector: boolean;
   onToggleInspector: () => void;
   isWatchlisted?: boolean;
@@ -112,8 +107,6 @@ function RouteDetailContent({
   orderUrlTemplate,
   onHoverLeg,
   onShowComments,
-  showCosts,
-  onToggleCosts,
   showInspector,
   onToggleInspector,
   isWatchlisted,
@@ -145,38 +138,6 @@ function RouteDetailContent({
     <>
       {/* Scrollable main content */}
       <div className="flex-1 overflow-y-auto min-h-0">
-
-        {/* Expenses (collapsible) */}
-        <div>
-          <button
-            type="button"
-            className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest transition-colors w-full px-4 py-2.5 text-text-subtle"
-            onClick={onToggleCosts}
-          >
-            <span>Expenses</span>
-            {showCosts ? (
-              <ChevronUpIcon className="h-3.5 w-3.5" />
-            ) : (
-              <ChevronDownIcon className="h-3.5 w-3.5" />
-            )}
-          </button>
-          {showCosts && (
-            <div className="px-4 pb-3 text-sm grid grid-cols-4 gap-x-3">
-              {[
-                { label1: "Per-mile costs", value1: formatCurrency(chain.cost_breakdown.mile_costs), label2: "Daily costs", value2: formatCurrency(chain.cost_breakdown.daily_costs) },
-                { label1: "Total", value1: formatCurrency(chain.cost_breakdown.total), bold1: true },
-              ].map((row, i) => (
-                <div key={i} className={`grid grid-cols-subgrid col-span-4 px-3 py-1.5 ${i % 2 === 0 ? "bg-[#ebeced] dark:bg-[#232323]" : ""}`}>
-                  <span className={`text-text-secondary text-left ${row.bold1 ? "font-medium" : ""}`}>{row.label1}</span>
-                  <span className={`tabular-nums text-text-body text-right ${row.bold1 ? "font-medium" : ""}`}>{row.value1}</span>
-                  {row.label2 ? <span className="text-text-secondary text-left">{row.label2}</span> : <span />}
-                  {row.value2 ? <span className="tabular-nums text-text-body text-right">{row.value2}</span> : <span />}
-                </div>
-              ))
-            }
-            </div>
-          )}
-        </div>
 
         {/* Route summary + bookmark */}
         <div className="px-4 py-3">

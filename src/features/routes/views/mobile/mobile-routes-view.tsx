@@ -49,7 +49,6 @@ export function MobileRoutesView() {
     no_tarps: settings.no_tarps ?? undefined,
     max_assigned_orders: settings.max_assigned_orders ?? undefined,
     cost_per_mile: costPerMile,
-    cost_per_day: settings.cost_per_day ?? undefined,
     avg_mpg: settings.avg_mpg ?? undefined,
   } : { cost_per_mile: costPerMile };
 

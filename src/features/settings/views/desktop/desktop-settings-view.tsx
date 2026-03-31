@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSettings, useUpdateSettings } from "@/core/hooks/use-settings";
 import { PlaceAutocomplete, type PlaceResult } from "@/features/routes/components/search-form";
-import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_COST_PER_MILE, DEFAULT_COST_PER_DAY } from "@mwbhtx/haulvisor-core";
+import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_COST_PER_MILE } from "@mwbhtx/haulvisor-core";
 import {
   Card,
   CardHeader,
@@ -71,7 +71,6 @@ export function DesktopSettingsView() {
   const [homeLng, setHomeLng] = useState<number | null>(null);
   const [radius, setRadius] = useState("");
   const [costPerMile, setCostPerMile] = useState("");
-  const [costPerDay, setCostPerDay] = useState("");
   const [avgMpg, setAvgMpg] = useState("");
   const [tankSize, setTankSize] = useState("");
   const [avgDrivingHours, setAvgDrivingHours] = useState("");
@@ -124,7 +123,6 @@ export function DesktopSettingsView() {
     setHomeLng(settings.home_base_lng ?? null);
     setRadius(settings.preferred_radius_miles != null ? String(settings.preferred_radius_miles) : "");
     setCostPerMile(settings.cost_per_mile != null ? String(settings.cost_per_mile) : "");
-    setCostPerDay(settings.cost_per_day != null ? String(settings.cost_per_day) : "");
     setAvgMpg(settings.avg_mpg != null ? String(settings.avg_mpg) : "");
     setTankSize((settings as any).tank_size_gallons != null ? String((settings as any).tank_size_gallons) : "");
     setAvgDrivingHours(settings.avg_driving_hours_per_day != null ? String(settings.avg_driving_hours_per_day) : "");
@@ -160,7 +158,6 @@ export function DesktopSettingsView() {
   const NUMBER_CONSTRAINTS: Record<string, { min: number; max: number }> = {
     preferred_radius_miles: { min: 10, max: 500 },
     cost_per_mile: { min: 0.5, max: 10 },
-    cost_per_day: { min: 0, max: 1000 },
     avg_mpg: { min: 3, max: 12 },
     tank_size_gallons: { min: 50, max: 300 },
     avg_driving_hours_per_day: { min: 6, max: 11 },
@@ -336,7 +333,7 @@ export function DesktopSettingsView() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-medium block">Operating Cost / Mile ($)</label>
+            <label className="text-sm font-medium block">Cost Per Mile — All-In ($)</label>
             <Input
               type="number"
               min={0.5}
@@ -347,23 +344,7 @@ export function DesktopSettingsView() {
               placeholder={String(DEFAULT_COST_PER_MILE)}
             />
             <p className="text-sm text-muted-foreground">
-              Fuel, maintenance, and tires combined. Divide your annual per-mile expenses by your total miles driven.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <label className="text-sm font-medium block">Fixed Cost / Day ($)</label>
-            <Input
-              type="number"
-              min={0}
-              max={1000}
-              step={1}
-              value={costPerDay}
-              onChange={(e) => handleNumberChange("cost_per_day", e.target.value, setCostPerDay)}
-              placeholder={String(DEFAULT_COST_PER_DAY)}
-            />
-            <p className="text-sm text-muted-foreground">
-              Truck payment, insurance, and per diem. Divide your annual fixed costs by your working days per year.
+              Your total operating cost per mile — fuel, maintenance, tires, truck payment, insurance, and all other expenses combined. Net profit on every route is calculated using this number.
             </p>
           </div>
         </section>

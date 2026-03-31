@@ -22,7 +22,6 @@ export interface RouteSearchParams {
   no_tarps?: boolean;
   // Cost model
   cost_per_mile?: number;
-  cost_per_day?: number;
   avg_mpg?: number;
   avg_driving_hours_per_day?: number;
   // Work hours
