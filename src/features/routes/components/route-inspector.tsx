@@ -158,21 +158,6 @@ export function RouteInspector({
 
   return (
     <div className="flex flex-col h-full bg-card">
-      {/* Suggested departure banner */}
-      {effectiveDeparture && (
-        <div className="px-4 py-3 bg-primary/10 border-b border-primary/20">
-          <p className="text-xs uppercase tracking-wider font-medium" style={{ color: "#cdcdcd" }}>Suggested Departure</p>
-          <p className="text-lg font-bold" style={{ color: "#cdcdcd" }}>
-            {formatDayLabel(effectiveDeparture)} at {formatTime(effectiveDeparture)}
-          </p>
-          {arrivalTime && (
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Arrive{returnCity && returnCity === originCity ? ' home' : ''}: {formatDayLabel(arrivalTime)} at {formatTime(arrivalTime)}
-            </p>
-          )}
-        </div>
-      )}
-
       {/* Day cards */}
       <div className="flex-1 overflow-y-auto">
         {days.length > 0 ? (

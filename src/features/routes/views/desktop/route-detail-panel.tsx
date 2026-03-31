@@ -161,19 +161,19 @@ function RouteDetailContent({
             )}
           </button>
           {showCosts && (
-            <div className="px-4 pb-3 grid grid-cols-[1fr_auto] gap-x-6 gap-y-1.5 text-sm text-text-body">
-              <span>Fuel</span>
-              <span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.fuel)}</span>
-              <span>Maintenance</span>
-              <span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.maintenance)}</span>
-              <span>Tires</span>
-              <span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.tires)}</span>
-              <span>Daily costs</span>
-              <span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.daily_costs)}</span>
-              <span className="font-medium  pt-1.5">Total</span>
-              <span className="text-right tabular-nums font-medium  pt-1.5">
-                {formatCurrency(chain.cost_breakdown.total)}
-              </span>
+            <div className="text-sm">
+              {[
+                { label: "Fuel", value: formatCurrency(chain.cost_breakdown.fuel) },
+                { label: "Maintenance", value: formatCurrency(chain.cost_breakdown.maintenance) },
+                { label: "Tires", value: formatCurrency(chain.cost_breakdown.tires) },
+                { label: "Daily costs", value: formatCurrency(chain.cost_breakdown.daily_costs) },
+                { label: "Total", value: formatCurrency(chain.cost_breakdown.total), bold: true },
+              ].map((row, i) => (
+                <div key={i} className={`flex justify-between px-3 py-1.5 ${i % 2 === 0 ? "bg-[#ebeced] dark:bg-[#232323]" : ""}`}>
+                  <span className={`text-text-secondary ${row.bold ? "font-medium" : ""}`}>{row.label}</span>
+                  <span className={`tabular-nums text-text-body ${row.bold ? "font-medium" : ""}`}>{row.value}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -366,6 +366,21 @@ function RouteDetailContent({
         )}
 
         </div>
+        {/* Suggested Departure (always visible) */}
+        {chain.suggested_departure && (
+          <div className="px-4 py-3 bg-primary/10 border-b border-primary/20">
+            <p className="text-xs uppercase tracking-wider font-medium" style={{ color: "#cdcdcd" }}>Suggested Departure</p>
+            <p className="text-lg font-bold" style={{ color: "#cdcdcd" }}>
+              {new Date(chain.suggested_departure).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} at {new Date(chain.suggested_departure).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+            </p>
+            {chain.trip_summary && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Arrive{returnCity && returnCity === origin ? " home" : ""}: {new Date(new Date(chain.suggested_departure).getTime() + chain.trip_summary.total_hours * 3_600_000).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} at {new Date(new Date(chain.suggested_departure).getTime() + chain.trip_summary.total_hours * 3_600_000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Route Planner section (RouteInspector, collapsible) */}
         <div className="">
           <button
