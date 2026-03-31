@@ -23,7 +23,6 @@ function routeChainToRoundTrip(route: RouteChain): RoundTripChain {
     firm_profit: route.profit,
     estimated_total_profit: route.profit,
     rate_per_mile: route.effective_rpm,
-    risk_score: 0,
     deadhead_pct: route.deadhead_pct,
     effective_rpm: route.effective_rpm,
     estimated_days: route.estimated_days,

@@ -7,7 +7,7 @@ import { Button } from "@/platform/web/components/ui/button";
 import { Slider } from "@/platform/web/components/ui/slider";
 import { Calendar } from "@/platform/web/components/ui/calendar";
 import { cn } from "@/core/utils";
-import { LEG_OPTIONS, DEFAULT_LEGS_ROUND_TRIP, DEFAULT_MAX_DEADHEAD_PCT, DEFAULT_MAX_IDLE_HOURS, MIN_DEADHEAD_PCT, MAX_DEADHEAD_PCT, IDLE_OPTIONS, RISK_LEVELS, type RiskLevel } from "@mwbhtx/haulvisor-core";
+import { LEG_OPTIONS, DEFAULT_LEGS_ROUND_TRIP, DEFAULT_MAX_DEADHEAD_PCT, DEFAULT_MAX_IDLE_HOURS, MIN_DEADHEAD_PCT, MAX_DEADHEAD_PCT, IDLE_OPTIONS } from "@mwbhtx/haulvisor-core";
 
 export interface AdvancedFilters {
   legs: number;
@@ -15,7 +15,6 @@ export interface AdvancedFilters {
   maxIdleHours: number;
   homeBy: string;
   trailerType: string;
-  risk: RiskLevel;
 }
 
 interface FiltersSheetProps {
@@ -23,13 +22,6 @@ interface FiltersSheetProps {
   onApply: (filters: AdvancedFilters) => void;
   initialFilters?: Partial<AdvancedFilters>;
 }
-
-const RISK_LABELS: Record<RiskLevel, string> = {
-  any: "Any",
-  safe: "Safe",
-  moderate: "Moderate",
-  bold: "Bold",
-};
 
 function formatIdleLabel(hours: number): string {
   return IDLE_OPTIONS.find((o) => o.value === hours)?.label ?? `${hours}h`;
@@ -93,13 +85,13 @@ export function FiltersSheet({ onBack, onApply, initialFilters }: FiltersSheetPr
   const [maxIdleHours, setMaxIdleHours] = useState(initialFilters?.maxIdleHours ?? DEFAULT_MAX_IDLE_HOURS);
   const [homeBy, setHomeBy] = useState(initialFilters?.homeBy ?? "");
   const [trailerType, setTrailerType] = useState(initialFilters?.trailerType ?? "");
-  const [risk, setRisk] = useState<RiskLevel>(initialFilters?.risk ?? "any");
+
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   const toggle = (row: string) => setExpandedRow((prev) => (prev === row ? null : row));
 
   const handleBack = () => {
-    onApply({ legs, maxDeadheadPct, maxIdleHours, homeBy, trailerType, risk });
+    onApply({ legs, maxDeadheadPct, maxIdleHours, homeBy, trailerType });
   };
 
   const selectedDate = homeBy ? new Date(homeBy + "T00:00:00") : undefined;
@@ -142,31 +134,6 @@ export function FiltersSheet({ onBack, onApply, initialFilters }: FiltersSheetPr
                 )}
               >
                 {n}
-              </button>
-            ))}
-          </div>
-        </FilterRow>
-
-        <FilterRow
-          label="Risk Tolerance"
-          value={RISK_LABELS[risk]}
-          expanded={expandedRow === "risk"}
-          onToggle={() => toggle("risk")}
-        >
-          <div className="flex gap-2">
-            {RISK_LEVELS.map((level) => (
-              <button
-                key={level}
-                type="button"
-                onClick={() => setRisk(level)}
-                className={cn(
-                  "flex-1 rounded-lg py-2.5 text-sm font-medium border transition-colors",
-                  risk === level
-                    ? "border-primary bg-primary/15 text-primary"
-                    : "border-white/10 text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {RISK_LABELS[level]}
               </button>
             ))}
           </div>

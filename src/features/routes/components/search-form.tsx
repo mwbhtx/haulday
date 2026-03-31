@@ -9,24 +9,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/platform/web/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/platform/web/components/ui/select";
+
 import { ChevronDown, ChevronUpIcon, LocateIcon, SlidersHorizontal, XIcon } from "lucide-react";
 import { BorderBeam } from "@/platform/web/components/ui/border-beam";
 import { Calendar } from "@/platform/web/components/ui/calendar";
 import { useSettings, useUpdateSettings } from "@/core/hooks/use-settings";
 import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_LEGS_ONE_WAY, DEFAULT_LEGS_ROUND_TRIP, DEFAULT_MAX_DEADHEAD_PCT, DEFAULT_MAX_IDLE_HOURS, MIN_DEADHEAD_PCT, MAX_DEADHEAD_PCT, DEFAULT_COST_PER_MILE, IDLE_OPTIONS, ALL_WORK_DAYS, TIME_PRESETS } from "@mwbhtx/haulvisor-core";
-import type { RiskLevel } from "@mwbhtx/haulvisor-core";
+
 import type { RouteSearchParams, RoundTripSearchParams } from "@/core/hooks/use-routes";
 
 export type SearchParams = RouteSearchParams;
 
-export type { RiskLevel };
 
 function formatDateShort(iso: string): string {
   const d = new Date(iso + "T00:00:00");
@@ -594,7 +587,7 @@ export function SearchFilters({
 
   // Restore persisted filter state from sessionStorage
   const restored = useRef<{
-    orders?: string; risk?: RiskLevel; origin?: PlaceResult | null;
+    orders?: string; origin?: PlaceResult | null;
     destination?: PlaceResult | null; homeBy?: string; homeByTime?: string;
     departBy?: string; departByTime?: string;
     maxDeadheadPct?: number; maxIdle?: number; workDays?: string[]; legs?: number;
@@ -609,7 +602,7 @@ export function SearchFilters({
 
   const initialOrders = r.orders as "one-way" | "round-trip" ?? initialTripType ?? "round-trip";
   const [orders, setOrders] = useState(initialOrders);
-  const [risk, setRisk] = useState<RiskLevel>(r.risk ?? "any");
+
   const [origin, setOrigin] = useState<PlaceResult | null>(r.origin ?? null);
   const [originPopoverOpen, setOriginPopoverOpen] = useState(false);
   const [destination, setDestination] = useState<PlaceResult | null>(r.destination ?? null);
@@ -643,10 +636,10 @@ export function SearchFilters({
     if (compactBar) return;
     try {
       sessionStorage.setItem("hv-route-filters", JSON.stringify({
-        orders, risk, origin, destination, homeBy, homeByTime, departBy, departByTime, maxDeadheadPct, maxIdle, workDays, legs,
+        orders, origin, destination, homeBy, homeByTime, departBy, departByTime, maxDeadheadPct, maxIdle, workDays, legs,
       }));
     } catch {}
-  }, [orders, risk, origin, destination, homeBy, homeByTime, departBy, departByTime, maxDeadheadPct, maxIdle, compactBar]);
+  }, [orders, origin, destination, homeBy, homeByTime, departBy, departByTime, maxDeadheadPct, maxIdle, compactBar]);
 
   // Reset filters when clear is triggered
   useEffect(() => {
@@ -683,7 +676,6 @@ export function SearchFilters({
                   origin_lng: origin.lng,
                   origin_city: origin.name.split(",")[0],
                   legs,
-                  risk,
                   ...(homeBy ? { home_by: homeBy } : {}),
                   max_deadhead_pct: maxDeadheadPct,
                   ...(maxIdle > 0 ? { max_layover_hours: maxIdle } : {}),
@@ -726,7 +718,6 @@ export function SearchFilters({
             origin_lng: homePlace.lng,
             origin_city: homePlace.name.split(",")[0],
             legs,
-            risk,
             max_deadhead_pct: maxDeadheadPct,
             ...driverProfile,
             ...buildTimeParams(),
@@ -757,7 +748,6 @@ export function SearchFilters({
             origin_lng: place.lng,
             origin_city: place.name.split(",")[0],
             legs: rtLegs,
-            risk,
             ...(homeBy ? { home_by: homeBy } : {}),
             max_deadhead_pct: maxDeadheadPct,
             ...driverProfile,
@@ -812,7 +802,6 @@ export function SearchFilters({
         origin_lng: origin.lng,
         origin_city: origin.name.split(",")[0],
         legs,
-        risk,
         ...(homeBy ? { home_by: homeBy } : {}),
         max_deadhead_pct: maxDeadheadPct,
         ...(maxIdle > 0 ? { max_layover_hours: maxIdle } : {}),
@@ -830,14 +819,14 @@ export function SearchFilters({
         ...buildTimeParams(),
       });
     }
-  }, [origin, destination, orders, risk, homeMode, homeBy, maxDeadheadPct, maxIdle, legs, profileKey, buildTimeParams, onClearSearch]);
+  }, [origin, destination, orders, homeMode, homeBy, maxDeadheadPct, maxIdle, legs, profileKey, buildTimeParams, onClearSearch]);
 
   // Auto-search on filter changes (only after initial load settles)
   // Note: orders is NOT a trigger here — trip type changes are handled by prevTripType effect
   useEffect(() => {
     if (!searchEnabled.current) return;
     fireSearch();
-  }, [risk, homeBy, homeByTime, departBy, departByTime, maxDeadheadPct, legs]);
+  }, [homeBy, homeByTime, departBy, departByTime, maxDeadheadPct, legs]);
 
   // Auto-search on driver profile or max idle changes (debounced)
   // Signal loading immediately so the UI feels responsive, then fire the actual query after 400ms
@@ -1022,7 +1011,6 @@ export function SearchFilters({
       departBy,
       maxDeadheadPct !== DEFAULT_MAX_DEADHEAD_PCT,
       maxIdle !== DEFAULT_MAX_IDLE_HOURS,
-      risk !== "any",
     ].filter(Boolean).length;
 
     return (
@@ -1053,7 +1041,7 @@ export function SearchFilters({
             {isRoundTrip && <ReturnByPill dateValue={homeBy} timeValue={homeByTime} onDateChange={setHomeBy} onTimeChange={setHomeByTime} />}
             <MaxIdlePill value={maxIdle} onChange={setMaxIdle} />
             <DeadheadPctPill value={maxDeadheadPct} onChange={setMaxDeadheadPct} />
-            <AllFiltersPopover risk={risk} onRiskChange={setRisk} workDays={workDays} onWorkDaysChange={setWorkDays} />
+            <AllFiltersPopover workDays={workDays} onWorkDaysChange={setWorkDays} />
           </div>
         )}
       </div>
@@ -1103,7 +1091,7 @@ export function SearchFilters({
       {isRoundTrip && <div id="onborda-home-by"><ReturnByPill dateValue={homeBy} timeValue={homeByTime} onDateChange={setHomeBy} onTimeChange={setHomeByTime} /></div>}
       <div id="onborda-idle"><MaxIdlePill value={maxIdle} onChange={setMaxIdle} /></div>
       <div id="onborda-deadhead"><DeadheadPctPill value={maxDeadheadPct} onChange={setMaxDeadheadPct} /></div>
-      <div id="onborda-all-filters"><AllFiltersPopover risk={risk} onRiskChange={setRisk} workDays={workDays} onWorkDaysChange={setWorkDays} /></div>
+      <div id="onborda-all-filters"><AllFiltersPopover workDays={workDays} onWorkDaysChange={setWorkDays} /></div>
       {clearButton}
     </div>
   );
@@ -1147,13 +1135,9 @@ export function MobileFilterSheet({ open, onOpenChange, ...filterProps }: Mobile
 }
 
 function AllFiltersPopover({
-  risk,
-  onRiskChange,
   workDays,
   onWorkDaysChange,
 }: {
-  risk: RiskLevel;
-  onRiskChange: (r: RiskLevel) => void;
   workDays: string[];
   onWorkDaysChange: (v: string[]) => void;
 }) {
@@ -1203,7 +1187,6 @@ function AllFiltersPopover({
     hazmat,
     twic,
     team,
-    risk !== "any",
     workDays.length > 0 && workDays.length < 7,
   ].filter(Boolean).length;
 
@@ -1225,22 +1208,6 @@ function AllFiltersPopover({
       </PopoverTrigger>
       <PopoverContent className="w-80" align="start">
         <div className="space-y-5">
-          {/* Risk Tolerance */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Risk Tolerance</p>
-            <Select value={risk} onValueChange={(v) => onRiskChange(v as RiskLevel)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any — no risk filtering</SelectItem>
-                <SelectItem value="safe">Safe — conservative, low deadhead</SelectItem>
-                <SelectItem value="moderate">Moderate — balanced</SelectItem>
-                <SelectItem value="bold">Bold — higher potential, more risk</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Trailer Types */}
           <div className="space-y-2">
             <p className="text-sm font-medium">Trailer Types</p>

@@ -33,7 +33,6 @@ export function MobileRoutesView() {
     maxIdleHours: settings?.max_idle_hours ?? DEFAULT_MAX_IDLE_HOURS,
     homeBy: "",
     trailerType: "",
-    risk: "any",
   });
 
   // Query params
@@ -102,7 +101,6 @@ export function MobileRoutesView() {
           origin_lng: orig.lng,
           origin_city: orig.name.split(",")[0],
           legs: filters.legs,
-          risk: filters.risk,
           max_deadhead_pct: filters.maxDeadheadPct,
           ...(filters.maxIdleHours > 0 ? { max_layover_hours: filters.maxIdleHours } : {}),
           home_by: filters.homeBy || undefined,
@@ -182,7 +180,6 @@ export function MobileRoutesView() {
         maxIdleHours: search.filters.maxIdle ?? DEFAULT_MAX_IDLE_HOURS,
         homeBy: search.filters.homeBy ?? "",
         trailerType: search.filters.trailerType ?? "",
-        risk: "any",
       };
 
       setTripMode(mode);

@@ -48,7 +48,7 @@ export interface RoundTripSearchParams {
   origin_lng: number;
   origin_city?: string;
   legs?: number;
-  risk?: 'any' | 'safe' | 'moderate' | 'bold';
+
   home_by?: string;
   max_deadhead_pct?: number;
   // Driver profile
@@ -84,7 +84,7 @@ export function useRoundTripSearch(companyId: string, params: RoundTripSearchPar
         qs.set("origin_lng", String(params.origin_lng));
         if (params.origin_city) qs.set("origin_city", params.origin_city);
         if (params.legs != null) qs.set("legs", String(params.legs));
-        if (params.risk) qs.set("risk", params.risk);
+
         if (params.home_by) qs.set("home_by", params.home_by);
         if (params.home_by_time) qs.set("home_by_time", params.home_by_time);
         if (params.depart_by) qs.set("depart_by", params.depart_by);
