@@ -723,7 +723,7 @@ export function SearchFilters({
                 legs,
                 max_deadhead_pct: maxDeadheadPct,
                 ...(maxIdle > 0 ? { max_layover_hours: maxIdle } : {}),
-              max_trip_days: daysOut,
+                max_trip_days: daysOut,
                 ...driverProfile,
               });
             }
@@ -747,6 +747,7 @@ export function SearchFilters({
             departure_date: departureDate,
             legs,
             max_deadhead_pct: maxDeadheadPct,
+            max_trip_days: daysOut,
             ...driverProfile,
           });
         }
