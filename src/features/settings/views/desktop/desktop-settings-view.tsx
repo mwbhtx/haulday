@@ -86,6 +86,7 @@ export function DesktopSettingsView() {
   const [hazmatCertified, setHazmatCertified] = useState(false);
   const [twicCard, setTwicCard] = useState(false);
   const [teamDriver, setTeamDriver] = useState(false);
+  const [noTarps, setNoTarps] = useState(false);
   const [workDays, setWorkDays] = useState<string[]>([]);
   const [workStartHour, setWorkStartHour] = useState<string>("6");
   const [workEndHour, setWorkEndHour] = useState<string>("16");
@@ -143,6 +144,7 @@ export function DesktopSettingsView() {
     setHazmatCertified(settings.hazmat_certified ?? false);
     setTwicCard(settings.twic_card ?? false);
     setTeamDriver(settings.team_driver ?? false);
+    setNoTarps(settings.no_tarps ?? false);
     setWorkDays(settings.work_days ?? []);
     setWorkStartHour(settings.work_start_hour != null ? String(settings.work_start_hour) : "6");
     setWorkEndHour(settings.work_end_hour != null ? String(settings.work_end_hour) : "16");
@@ -509,6 +511,7 @@ export function DesktopSettingsView() {
             <CertToggle label="Hazmat Certified" checked={hazmatCertified} onChange={() => handleBoolToggle("hazmat_certified", hazmatCertified, setHazmatCertified)} />
             <CertToggle label="TWIC Card" checked={twicCard} onChange={() => handleBoolToggle("twic_card", twicCard, setTwicCard)} />
             <CertToggle label="Team Driver" checked={teamDriver} onChange={() => handleBoolToggle("team_driver", teamDriver, setTeamDriver)} />
+            <CertToggle label="No Tarps" checked={noTarps} onChange={() => handleBoolToggle("no_tarps", noTarps, setNoTarps)} />
           </div>
         </section>
 
