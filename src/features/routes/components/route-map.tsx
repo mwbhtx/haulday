@@ -45,9 +45,10 @@ export function RouteMap({
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
     const isMobile = window.innerWidth < 768;
+    const isDarkInit = document.documentElement.classList.contains("dark");
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: "mapbox://styles/mwbhtx/cmncvt3ha007401qs35xhdqfg",
+      style: isDarkInit ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mwbhtx/cmncvt3ha007401qs35xhdqfg",
       center: [-95.7, 37.1],
       zoom: 4,
       attributionControl: false,
@@ -76,7 +77,13 @@ export function RouteMap({
     const newStyle = resolvedTheme === "light"
       ? "mapbox://styles/mwbhtx/cmncvt3ha007401qs35xhdqfg"
       : "mapbox://styles/mapbox/dark-v11";
-    map.setStyle(newStyle);
+    if (map.isStyleLoaded()) {
+      map.setStyle(newStyle);
+    } else {
+      const onLoad = () => map.setStyle(newStyle);
+      map.once("style.load", onLoad);
+      return () => { map.off("style.load", onLoad); };
+    }
   }, [resolvedTheme]);
 
 
