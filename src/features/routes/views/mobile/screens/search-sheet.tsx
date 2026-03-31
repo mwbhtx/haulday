@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, XIcon } from "lucide-react";
+import { ArrowLeft, XIcon, ClockIcon } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { PlaceAutocomplete, type PlaceResult } from "@/features/routes/components/search-form";
 import { useSettings } from "@/core/hooks/use-settings";
+import { useRecentSearches } from "@/features/routes/hooks/use-recent-searches";
 
 interface SearchSheetProps {
   onBack: () => void;
@@ -15,6 +16,7 @@ interface SearchSheetProps {
   }) => void;
   initialOrigin?: PlaceResult | null;
   initialDestination?: PlaceResult | null;
+  onRecentTap?: (search: import("@/features/routes/hooks/use-recent-searches").RecentSearch) => void;
 }
 
 export function SearchSheet({
@@ -22,10 +24,12 @@ export function SearchSheet({
   onSearch,
   initialOrigin = null,
   initialDestination = null,
+  onRecentTap,
 }: SearchSheetProps) {
   const [origin, setOrigin] = useState<PlaceResult | null>(initialOrigin);
   const [destination, setDestination] = useState<PlaceResult | null>(initialDestination);
   const { data: settings } = useSettings();
+  const { data: recentSearches } = useRecentSearches();
 
   const homePlace: PlaceResult | null =
     settings?.home_base_lat != null && settings?.home_base_lng != null && settings?.home_base_city
@@ -128,6 +132,31 @@ export function SearchSheet({
           >
             Search Routes
           </Button>
+        )}
+
+        {/* Recent searches */}
+        {recentSearches && recentSearches.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider px-1">Recent</p>
+            {recentSearches.map((search) => {
+              const originLabel = search.origin.label.split(",").slice(0, 2).join(",").trim();
+              const destLabel = search.destination.label.split(",").slice(0, 2).join(",").trim();
+              const isSame = search.origin.label === search.destination.label;
+              return (
+                <button
+                  key={search.id}
+                  type="button"
+                  onClick={() => onRecentTap?.(search)}
+                  className="flex items-center gap-3 w-full px-3 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left"
+                >
+                  <ClockIcon className="h-5 w-5 shrink-0 text-muted-foreground" />
+                  <span className="text-base text-foreground truncate">
+                    {isSame ? originLabel : `${originLabel} → ${destLabel}`}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
     </motion.div>

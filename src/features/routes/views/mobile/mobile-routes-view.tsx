@@ -232,6 +232,7 @@ export function MobileRoutesView() {
             onSearch={handleSearch}
             initialOrigin={origin}
             initialDestination={destination}
+            onRecentTap={handleRecentTap}
           />
         )}
 
