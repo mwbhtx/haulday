@@ -163,8 +163,7 @@ function RouteDetailContent({
           {showCosts && (
             <div className="px-4 pb-3 text-sm grid grid-cols-4 gap-x-3">
               {[
-                { label1: "Fuel", value1: formatCurrency(chain.cost_breakdown.fuel), label2: "Maintenance", value2: formatCurrency(chain.cost_breakdown.maintenance) },
-                { label1: "Tires", value1: formatCurrency(chain.cost_breakdown.tires), label2: "Daily costs", value2: formatCurrency(chain.cost_breakdown.daily_costs) },
+                { label1: "Per-mile costs", value1: formatCurrency(chain.cost_breakdown.mile_costs), label2: "Daily costs", value2: formatCurrency(chain.cost_breakdown.daily_costs) },
                 { label1: "Total", value1: formatCurrency(chain.cost_breakdown.total), bold1: true },
               ].map((row, i) => (
                 <div key={i} className={`grid grid-cols-subgrid col-span-4 px-3 py-1.5 ${i % 2 === 0 ? "bg-[#ebeced] dark:bg-[#232323]" : ""}`}>

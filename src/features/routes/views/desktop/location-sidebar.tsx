@@ -385,9 +385,7 @@ function RouteChainCard({
                 </button>
                 {showCosts && (
                   <div className="px-4 pb-3 grid grid-cols-[1fr_auto] gap-x-6 gap-y-1.5 text-sm text-text-body">
-                    <span>Fuel</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.fuel)}</span>
-                    <span>Maintenance</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.maintenance)}</span>
-                    <span>Tires</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.tires)}</span>
+                    <span>Per-mile costs</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.mile_costs)}</span>
                     <span>Daily costs</span><span className="text-right tabular-nums">{formatCurrency(chain.cost_breakdown.daily_costs)}</span>
                     <span className="font-medium border-t border-white/[0.05] pt-1.5">Total</span>
                     <span className="text-right tabular-nums font-medium border-t border-white/[0.05] pt-1.5">{formatCurrency(chain.cost_breakdown.total)}</span>
