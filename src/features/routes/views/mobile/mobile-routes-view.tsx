@@ -7,7 +7,7 @@ import { useSettings } from "@/core/hooks/use-settings";
 import { useRouteSearch, type RouteSearchParams } from "@/core/hooks/use-routes";
 import { useMobileRouteNav } from "@/features/routes/hooks/use-mobile-route-nav";
 import { useSaveRecentSearch, type RecentSearch } from "@/features/routes/hooks/use-recent-searches";
-import { DEFAULT_COST_PER_MILE, DEFAULT_LEGS_ROUND_TRIP } from "@mwbhtx/haulvisor-core";
+import { DEFAULT_COST_PER_MILE, DEFAULT_LEGS_ROUND_TRIP, DEFAULT_MAX_TRIP_DAYS } from "@mwbhtx/haulvisor-core";
 import type { RouteChain } from "@/core/types";
 import type { PlaceResult } from "@/features/routes/components/search-form";
 import type { AdvancedFilters } from "./screens/filters-sheet";
@@ -26,12 +26,16 @@ export function MobileRoutesView() {
   // Search state
   const [origin, setOrigin] = useState<PlaceResult | null>(null);
   const [destination, setDestination] = useState<PlaceResult | null>(null);
+  const tomorrow = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }, []);
+
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
     legs: DEFAULT_LEGS_ROUND_TRIP,
-    homeBy: "",
-    trailerType: "",
-    noTarps: false,
-    searchRadius: settings?.preferred_radius_miles ?? 250,
+    departureDate: tomorrow,
+    daysOut: DEFAULT_MAX_TRIP_DAYS,
   });
 
   // Query params
@@ -68,13 +72,6 @@ export function MobileRoutesView() {
     return short(origin.name);
   }, [origin, destination]);
 
-  // Compute tomorrow as default departure date
-  const tomorrow = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  }, []);
-
   // Build query params from current state
   const buildAndFireSearch = useCallback(
     (
@@ -87,18 +84,15 @@ export function MobileRoutesView() {
       const params: RouteSearchParams = {
         origin_lat: orig.lat,
         origin_lng: orig.lng,
-        departure_date: tomorrow,
+        departure_date: filters.departureDate,
         ...(dest ? { destination_lat: dest.lat, destination_lng: dest.lng } : {}),
         legs: filters.legs,
-        search_radius_miles: filters.searchRadius,
+        max_trip_days: filters.daysOut,
         ...driverProfile,
-        // Override trailer_types from filters if user specified one
-        ...(filters.trailerType ? { trailer_types: filters.trailerType } : {}),
-        ...(filters.noTarps ? { no_tarps: true } : {}),
       };
       setSearchParams(params);
     },
-    [activeCompanyId, tomorrow, driverProfile],
+    [activeCompanyId, driverProfile],
   );
 
   // Handlers
@@ -126,8 +120,6 @@ export function MobileRoutesView() {
             : [params.origin.lat, params.origin.lng],
         },
         filters: {
-          trailerType: advancedFilters.trailerType || undefined,
-          homeBy: advancedFilters.homeBy || undefined,
           legs: advancedFilters.legs,
         },
       });
@@ -144,10 +136,8 @@ export function MobileRoutesView() {
       const dest: PlaceResult = { name: search.destination.label, lat: search.destination.coordinates[0], lng: search.destination.coordinates[1] };
       const filters: AdvancedFilters = {
         legs: search.filters.legs ?? DEFAULT_LEGS_ROUND_TRIP,
-        homeBy: search.filters.homeBy ?? "",
-        trailerType: search.filters.trailerType ?? "",
-        noTarps: false,
-        searchRadius: settings?.preferred_radius_miles ?? 250,
+        departureDate: tomorrow,
+        daysOut: DEFAULT_MAX_TRIP_DAYS,
       };
 
       setOrigin(orig);
@@ -157,7 +147,7 @@ export function MobileRoutesView() {
       buildAndFireSearch(orig, dest, filters);
       goToResults();
     },
-    [buildAndFireSearch, goToResults],
+    [buildAndFireSearch, goToResults, tomorrow],
   );
 
   const handleFiltersApply = useCallback(
