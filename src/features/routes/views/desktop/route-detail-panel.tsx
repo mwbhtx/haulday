@@ -311,7 +311,7 @@ function RouteDetailContent({
                         {" · "}{formatCurrency(leg.pay)}
                       </p>
                       {leg.stopoffs && leg.stopoffs.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-white/[0.05] space-y-2 text-sm text-muted-foreground">
+                        <div className="mt-2 space-y-2 text-sm text-muted-foreground">
                           {leg.stopoffs.map((stop, i) => (
                             <div key={i}>
                               <span className="capitalize font-medium text-foreground">{stop.type}</span>
@@ -328,7 +328,7 @@ function RouteDetailContent({
                         </div>
                       )}
                       {!leg.stopoffs && (leg.pickup_date_early_local || leg.delivery_date_early_local) && (
-                        <div className="mt-3 pt-3 border-t border-white/[0.05] space-y-1.5 text-sm text-muted-foreground">
+                        <div className="mt-2 space-y-1.5 text-sm text-muted-foreground">
                           {leg.pickup_date_early_local && (
                             <p>Pickup: {formatDateRange(leg.pickup_date_early_local, leg.pickup_date_late_local)}</p>
                           )}
