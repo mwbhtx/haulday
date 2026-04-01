@@ -20,6 +20,10 @@ interface DetailScreenProps {
   onBack: () => void;
 }
 
+function shortCity(name: string): string {
+  return name.split(",").slice(0, 2).map((s) => s.trim()).join(", ");
+}
+
 export function DetailScreen({ chain, originCity, onBack }: DetailScreenProps) {
   const origin = getOriginCity(chain);
   const dest = getDestCity(chain);
@@ -117,7 +121,7 @@ export function DetailScreen({ chain, originCity, onBack }: DetailScreenProps) {
             {/* Collapsible trip itinerary */}
             <SegmentDetailsCollapsible
               chain={chain}
-              originCity={originCity}
+              originCity={shortCity(originCity)}
               onBack={onBack}
             />
           </div>
@@ -254,7 +258,7 @@ function SegmentDetailsCollapsible({
         <div className="border-t border-white/[0.05]">
           <RouteInspector
             chain={chain}
-            originCity={originCity}
+            originCity={shortCity(originCity)}
             onClose={onBack}
           />
         </div>
