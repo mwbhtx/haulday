@@ -12,11 +12,11 @@ import {
 
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
-import { ChevronDown, LocateIcon, XIcon } from "lucide-react";
+import { ChevronDown, LocateIcon, SlidersHorizontal, XIcon } from "lucide-react";
 import { BorderBeam } from "@/platform/web/components/ui/border-beam";
 import { Calendar } from "@/platform/web/components/ui/calendar";
 import { useSettings, useUpdateSettings } from "@/core/hooks/use-settings";
-import { DEFAULT_MAX_TRIP_DAYS, DEFAULT_COST_PER_MILE, ORDER_COUNT_OPTIONS, DEFAULT_NUM_ORDERS } from "@mwbhtx/haulvisor-core";
+import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_MAX_TRIP_DAYS, DEFAULT_COST_PER_MILE, ORDER_COUNT_OPTIONS, DEFAULT_NUM_ORDERS } from "@mwbhtx/haulvisor-core";
 
 import type { RouteSearchParams } from "@/core/hooks/use-routes";
 
@@ -760,8 +760,224 @@ export function SearchFilters({
       {departureDatePill}
       <div id="onborda-days-out"><DaysOutPill value={daysOut} onChange={setDaysOut} departureDate={departureDate} /></div>
       <NumOrdersPill value={numOrders} onChange={setNumOrders} />
+      <div id="onborda-all-filters"><AllFiltersPopover /></div>
       {clearButton}
     </div>
+  );
+}
+
+/* ---- All Filters Popover ---- */
+
+function AllFiltersPopover() {
+  const { data: settings } = useSettings();
+  const updateSettings = useUpdateSettings();
+
+  const [trailerLabels, setTrailerLabels] = useState<string[]>([]);
+  const [maxWeight, setMaxWeight] = useState("");
+  const [hazmat, setHazmat] = useState(false);
+  const [twic, setTwic] = useState(false);
+  const [team, setTeam] = useState(false);
+  const [noTarps, setNoTarps] = useState(false);
+  const [searchRadius, setSearchRadius] = useState(250);
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (!settings) return;
+    setTrailerLabels(codesToLabels(settings.trailer_types ?? []));
+    setMaxWeight(settings.max_weight != null ? String(settings.max_weight) : "");
+    setHazmat(settings.hazmat_certified ?? false);
+    setTwic(settings.twic_card ?? false);
+    setTeam(settings.team_driver ?? false);
+    setNoTarps(settings.no_tarps ?? false);
+    setSearchRadius(settings.preferred_radius_miles ?? 250);
+    setTimeout(() => { initialized.current = true; }, 100);
+  }, [settings]);
+
+  function save(data: Record<string, unknown>) {
+    updateSettings.mutate(data as any);
+  }
+
+  function handleTrailerToggle(label: string) {
+    setTrailerLabels((prev) => {
+      const next = prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label];
+      if (initialized.current) {
+        save({ trailer_types: next.length > 0 ? expandTrailerCodes(next) : null });
+      }
+      return next;
+    });
+  }
+
+  function handleBool(key: string, current: boolean, setter: (v: boolean) => void) {
+    const next = !current;
+    setter(next);
+    if (initialized.current) save({ [key]: next || null });
+  }
+
+  const activeCount = [
+    trailerLabels.length > 0,
+    maxWeight !== "",
+    hazmat,
+    twic,
+    team,
+    noTarps,
+    searchRadius !== 250,
+  ].filter(Boolean).length;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex h-9 items-center gap-1.5 rounded-full border bg-card/95 backdrop-blur px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          <span>All Filters</span>
+          {activeCount > 0 && (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              {activeCount}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="start">
+        <div className="space-y-5">
+          {/* Trailer Types */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Trailer Types</p>
+            <div className="max-h-48 overflow-y-auto rounded-md border">
+              {TRAILER_CATEGORIES.map((cat) => {
+                const selected = trailerLabels.includes(cat.label);
+                return (
+                  <button
+                    key={cat.label}
+                    type="button"
+                    onClick={() => handleTrailerToggle(cat.label)}
+                    className="flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-accent transition-colors"
+                  >
+                    <span>{cat.label}</span>
+                    <div
+                      className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                        selected ? "border-primary bg-primary text-primary-foreground" : "border-input"
+                      }`}
+                    >
+                      {selected && <span className="text-xs">✓</span>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {trailerLabels.length === 0 ? "No filter — all types shown" : `${trailerLabels.length} selected`}
+            </p>
+          </div>
+
+          {/* Max Weight */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Max Weight (lbs)</p>
+            <Input
+              type="number"
+              min={1000}
+              max={80000}
+              step={1000}
+              value={maxWeight}
+              onChange={(e) => {
+                setMaxWeight(e.target.value);
+                if (!initialized.current) return;
+                const val = e.target.value;
+                if (val === "") {
+                  save({ max_weight: null });
+                } else {
+                  const num = Number(val);
+                  if (!isNaN(num) && num >= 1000 && num <= 80000) {
+                    save({ max_weight: num });
+                  }
+                }
+              }}
+              placeholder="e.g. 45000"
+            />
+          </div>
+
+          {/* Search Radius */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Search Radius</p>
+              <span className="text-sm text-muted-foreground">{searchRadius} mi</span>
+            </div>
+            <Slider
+              value={[searchRadius]}
+              min={50}
+              max={350}
+              step={25}
+              onValueChange={([v]) => {
+                setSearchRadius(v);
+              }}
+              onValueCommit={([v]) => {
+                if (initialized.current) save({ preferred_radius_miles: v });
+              }}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>50 mi</span>
+              <span>350 mi</span>
+            </div>
+          </div>
+
+          {/* Load Preferences */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Load Preferences</p>
+            <div className="space-y-1">
+              {[
+                { label: "No Tarps", checked: noTarps, key: "no_tarps", setter: setNoTarps },
+              ].map((cert) => (
+                <button
+                  key={cert.key}
+                  type="button"
+                  onClick={() => handleBool(cert.key, cert.checked, cert.setter)}
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+                >
+                  <span>{cert.label}</span>
+                  <div
+                    className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                      cert.checked ? "border-primary bg-primary text-primary-foreground" : "border-input"
+                    }`}
+                  >
+                    {cert.checked && <span className="text-xs">✓</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Certifications */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Certifications</p>
+            <div className="space-y-1">
+              {[
+                { label: "Hazmat", checked: hazmat, key: "hazmat_certified", setter: setHazmat },
+                { label: "TWIC Card", checked: twic, key: "twic_card", setter: setTwic },
+                { label: "Team Driver", checked: team, key: "team_driver", setter: setTeam },
+              ].map((cert) => (
+                <button
+                  key={cert.key}
+                  type="button"
+                  onClick={() => handleBool(cert.key, cert.checked, cert.setter)}
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+                >
+                  <span>{cert.label}</span>
+                  <div
+                    className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                      cert.checked ? "border-primary bg-primary text-primary-foreground" : "border-input"
+                    }`}
+                  >
+                    {cert.checked && <span className="text-xs">✓</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
