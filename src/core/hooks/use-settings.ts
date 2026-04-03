@@ -16,6 +16,7 @@ export interface Settings {
   twic_card: boolean;
   team_driver: boolean;
   no_tarps: boolean;
+  ignore_radius: boolean;
   home_base_lat: number | null;
   home_base_lng: number | null;
   avg_mpg: number | null;
