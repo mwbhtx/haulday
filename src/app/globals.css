@@ -1,4 +1,4 @@
-@import "mapbox-gl/dist/mapbox-gl.css";
+@import "maplibre-gl/dist/maplibre-gl.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -161,14 +161,6 @@ html {
 
 .animate-pulse-border {
   animation: pulse-border 2s ease-in-out infinite;
-}
-
-.dark .mapboxgl-map {
-  filter: brightness(2.05) contrast(1.75);
-}
-
-.light .mapboxgl-map {
-  filter: brightness(1) contrast(1);
 }
 
 .mobile-filters .mobile-filter-pill {
