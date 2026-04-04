@@ -28,18 +28,27 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-function formatPickupDate(early: string, late: string): string {
+function formatDateRange(early?: string | null, late?: string | null): string {
+  if (!early) return "—";
   const fmt = (d: string) => {
     const date = new Date(d);
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${m}/${day}`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
-  if (early === late) return fmt(early);
-  return `${fmt(early)} - ${fmt(late)}`;
+  const fmtTime = (d: string) => {
+    const date = new Date(d);
+    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  };
+  if (!late || early === late) return `${fmt(early)} ${fmtTime(early)}`;
+  const earlyDate = new Date(early);
+  const lateDate = new Date(late);
+  if (earlyDate.toDateString() === lateDate.toDateString()) {
+    return `${fmt(early)} ${fmtTime(early)} – ${fmtTime(late)}`;
+  }
+  return `${fmt(early)} – ${fmt(late)}`;
 }
 
-function formatWeight(lbs: number): string {
+function formatWeight(lbs: number | undefined): string {
+  if (lbs == null) return "—";
   if (lbs >= 1000) return `${(lbs / 1000).toFixed(1)}k`;
   return String(lbs);
 }
@@ -84,24 +93,23 @@ export function OrdersTable({
           <TableRow>
             <TableHead className="w-8" />
             <TableHead>Order #</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Origin</TableHead>
             <TableHead>Destination</TableHead>
             <TableHead>Pickup</TableHead>
+            <TableHead>Delivery</TableHead>
             <TableHead className="text-right">Pay</TableHead>
             <TableHead className="text-right">Miles</TableHead>
-            <TableHead className="text-right">$/M</TableHead>
+            <TableHead className="text-right">$/Mi</TableHead>
             <TableHead className="text-right">Weight</TableHead>
             <TableHead>Trailer</TableHead>
-            <TableHead>LTL</TableHead>
-            <TableHead>TWIC</TableHead>
-            <TableHead>Team</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading &&
             Array.from({ length: 10 }).map((_, i) => (
               <TableRow key={`skeleton-${i}`}>
-                {Array.from({ length: 10 }).map((_, j) => (
+                {Array.from({ length: 12 }).map((_, j) => (
                   <TableCell key={j}>
                     <Skeleton className="h-4 w-full" />
                   </TableCell>
@@ -111,7 +119,7 @@ export function OrdersTable({
 
           {!isLoading && orders.length === 0 && (
             <TableRow>
-              <TableCell colSpan={13} className="h-24 text-center">
+              <TableCell colSpan={12} className="h-24 text-center">
                 <div className="space-y-2">
                   <p className="text-muted-foreground">No orders found.</p>
                   {onClearFilters && (
@@ -126,10 +134,11 @@ export function OrdersTable({
 
           {orders.map((order) => {
             const isExpanded = expandedOrderId === order.order_id;
+            const isClosed = order.order_status === "closed";
             return (
               <Fragment key={order.order_id}>
                 <TableRow
-                  className={`cursor-pointer hover:bg-muted/50 ${order.order_status === "closed" ? "opacity-50" : ""}`}
+                  className={`cursor-pointer hover:bg-muted/50 ${isClosed ? "opacity-50" : ""}`}
                   onClick={() =>
                     setExpandedOrderId(isExpanded ? null : order.order_id)
                   }
@@ -157,19 +166,27 @@ export function OrdersTable({
                     )}
                   </TableCell>
                   <TableCell>
+                    <Badge variant={isClosed ? "destructive" : "secondary"}>
+                      {isClosed ? "Closed" : "Open"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     {order.origin_city}, {order.origin_state}
                   </TableCell>
                   <TableCell>
                     {order.destination_city}, {order.destination_state}
                   </TableCell>
-                  <TableCell>
-                    {order.pickup_date_early_local ? formatPickupDate(order.pickup_date_early_local, order.pickup_date_late_local ?? order.pickup_date_early_local) : '—'}
+                  <TableCell className="whitespace-nowrap text-sm">
+                    {formatDateRange(order.pickup_date_early_local, order.pickup_date_late_local)}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-sm">
+                    {formatDateRange(order.delivery_date_early_local, order.delivery_date_late_local)}
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     {formatCurrency(order.pay)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {order.miles?.toLocaleString() ?? '—'}
+                    {order.miles?.toLocaleString() ?? "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     {formatCurrency(order.rate_per_mile)}
@@ -180,14 +197,11 @@ export function OrdersTable({
                   <TableCell>
                     <Badge variant="secondary">{order.trailer_type?.split(" - ")[0] ?? order.trailer_type}</Badge>
                   </TableCell>
-                  <TableCell>{order.ltl ? "Yes" : "No"}</TableCell>
-                  <TableCell>{order.twic ? "Yes" : "No"}</TableCell>
-                  <TableCell>{order.team_load ? "Yes" : "No"}</TableCell>
                 </TableRow>
 
                 {isExpanded && (
                   <TableRow key={`${order.order_id}-detail`}>
-                    <TableCell colSpan={13} className="bg-muted/30 p-0">
+                    <TableCell colSpan={12} className="bg-muted/30 p-0">
                       <InlineDetail companyId={companyId} order={order} />
                     </TableCell>
                   </TableRow>
@@ -240,30 +254,36 @@ function InlineDetail({ companyId, order }: { companyId: string; order: Order })
     taskId != null && task?.task_status !== "completed" && task?.task_status !== "failed";
   const taskFailed = task?.task_status === "failed";
   const hasDetails = fullOrder?.has_details === true;
-  const isRemoved = fullOrder?.order_status === 'closed';
+  const isRemoved = fullOrder?.order_status === "closed";
 
   return (
     <div className="p-4 space-y-4">
-      {/* Summary row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">Route</p>
-          <p className="text-sm">
-            {order.origin_city}, {order.origin_state} → {order.destination_city}, {order.destination_state}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">Pickup</p>
-          <p className="text-sm">
-            {order.pickup_date_early_local ? formatPickupDate(order.pickup_date_early_local, order.pickup_date_late_local ?? order.pickup_date_early_local) : '—'}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">Pay / Rate</p>
-          <p className="text-sm font-medium">
-            {formatCurrency(order.pay)} ({formatCurrency(order.rate_per_mile)}/mi)
-          </p>
-        </div>
+      {/* Order attributes grid */}
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <DetailField label="Route" value={`${order.origin_city}, ${order.origin_state} → ${order.destination_city}, ${order.destination_state}`} />
+        <DetailField label="Pay / Rate" value={`${formatCurrency(order.pay)} (${formatCurrency(order.rate_per_mile)}/mi)`} />
+        <DetailField label="Miles" value={order.miles?.toLocaleString() ?? "—"} />
+        <DetailField label="Weight" value={order.weight != null ? `${order.weight.toLocaleString()} lbs` : "—"} />
+        <DetailField label="Trailer" value={order.trailer_type ?? "—"} />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <DetailField label="Pickup Early" value={formatDateRange(order.pickup_date_early_local)} />
+        <DetailField label="Pickup Late" value={formatDateRange(order.pickup_date_late_local)} />
+        <DetailField label="Delivery Early" value={formatDateRange(order.delivery_date_early_local)} />
+        <DetailField label="Delivery Late" value={formatDateRange(order.delivery_date_late_local)} />
+        <DetailField label="Status" value={order.order_status === "closed" ? "Closed" : "Open"} />
+      </div>
+
+      {/* Boolean flags */}
+      <div className="flex flex-wrap gap-2">
+        {order.hazmat && <Badge variant="destructive">Hazmat</Badge>}
+        {order.twic && <Badge variant="secondary">TWIC</Badge>}
+        {order.team_load && <Badge variant="secondary">Team</Badge>}
+        {order.ltl && <Badge variant="secondary">LTL</Badge>}
+        {order.ramps_required && <Badge variant="secondary">Ramps</Badge>}
+        {order.top_100_customer && <Badge variant="secondary">Top 100</Badge>}
+        {order.tarp_height != null && <Badge variant="secondary">Tarp {order.tarp_height}&quot;</Badge>}
       </div>
 
       <Separator />
@@ -282,23 +302,16 @@ function InlineDetail({ companyId, order }: { companyId: string; order: Order })
         </p>
       )}
 
-      {/* Detail fields */}
+      {/* Enriched detail fields */}
       {!isTaskPending && hasDetails && fullOrder && (
         <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4 text-sm">
-            {fullOrder.commodity && (
+          {fullOrder.commodity && (
+            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
               <DetailField label="Commodity" value={fullOrder.commodity} />
-            )}
-            {fullOrder.tarp_height != null && (
-              <DetailField label="Tarp Height" value={`${fullOrder.tarp_height}"`} />
-            )}
-            <DetailField label="Weight" value={fullOrder.weight != null ? `${fullOrder.weight.toLocaleString()} lbs` : '—'} />
-            <DetailField label="Ramps" value={fullOrder.ramps_required ? "Yes" : "No"} />
-            <DetailField label="TWIC" value={fullOrder.twic ? "Yes" : "No"} />
-            <DetailField label="Team" value={fullOrder.team_load ? "Yes" : "No"} />
-            <DetailField label="LTL" value={fullOrder.ltl ? "Yes" : "No"} />
-            <DetailField label="Top 100" value={fullOrder.top_100_customer ? "Yes" : "No"} />
-          </div>
+              {fullOrder.feet_remaining && <DetailField label="Feet Remaining" value={fullOrder.feet_remaining} />}
+              {fullOrder.agent_phone && <DetailField label="Agent Phone" value={fullOrder.agent_phone} />}
+            </div>
+          )}
 
           {fullOrder.comments && (
             <>
@@ -344,7 +357,7 @@ function DetailField({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="font-medium">{value}</p>
+      <p className="font-medium text-sm">{value}</p>
     </div>
   );
 }
