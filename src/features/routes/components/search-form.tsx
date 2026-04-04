@@ -421,8 +421,6 @@ export function SearchFilters({
     twic_card: settings.twic_card ?? undefined,
     team_driver: settings.team_driver ?? undefined,
     no_tarps: settings.no_tarps ?? undefined,
-    ignore_radius: settings.ignore_radius ?? undefined,
-    search_radius_miles: settings.ignore_radius ? undefined : (settings.preferred_radius_miles ?? undefined),
     max_assigned_orders: settings.max_assigned_orders ?? undefined,
     cost_per_mile: (settings.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE,
     max_deadhead_pct: settings.max_deadhead_pct ?? DEFAULT_MAX_DEADHEAD_PCT,
