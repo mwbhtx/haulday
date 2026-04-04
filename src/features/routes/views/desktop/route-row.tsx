@@ -44,7 +44,7 @@ export function RouteRow({
         </div>
         <div>
           <p className="text-sm uppercase tracking-wide text-text-secondary">Profit</p>
-          <p className="text-lg font-bold tabular-nums text-text-body bg-black px-2 py-0.5 inline-block">
+          <p className="text-lg font-bold tabular-nums text-white bg-black px-2 py-0.5 inline-block">
             {formatCurrency(profit)}
           </p>
           <p className="text-xs tabular-nums mt-0.5 text-text-tertiary">{formatCurrency(chain.total_pay)} gross</p>
