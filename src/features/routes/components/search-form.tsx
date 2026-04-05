@@ -776,7 +776,7 @@ export function SearchFilters({
       {departureDatePill}
       <div id="onborda-days-out"><DaysOutPill value={daysOut} onChange={setDaysOut} departureDate={departureDate} /></div>
       <NumOrdersPill value={numOrders} onChange={setNumOrders} />
-      <div id="onborda-all-filters"><AllFiltersPopover /></div>
+      <div id="onborda-all-filters"><AllFiltersPopover originRadius={originRadius} onOriginRadiusChange={setOriginRadius} destRadius={destRadius} onDestRadiusChange={setDestRadius} hasDestination={!!destination} /></div>
       {clearButton}
     </div>
   );
@@ -784,7 +784,13 @@ export function SearchFilters({
 
 /* ---- All Filters Popover ---- */
 
-function AllFiltersPopover() {
+function AllFiltersPopover({ originRadius, onOriginRadiusChange, destRadius, onDestRadiusChange, hasDestination }: {
+  originRadius: number;
+  onOriginRadiusChange: (v: number) => void;
+  destRadius: number;
+  onDestRadiusChange: (v: number) => void;
+  hasDestination: boolean;
+}) {
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
 
@@ -828,6 +834,8 @@ function AllFiltersPopover() {
   }
 
   const activeCount = [
+    originRadius !== DEFAULT_ORIGIN_RADIUS_MILES,
+    hasDestination && destRadius !== DEFAULT_DEST_RADIUS_MILES,
     trailerLabels.length > 0,
     maxWeight !== "",
     hazmat,
@@ -854,6 +862,46 @@ function AllFiltersPopover() {
       </PopoverTrigger>
       <PopoverContent className="w-80" align="start">
         <div className="space-y-5">
+          {/* Origin Radius */}
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Origin Radius</p>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={1000}
+                value={originRadius}
+                onChange={(e) => {
+                  const v = Math.max(1, Math.min(1000, Number(e.target.value) || 1));
+                  onOriginRadiusChange(v);
+                }}
+                className="w-24 h-8 text-sm"
+              />
+              <span className="text-xs text-muted-foreground">miles from origin</span>
+            </div>
+          </div>
+
+          {/* Destination Radius */}
+          {hasDestination && (
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Destination Radius</p>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  max={1000}
+                  value={destRadius}
+                  onChange={(e) => {
+                    const v = Math.max(1, Math.min(1000, Number(e.target.value) || 1));
+                    onDestRadiusChange(v);
+                  }}
+                  className="w-24 h-8 text-sm"
+                />
+                <span className="text-xs text-muted-foreground">miles from destination</span>
+              </div>
+            </div>
+          )}
+
           {/* Trailer Types */}
           <div className="space-y-2">
             <p className="text-sm font-medium">Trailer Types</p>
