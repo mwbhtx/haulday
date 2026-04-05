@@ -336,6 +336,7 @@ export function DesktopRoutesView() {
               }
               return undefined;
             })()}
+            searchParams={searchParams}
           />
         )}
 

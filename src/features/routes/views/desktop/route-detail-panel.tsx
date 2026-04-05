@@ -4,6 +4,8 @@ import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, FlameIcon, ClipboardListIcon, BookmarkIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/platform/web/components/ui/tooltip";
 import { RouteInspector } from "@/features/routes/components/route-inspector";
+import { useTimeline } from "@/core/hooks/use-timeline";
+import { useAuth } from "@/core/services/auth-provider";
 import { calcAvgLoadedRpm } from "@mwbhtx/haulvisor-core";
 import { LEG_COLORS } from "@/core/utils/route-colors";
 
@@ -22,6 +24,18 @@ export interface RouteDetailPanelProps {
   onToggleWatchlist?: () => void;
   departureTime?: Date;
   returnByTime?: Date;
+  searchParams?: {
+    origin_lat: number;
+    origin_lng: number;
+    departure_date: string;
+    destination_lat?: number;
+    destination_lng?: number;
+    destination_city?: string;
+    cost_per_mile?: number;
+    avg_driving_hours_per_day?: number;
+    work_start_hour?: number;
+    work_end_hour?: number;
+  } | null;
 }
 
 export function RouteDetailPanel({
@@ -36,6 +50,7 @@ export function RouteDetailPanel({
   onToggleWatchlist,
   departureTime,
   returnByTime,
+  searchParams,
 }: RouteDetailPanelProps) {
   const [showInspector, setShowInspector] = useState(false);
 
@@ -75,6 +90,7 @@ export function RouteDetailPanel({
             onToggleInspector={() => setShowInspector((v) => !v)}
             departureTime={departureTime}
             returnByTime={returnByTime}
+            searchParams={searchParams}
           />
         </div>
       )}
@@ -98,6 +114,18 @@ interface RouteDetailContentProps {
   onToggleWatchlist?: () => void;
   departureTime?: Date;
   returnByTime?: Date;
+  searchParams?: {
+    origin_lat: number;
+    origin_lng: number;
+    departure_date: string;
+    destination_lat?: number;
+    destination_lng?: number;
+    destination_city?: string;
+    cost_per_mile?: number;
+    avg_driving_hours_per_day?: number;
+    work_start_hour?: number;
+    work_end_hour?: number;
+  } | null;
 }
 
 function RouteDetailContent({
@@ -114,7 +142,15 @@ function RouteDetailContent({
   onToggleWatchlist,
   departureTime,
   returnByTime,
+  searchParams,
 }: RouteDetailContentProps) {
+  const { activeCompanyId } = useAuth();
+  const { data: timelineData, isLoading: timelineLoading } = useTimeline(
+    activeCompanyId ?? "",
+    chain,
+    searchParams ?? null,
+    showInspector,
+  );
   const firmLegs = chain.legs;
   const profit = chain.profit;
   const avgLoadedRpm = calcAvgLoadedRpm(firmLegs);
@@ -393,6 +429,8 @@ function RouteDetailContent({
                 onClose={onToggleInspector}
                 departureTime={departureTime}
                 returnByTime={returnByTime}
+                timelineData={timelineData}
+                timelineLoading={timelineLoading}
               />
             </div>
           )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { TruckIcon, ClockIcon, Package, PackageOpen, Fuel, Coffee, Bed, Layers } from "lucide-react";
-import type { RouteChain, TripPhase } from "@/core/types";
+import type { RouteChain, TripPhase, TripSimulationSummary } from "@/core/types";
 import { TRIP_DEFAULTS } from "@mwbhtx/haulvisor-core";
 
 function formatDuration(hours: number | undefined): string {
@@ -89,6 +89,14 @@ interface RouteInspectorProps {
   onClose: () => void;
   departureTime?: Date;
   returnByTime?: Date;
+  /** Externally loaded timeline (lazy) — overrides chain.timeline */
+  timelineData?: {
+    timeline: TripPhase[];
+    trip_summary: TripSimulationSummary;
+    suggested_departure?: string;
+  } | null;
+  /** Whether the timeline is loading */
+  timelineLoading?: boolean;
 }
 
 export function RouteInspector({
@@ -98,10 +106,35 @@ export function RouteInspector({
   onClose,
   departureTime,
   returnByTime,
+  timelineData,
+  timelineLoading,
 }: RouteInspectorProps) {
-  const timeline = chain.timeline ?? [];
+  // Use lazy-loaded timeline if available, fall back to chain.timeline
+  const timeline = timelineData?.timeline ?? chain.timeline ?? [];
+
+  // Show loading state
+  if (timelineLoading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center py-12">
+        <svg className="h-6 w-6 animate-spin text-muted-foreground" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <p className="text-sm text-muted-foreground mt-2">Generating route timeline...</p>
+      </div>
+    );
+  }
+
+  if (timeline.length === 0) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center py-12">
+        <p className="text-sm text-muted-foreground">No timeline available</p>
+      </div>
+    );
+  }
 
   const effectiveDeparture = departureTime
+    ?? (timelineData?.suggested_departure ? new Date(timelineData.suggested_departure) : null)
     ?? (chain.suggested_departure ? new Date(chain.suggested_departure) : null)
     ?? (() => {
       const firstLeg = chain.legs.find((l) => l.pickup_date_early_local);
