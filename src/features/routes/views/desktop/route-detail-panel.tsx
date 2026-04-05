@@ -164,9 +164,9 @@ function RouteDetailContent({
               { label1: "Loads", value1: String(chain.legs.length), color1: "", label2: "$/mi loaded", value2: avgLoadedRpm !== null ? `$${avgLoadedRpm.toFixed(2)}` : "—", color2: "" },
             ].map((row, i) => (
               <div key={i} className={`grid grid-cols-subgrid col-span-4 px-3 py-1.5 ${i % 2 === 0 ? "bg-[#ebeced] dark:bg-[#232323]" : ""}`}>
-                <span className="text-text-secondary text-left">{row.label1}</span>
+                <span className="text-text-body text-left">{row.label1}</span>
                 <span className="text-right">{row.color1 ? <span className={`tabular-nums font-medium ${row.color1} bg-black px-1.5 py-0.5`}>{row.value1}</span> : <span className="tabular-nums font-medium text-text-body">{row.value1}</span>}</span>
-                <span className="text-text-secondary text-left">{row.label2}</span>
+                <span className="text-text-body text-left">{row.label2}</span>
                 <span className="text-right">
                   {'tooltip2' in row && row.tooltip2 ? (
                     <TooltipProvider>
