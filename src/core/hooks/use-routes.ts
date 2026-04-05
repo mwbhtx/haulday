@@ -84,7 +84,8 @@ export function useRouteSearch(companyId: string, params: RouteSearchParams | nu
 
     const qs = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
-      if (value != null) qs.set(key, String(value));
+      if (key === "_t" || value == null) continue;
+      qs.set(key, String(value));
     }
 
     fetchApi<{ search_id: string }>(`routes/${companyId}/search?${qs.toString()}`, {
