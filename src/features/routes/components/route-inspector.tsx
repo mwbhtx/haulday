@@ -4,26 +4,6 @@ import { TruckIcon, ClockIcon, Package, PackageOpen, Fuel, Coffee, Bed, Layers }
 import type { RouteChain, TripPhase } from "@/core/types";
 import { TRIP_DEFAULTS } from "@mwbhtx/haulvisor-core";
 
-// Phase colors — hardcoded for now, migrate to theme vars later
-// Using inline style objects so arbitrary hex values work reliably
-const PHASE_COLORS = {
-  loading:   { color: "#34d399" },  // emerald-400
-  tarping:   { color: "#fb923c" },  // orange-400
-  unloading: { color: "#34d399" },  // emerald-400
-  rest:      { color: "#a78bfa" },  // violet-400
-  break:     { color: "#fbbf24" },  // amber-400
-  fuel:      { color: "#ff612b" },
-  waiting:   { color: "#38bdf8" },  // sky-400
-  deadhead:  { color: "#888888" },  // gray-500 — legible on both light and dark
-  driving:   { color: "#888888" },
-} as const;
-
-function phaseStyle(kind: keyof typeof PHASE_COLORS, dim = false): { color: string; opacity: number } {
-  const c = PHASE_COLORS[kind];
-  const opacity = dim ? 0.5 : ("opacity" in c ? (c as { opacity: number }).opacity : 1);
-  return { color: c.color, opacity };
-}
-
 function formatDuration(hours: number | undefined): string {
   if (hours === undefined || isNaN(hours)) return "—";
   if (hours >= 24) {
@@ -121,9 +101,6 @@ export function RouteInspector({
 }: RouteInspectorProps) {
   const timeline = chain.timeline ?? [];
 
-  // Compute effective departure: explicit prop → chain.suggested_departure →
-  // derive from first pickup minus pre-pickup phases (deadhead + loading transit).
-  // The simulator already respects working hours, so we use its timeline as-is.
   const effectiveDeparture = departureTime
     ?? (chain.suggested_departure ? new Date(chain.suggested_departure) : null)
     ?? (() => {
@@ -138,7 +115,6 @@ export function RouteInspector({
       return new Date(pickupTime - prePickupHours * 3_600_000);
     })();
 
-  // Compute running timestamps
   const timestamps: Date[] | null = effectiveDeparture
     ? (() => {
         const ts: Date[] = [];
@@ -158,18 +134,18 @@ export function RouteInspector({
   const days = timestamps ? groupByDay(timeline, timestamps) : [];
 
   return (
-    <div className="dark flex flex-col h-full bg-card">
+    <div className="flex flex-col h-full">
       {/* Day cards */}
       <div className="flex-1 overflow-y-auto">
         {days.length > 0 ? (
           days.map((day) => (
-            <div key={day.dayNumber} className="border-b border-black/10 dark:border-white/10">
+            <div key={day.dayNumber} className="border-b border-border">
               {/* Day header */}
-              <div className="flex items-baseline justify-between px-4 py-2.5 bg-black/[0.04] dark:bg-white/[0.04]">
-                <span className="text-sm font-semibold">
-                  Day {day.dayNumber} <span className="text-muted-foreground font-normal">— {day.dateLabel}</span>
+              <div className="flex items-baseline justify-between px-4 py-2.5 bg-muted/50">
+                <span className="text-sm font-semibold text-foreground">
+                  Day {day.dayNumber} <span className="font-normal">— {day.dateLabel}</span>
                 </span>
-                <span className="text-xs text-muted-foreground tabular-nums">
+                <span className="text-xs text-foreground tabular-nums">
                   {day.totalMiles > 0 && <>{day.totalMiles.toLocaleString()} mi · </>}
                   {formatDuration(day.driveHours)} drive
                 </span>
@@ -181,7 +157,6 @@ export function RouteInspector({
             </div>
           ))
         ) : (
-          // Fallback: flat list without day grouping (no departure time)
           timeline.map((phase, i) => (
             <PhaseRow key={i} phase={phase} timestamp={null} showTimeOnly={false} originCity={originCity} returnCity={returnCity} />
           ))
@@ -190,21 +165,21 @@ export function RouteInspector({
 
       {/* Return-by note */}
       {returnByTime && (
-        <div className="px-3 py-2 border-t border-black/10 dark:border-white/10 text-xs text-muted-foreground">
-          Return by: <span className="text-foreground font-medium">{formatTimestamp(returnByTime)}</span>
+        <div className="px-3 py-2 border-t border-border text-xs text-foreground">
+          Return by: <span className="font-medium">{formatTimestamp(returnByTime)}</span>
           {arrivalTime && arrivalTime <= returnByTime && (
-            <span className="text-green-400 ml-2">On time</span>
+            <span className="ml-2">On time</span>
           )}
           {arrivalTime && arrivalTime > returnByTime && (
-            <span className="text-red-400 ml-2">Late</span>
+            <span className="ml-2">Late</span>
           )}
         </div>
       )}
 
       {/* Assumptions footer */}
-      <div className="px-3 py-2.5 border-t border-black/10 dark:border-white/10 shrink-0">
-        <p className="text-sm text-muted-foreground/50 leading-relaxed">
-          <span className="font-medium text-muted-foreground/70">Assumptions:</span>{" "}
+      <div className="px-3 py-2.5 border-t border-border shrink-0">
+        <p className="text-sm text-foreground/60 leading-relaxed">
+          <span className="font-medium text-foreground/80">Assumptions:</span>{" "}
           Loaded @ {TRIP_DEFAULTS.loaded_speed_mph.value} mph · DH @ {TRIP_DEFAULTS.deadhead_speed_mph.value} mph · HOS {TRIP_DEFAULTS.avg_driving_hours_per_day.value}h avg drive day / 10h rest · Loading {TRIP_DEFAULTS.loading_hours.value}h · Unloading {TRIP_DEFAULTS.unloading_hours.value}h
         </p>
       </div>
@@ -214,143 +189,63 @@ export function RouteInspector({
 
 function PhaseRow({ phase, timestamp, showTimeOnly, originCity, returnCity }: { phase: TripPhase; timestamp: Date | null; showTimeOnly: boolean; originCity?: string; returnCity?: string }) {
   const timeLabel = timestamp ? (
-    <span className="text-xs text-muted-foreground/60 tabular-nums w-[4.5rem] shrink-0 text-right">
+    <span className="text-xs text-foreground/60 tabular-nums w-[4.5rem] shrink-0 text-right">
       {showTimeOnly ? formatTime(timestamp) : formatTimestamp(timestamp)}
     </span>
   ) : null;
 
-  switch (phase.kind) {
-    case 'deadhead':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <TruckIcon className="h-5 w-5 shrink-0" style={phaseStyle("deadhead")} />
-          <span className="flex-1 text-sm font-semibold" style={phaseStyle("deadhead")}>
-            {phase.origin_city || originCity} → {phase.destination_city || returnCity || originCity} <span className="font-normal text-xs">(DH)</span>
-          </span>
-          <span className="text-sm tabular-nums shrink-0" style={phaseStyle("deadhead", true)}>
-            {phase.miles?.toLocaleString()} mi
-          </span>
-          <span className="text-sm tabular-nums font-medium ml-2 w-14 text-right shrink-0" style={phaseStyle("deadhead")}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
+  const Icon = {
+    deadhead: TruckIcon,
+    driving: TruckIcon,
+    loading: Package,
+    tarping: Layers,
+    unloading: PackageOpen,
+    rest: Bed,
+    break: Coffee,
+    fuel: Fuel,
+    waiting: ClockIcon,
+  }[phase.kind];
 
-    case 'driving':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <TruckIcon className="h-5 w-5 shrink-0" style={phaseStyle("driving")} />
-          <span className="flex-1 text-sm font-semibold" style={phaseStyle("driving")}>
-            {phase.origin_city} → {phase.destination_city}
-          </span>
-          <span className="text-sm tabular-nums shrink-0" style={phaseStyle("driving", true)}>
-            {phase.miles?.toLocaleString()} mi
-          </span>
-          <span className="text-sm tabular-nums font-medium ml-2 w-14 text-right shrink-0" style={phaseStyle("driving")}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
+  const label = (() => {
+    switch (phase.kind) {
+      case 'deadhead':
+        return <>{phase.origin_city || originCity} → {phase.destination_city || returnCity || originCity} <span className="font-normal text-xs">(DH)</span></>;
+      case 'driving':
+        return <>{phase.origin_city} → {phase.destination_city}</>;
+      case 'loading':
+        return <>Loading at {phase.origin_city}</>;
+      case 'tarping':
+        return <>Tarping at {phase.origin_city}</>;
+      case 'unloading':
+        return <>Unloading at {phase.destination_city}</>;
+      case 'rest':
+        return <>Rest</>;
+      case 'break':
+        return <>Break</>;
+      case 'fuel':
+        return <>Fueling</>;
+      case 'waiting':
+        return <>Waiting for {phase.waiting_for === 'pickup_window' ? 'pickup' : 'delivery'} window{phase.origin_city ? ` at ${phase.origin_city}` : phase.destination_city ? ` at ${phase.destination_city}` : ''}</>;
+    }
+  })();
 
-    case 'loading':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <Package className="h-5 w-5 shrink-0" style={phaseStyle("loading")} />
-          <span className="flex-1 text-sm" style={phaseStyle("loading")}>
-            Loading at {phase.origin_city}
-          </span>
-          <span className="text-sm tabular-nums w-14 text-right shrink-0" style={phaseStyle("loading", true)}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
+  const hasMiles = phase.kind === 'driving' || phase.kind === 'deadhead';
 
-    case 'tarping':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <Layers className="h-5 w-5 shrink-0" style={phaseStyle("tarping")} />
-          <span className="flex-1 text-sm" style={phaseStyle("tarping")}>
-            Tarping at {phase.origin_city}
-          </span>
-          <span className="text-sm tabular-nums w-14 text-right shrink-0" style={phaseStyle("tarping", true)}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
-
-    case 'unloading':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <PackageOpen className="h-5 w-5 shrink-0" style={phaseStyle("unloading")} />
-          <span className="flex-1 text-sm" style={phaseStyle("unloading")}>
-            Unloading at {phase.destination_city}
-          </span>
-          <span className="text-sm tabular-nums w-14 text-right shrink-0" style={phaseStyle("unloading", true)}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
-
-    case 'rest':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <Bed className="h-5 w-5 shrink-0" style={phaseStyle("rest")} />
-          <span className="flex-1 text-sm" style={phaseStyle("rest")}>
-            Rest
-          </span>
-          <span className="text-sm tabular-nums w-14 text-right shrink-0" style={phaseStyle("rest", true)}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
-
-    case 'break':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <Coffee className="h-5 w-5 shrink-0" style={phaseStyle("break")} />
-          <span className="flex-1 text-sm" style={phaseStyle("break")}>
-            Break
-          </span>
-          <span className="text-sm tabular-nums w-14 text-right shrink-0" style={phaseStyle("break", true)}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
-
-    case 'fuel':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <Fuel className="h-5 w-5 shrink-0" style={phaseStyle("fuel")} />
-          <span className="flex-1 text-sm" style={phaseStyle("fuel")}>
-            Fueling
-          </span>
-          <span className="text-sm tabular-nums w-14 text-right shrink-0" style={phaseStyle("fuel", true)}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
-
-    case 'waiting':
-      return (
-        <div className="flex items-center gap-2.5 px-4 py-2 border-b border-black/[0.06] dark:border-white/[0.05]">
-          {timeLabel}
-          <ClockIcon className="h-5 w-5 shrink-0" style={phaseStyle("waiting")} />
-          <span className="flex-1 text-sm" style={phaseStyle("waiting")}>
-            Waiting for {phase.waiting_for === 'pickup_window' ? 'pickup' : 'delivery'} window
-            {phase.origin_city ? ` at ${phase.origin_city}` : phase.destination_city ? ` at ${phase.destination_city}` : ''}
-          </span>
-          <span className="text-sm tabular-nums w-14 text-right shrink-0" style={phaseStyle("waiting", true)}>
-            {formatDuration(phase.duration_hours)}
-          </span>
-        </div>
-      );
-  }
+  return (
+    <div className="flex items-center gap-2.5 px-4 py-2 border-b border-border/50">
+      {timeLabel}
+      <Icon className="h-5 w-5 shrink-0 text-foreground/60" />
+      <span className={`flex-1 text-sm text-foreground ${hasMiles ? 'font-semibold' : ''}`}>
+        {label}
+      </span>
+      {hasMiles && (
+        <span className="text-sm tabular-nums shrink-0 text-foreground/60">
+          {phase.miles?.toLocaleString()} mi
+        </span>
+      )}
+      <span className="text-sm tabular-nums font-medium ml-2 w-14 text-right shrink-0 text-foreground">
+        {formatDuration(phase.duration_hours)}
+      </span>
+    </div>
+  );
 }
