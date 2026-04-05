@@ -338,8 +338,8 @@ function RouteDetailContent({
           );
         })}
 
-        {/* Return deadhead */}
-        {returnDh > 0 && lastLeg.destination_city !== returnCity && (
+        {/* Return deadhead — only when destination is explicitly set */}
+        {returnDh > 0 && destCity && lastLeg.destination_city !== returnCity && (
           <div className="flex items-stretch gap-3 pl-4 pr-4">
             <div className="flex flex-col items-center shrink-0">
               <div className="w-px flex-1 bg-text-body" />
