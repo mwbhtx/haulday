@@ -115,7 +115,7 @@ export default function HomePage() {
           <div className="mt-8 flex items-center justify-center gap-4">
             <button
               type="button"
-              className="h-14 px-10 rounded-full border border-white/20 backdrop-blur-sm hover:brightness-110 transition-all disabled:pointer-events-none disabled:opacity-50 inline-flex items-center gap-2.5 text-lg font-semibold"
+              className="h-14 px-10 rounded-full bg-primary hover:brightness-110 transition-all disabled:pointer-events-none disabled:opacity-50 inline-flex items-center gap-2.5 text-lg font-semibold text-primary-foreground"
               onClick={handleDemo}
             >
               Try Demo
