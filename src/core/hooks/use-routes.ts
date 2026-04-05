@@ -60,12 +60,14 @@ export function useRouteSearch(companyId: string, params: RouteSearchParams | nu
   const [error, setError] = useState<Error | null>(null);
   const [progress, setProgress] = useState<SearchProgress | null>(null);
 
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const paramsKeyRef = useRef<string>("");
+  const cancelledRef = useRef(false);
 
   const stopPolling = useCallback(() => {
+    cancelledRef.current = true;
     if (pollRef.current) {
-      clearInterval(pollRef.current);
+      clearTimeout(pollRef.current);
       pollRef.current = null;
     }
   }, []);
@@ -77,6 +79,7 @@ export function useRouteSearch(companyId: string, params: RouteSearchParams | nu
     paramsKeyRef.current = paramsKey;
 
     stopPolling();
+    cancelledRef.current = false;
     setIsLoading(true);
     setIsFetched(false);
     setError(null);
@@ -88,38 +91,53 @@ export function useRouteSearch(companyId: string, params: RouteSearchParams | nu
       qs.set(key, String(value));
     }
 
+    // Sequential poll loop — waits for each request to finish before scheduling the next.
+    // Prevents overlapping requests when the tab is backgrounded and throttled.
+    async function pollLoop(searchId: string) {
+      while (!cancelledRef.current) {
+        await new Promise(resolve => {
+          pollRef.current = setTimeout(resolve, 1500);
+        });
+        if (cancelledRef.current) break;
+
+        try {
+          const resp = await fetchApi<SearchPollResponse>(
+            `routes/${companyId}/search/${searchId}`,
+          );
+
+          if (cancelledRef.current) break;
+          setProgress(resp.progress);
+
+          if (resp.status === "complete" && resp.result) {
+            setData(resp.result);
+            setIsLoading(false);
+            setIsFetched(true);
+            return;
+          } else if (resp.status === "failed") {
+            setError(new Error(resp.error || "Search failed"));
+            setIsLoading(false);
+            setIsFetched(true);
+            return;
+          }
+        } catch {
+          if (cancelledRef.current) break;
+          // Job may have expired (404) or network error — stop polling
+          setError(new Error("Search expired or failed. Please try again."));
+          setIsLoading(false);
+          setIsFetched(true);
+          return;
+        }
+      }
+    }
+
     fetchApi<{ search_id: string }>(`routes/${companyId}/search?${qs.toString()}`, {
       method: "POST",
     })
       .then(({ search_id }) => {
-        pollRef.current = setInterval(async () => {
-          try {
-            const resp = await fetchApi<SearchPollResponse>(
-              `routes/${companyId}/search/${search_id}`,
-            );
-
-            setProgress(resp.progress);
-
-            if (resp.status === "complete" && resp.result) {
-              stopPolling();
-              setData(resp.result);
-              setIsLoading(false);
-              setIsFetched(true);
-            } else if (resp.status === "failed") {
-              stopPolling();
-              setError(new Error(resp.error || "Search failed"));
-              setIsLoading(false);
-              setIsFetched(true);
-            }
-          } catch (err) {
-            stopPolling();
-            setError(err instanceof Error ? err : new Error(String(err)));
-            setIsLoading(false);
-            setIsFetched(true);
-          }
-        }, 1500);
+        if (!cancelledRef.current) pollLoop(search_id);
       })
       .catch((err) => {
+        if (cancelledRef.current) return;
         setError(err instanceof Error ? err : new Error(String(err)));
         setIsLoading(false);
         setIsFetched(true);
