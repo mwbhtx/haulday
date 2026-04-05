@@ -136,7 +136,7 @@ export function RouteList({
       <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ scrollPadding: "8px" }}>
         {isLoading ? (
           <div className="space-y-2 p-2">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="bg-muted/50 rounded-lg p-4 space-y-3 animate-pulse">
                 <div className="flex justify-between items-center">
                   <div className="h-5 w-40 bg-muted rounded" />

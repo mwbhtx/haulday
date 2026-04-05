@@ -281,9 +281,17 @@ export function DesktopRoutesView() {
         {hasActiveSearch && (
           <div className="w-[35%] min-w-[280px] max-w-[450px] shrink-0 min-h-0">
             {isLoading && progress && progress.pairs_total > 0 && (
-              <div className="px-4 py-2 text-sm text-muted-foreground">
-                Checking {progress.pairs_checked.toLocaleString()} / {progress.pairs_total.toLocaleString()} pairs
-                {progress.routes_found > 0 && ` — ${progress.routes_found} routes found`}
+              <div className="px-4 pt-3 pb-1 space-y-1.5">
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(100, (progress.pairs_checked / progress.pairs_total) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Checking {progress.pairs_checked.toLocaleString()} / {progress.pairs_total.toLocaleString()} pairs
+                  {progress.routes_found > 0 && ` — ${progress.routes_found} routes found`}
+                </p>
               </div>
             )}
             <RouteList
