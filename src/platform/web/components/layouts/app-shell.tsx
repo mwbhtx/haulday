@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* User section */}
         <div className="flex items-center gap-1">
-          <span className="text-sm text-sidebar-foreground/70 mr-2">
+          <span className="text-sm text-muted-foreground mr-2">
             {user?.email || user?.username || "Guest"}
           </span>
           <button
