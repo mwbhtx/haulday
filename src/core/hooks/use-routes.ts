@@ -22,8 +22,9 @@ export interface RouteSearchParams {
   team_driver?: boolean;
   no_tarps?: boolean;
   ignore_radius?: boolean;
-  // Deadhead
-  max_deadhead_pct?: number;
+  // Search radius
+  origin_radius_miles?: number;
+  dest_radius_miles?: number;
   // Cost model
   cost_per_mile?: number;
   avg_mpg?: number;

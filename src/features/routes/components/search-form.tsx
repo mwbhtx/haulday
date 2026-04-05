@@ -16,7 +16,7 @@ import { ChevronDown, LocateIcon, SlidersHorizontal, XIcon } from "lucide-react"
 import { BorderBeam } from "@/platform/web/components/ui/border-beam";
 import { Calendar } from "@/platform/web/components/ui/calendar";
 import { useSettings, useUpdateSettings } from "@/core/hooks/use-settings";
-import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_MAX_TRIP_DAYS, DEFAULT_COST_PER_MILE, ORDER_COUNT_OPTIONS, DEFAULT_NUM_ORDERS, DEFAULT_MAX_DEADHEAD_PCT, MIN_DEADHEAD_PCT, MAX_DEADHEAD_PCT } from "@mwbhtx/haulvisor-core";
+import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_MAX_TRIP_DAYS, DEFAULT_COST_PER_MILE, ORDER_COUNT_OPTIONS, DEFAULT_NUM_ORDERS, DEFAULT_ORIGIN_RADIUS_MILES, DEFAULT_DEST_RADIUS_MILES } from "@mwbhtx/haulvisor-core";
 
 import type { RouteSearchParams } from "@/core/hooks/use-routes";
 
@@ -424,7 +424,6 @@ export function SearchFilters({
     no_tarps: settings.no_tarps ?? undefined,
     max_assigned_orders: settings.max_assigned_orders ?? undefined,
     cost_per_mile: (settings.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE,
-    max_deadhead_pct: settings.max_deadhead_pct ?? DEFAULT_MAX_DEADHEAD_PCT,
   } : {};
 
   // Restore persisted filter state from sessionStorage
@@ -456,6 +455,8 @@ export function SearchFilters({
   const [departureDate, setDepartureDate] = useState<string>(r.departureDate ?? tomorrow);
   const [daysOut, setDaysOut] = useState<number>(r.daysOut ?? DEFAULT_MAX_TRIP_DAYS);
   const [numOrders, setNumOrders] = useState<number>(r.numOrders ?? DEFAULT_NUM_ORDERS);
+  const [originRadius, setOriginRadius] = useState<number>(DEFAULT_ORIGIN_RADIUS_MILES);
+  const [destRadius, setDestRadius] = useState<number>(DEFAULT_DEST_RADIUS_MILES);
   const [defaultsLoaded, setDefaultsLoaded] = useState(!!r.origin);
 
   const hasHomeLocation =
@@ -514,6 +515,8 @@ export function SearchFilters({
                 ...(destination ? { destination_lat: destination.lat, destination_lng: destination.lng, destination_city: destination.name.split(",")[0] } : {}),
                 max_trip_days: daysOut,
                 ...(numOrders > 0 ? { num_orders: numOrders } : {}),
+                origin_radius_miles: originRadius,
+                ...(destination ? { dest_radius_miles: destRadius } : {}),
                 ...driverProfile,
               });
             }
@@ -537,6 +540,7 @@ export function SearchFilters({
             departure_date: departureDate,
             max_trip_days: daysOut,
             ...(numOrders > 0 ? { num_orders: numOrders } : {}),
+            origin_radius_miles: originRadius,
             ...driverProfile,
           });
         }
@@ -562,9 +566,11 @@ export function SearchFilters({
       ...(destination ? { destination_lat: destination.lat, destination_lng: destination.lng, destination_city: destination.name.split(",")[0] } : {}),
       max_trip_days: daysOut,
       ...(numOrders > 0 ? { num_orders: numOrders } : {}),
+      origin_radius_miles: originRadius,
+      ...(destination ? { dest_radius_miles: destRadius } : {}),
       ...driverProfile,
     });
-  }, [origin, destination, departureDate, daysOut, numOrders, profileKey, onClearSearch]);
+  }, [origin, destination, departureDate, daysOut, numOrders, originRadius, destRadius, profileKey, onClearSearch]);
 
   // Auto-search on filter changes (only after initial load settles)
   useEffect(() => {
@@ -784,7 +790,6 @@ function AllFiltersPopover() {
 
   const [trailerLabels, setTrailerLabels] = useState<string[]>([]);
   const [maxWeight, setMaxWeight] = useState("");
-  const [maxDhPct, setMaxDhPct] = useState(DEFAULT_MAX_DEADHEAD_PCT);
   const [hazmat, setHazmat] = useState(false);
   const [twic, setTwic] = useState(false);
   const [team, setTeam] = useState(false);
@@ -795,7 +800,6 @@ function AllFiltersPopover() {
     if (!settings) return;
     setTrailerLabels(codesToLabels(settings.trailer_types ?? []));
     setMaxWeight(settings.max_weight != null ? String(settings.max_weight) : "");
-    setMaxDhPct(settings.max_deadhead_pct ?? DEFAULT_MAX_DEADHEAD_PCT);
     setHazmat(settings.hazmat_certified ?? false);
     setTwic(settings.twic_card ?? false);
     setTeam(settings.team_driver ?? false);
@@ -826,7 +830,6 @@ function AllFiltersPopover() {
   const activeCount = [
     trailerLabels.length > 0,
     maxWeight !== "",
-    maxDhPct !== DEFAULT_MAX_DEADHEAD_PCT,
     hazmat,
     twic,
     team,
@@ -851,24 +854,6 @@ function AllFiltersPopover() {
       </PopoverTrigger>
       <PopoverContent className="w-80" align="start">
         <div className="space-y-5">
-          {/* Max Deadhead % */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Max Deadhead %</p>
-            <Slider
-              min={MIN_DEADHEAD_PCT}
-              max={MAX_DEADHEAD_PCT}
-              step={5}
-              value={[maxDhPct]}
-              onValueChange={([v]) => {
-                setMaxDhPct(v);
-                if (initialized.current) save({ max_deadhead_pct: v });
-              }}
-            />
-            <p className="text-xs text-muted-foreground tabular-nums">
-              {maxDhPct}% — deadhead per leg vs loaded miles
-            </p>
-          </div>
-
           {/* Trailer Types */}
           <div className="space-y-2">
             <p className="text-sm font-medium">Trailer Types</p>
