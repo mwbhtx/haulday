@@ -198,9 +198,9 @@ function RouteDetailContent({
         {startDh > 0 && firstLeg.origin_city !== origin && (
           <div className="flex items-stretch gap-3 pl-4 pr-4">
             <div className="flex flex-col items-center shrink-0">
-              <div className="w-px flex-1 bg-black/10 dark:bg-white/[0.07]" />
-              <div className="h-3.5 w-3.5 rounded-full border-2 border-black/20 dark:border-white/20 shrink-0" />
-              <div className="w-px flex-1 bg-black/10 dark:bg-white/[0.07]" />
+              <div className="w-px flex-1 bg-text-body" />
+              <div className="h-3.5 w-3.5 rounded-full border-2 border-text-body shrink-0" />
+              <div className="w-px flex-1 bg-text-body" />
             </div>
             <div className="flex items-center flex-1 gap-3 py-3">
               <span className="flex-1 text-base font-bold text-text-body">
@@ -220,9 +220,9 @@ function RouteDetailContent({
               {showBetweenDh && (
                 <div className="flex items-stretch gap-3 pl-4 pr-4">
                   <div className="flex flex-col items-center shrink-0">
-                    <div className="w-px flex-1 bg-black/10 dark:bg-white/[0.07]" />
-                    <div className="h-3.5 w-3.5 rounded-full border-2 border-black/20 dark:border-white/20 shrink-0" />
-                    <div className="w-px flex-1 bg-black/10 dark:bg-white/[0.07]" />
+                    <div className="w-px flex-1 bg-text-body" />
+                    <div className="h-3.5 w-3.5 rounded-full border-2 border-text-body shrink-0" />
+                    <div className="w-px flex-1 bg-text-body" />
                   </div>
                   <div className="flex items-center flex-1 gap-3 py-3">
                     <span className="flex-1 text-base font-bold text-text-body">
@@ -239,12 +239,12 @@ function RouteDetailContent({
                 onMouseLeave={() => onHoverLeg?.(null)}
               >
                 <div className="flex flex-col items-center shrink-0">
-                  <div className="w-px h-[1.375rem] bg-black/10 dark:bg-white/[0.07]" />
+                  <div className="w-px h-[1.375rem] bg-text-body" />
                   <div
                     className="h-3.5 w-3.5 rounded-full shrink-0"
                     style={{ backgroundColor: color }}
                   />
-                  <div className="w-px flex-1 bg-black/10 dark:bg-white/[0.07]" />
+                  <div className="w-px flex-1 bg-text-body" />
                 </div>
                 <div className="flex-1 py-3">
                   <div className="flex items-center gap-3">
@@ -348,9 +348,9 @@ function RouteDetailContent({
         {returnDh > 0 && lastLeg.destination_city !== returnCity && (
           <div className="flex items-stretch gap-3 pl-4 pr-4">
             <div className="flex flex-col items-center shrink-0">
-              <div className="w-px flex-1 bg-black/10 dark:bg-white/[0.07]" />
-              <div className="h-3.5 w-3.5 rounded-full border-2 border-black/20 dark:border-white/20 shrink-0" />
-              <div className="w-px flex-1 bg-black/10 dark:bg-white/[0.07]" />
+              <div className="w-px flex-1 bg-text-body" />
+              <div className="h-3.5 w-3.5 rounded-full border-2 border-text-body shrink-0" />
+              <div className="w-px flex-1 bg-text-body" />
             </div>
             <div className="flex items-center flex-1 gap-3 py-3">
               <span className="flex-1 text-base font-bold text-text-body">
