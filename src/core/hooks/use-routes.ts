@@ -32,6 +32,11 @@ export interface RouteSearchParams {
   // Work hours
   work_start_hour?: number;
   work_end_hour?: number;
+  // Route quality filters
+  max_deadhead_pct?: number;
+  min_daily_profit?: number;
+  min_rpm?: number;
+  max_interleg_deadhead_miles?: number;
 }
 
 export function useRouteSearch(companyId: string, params: RouteSearchParams | null) {
