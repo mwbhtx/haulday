@@ -174,12 +174,12 @@ html {
   font-size: 15px !important;
 }
 .hv-tour-popover .driver-popover-description {
-  color: var(--muted-foreground) !important;
+  color: var(--foreground) !important;
   font-size: 14px !important;
   line-height: 1.5 !important;
 }
 .hv-tour-popover .driver-popover-description strong {
-  color: var(--foreground) !important;
+  color: var(--primary) !important;
 }
 .hv-tour-popover .driver-popover-progress-text {
   color: var(--muted-foreground) !important;
@@ -193,7 +193,7 @@ html {
 .hv-tour-popover .driver-popover-next-btn,
 .hv-tour-popover .driver-popover-close-btn-text {
   background-color: var(--primary) !important;
-  color: white !important;
+  color: var(--primary-foreground) !important;
   border: none !important;
 }
 .hv-tour-popover .driver-popover-close-btn {
