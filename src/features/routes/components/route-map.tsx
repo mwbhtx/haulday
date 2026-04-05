@@ -312,7 +312,7 @@ export function RouteMap({
           const key = `${a[0]},${a[1]};${b[0]},${b[1]}`;
           if (directionsCache.has(key)) return { id: seg.id, coords: directionsCache.get(key)! };
           try {
-            const url = `https://api.openrouteservice.org/v2/directions/driving-hgv?start=${a[0]},${a[1]}&end=${b[0]},${b[1]}`;
+            const url = `https://api.openrouteservice.org/v2/directions/driving-car?start=${a[0]},${a[1]}&end=${b[0]},${b[1]}`;
             const res = await fetch(url, {
               headers: { "Authorization": ORS_API_KEY },
             });
