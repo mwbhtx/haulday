@@ -25,6 +25,7 @@ interface RouteMapProps {
 
 const PROTOMAPS_API_KEY = process.env.NEXT_PUBLIC_PROTOMAPS_API_KEY ?? "";
 const ORS_API_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY ?? "";
+if (typeof window !== "undefined") console.log(`[route-map] ORS key: ${ORS_API_KEY ? `set (${ORS_API_KEY.length} chars)` : "MISSING"}`);
 
 /** Protomaps style object for a given theme */
 function protomapsStyle(theme: "light" | "dark"): maplibregl.StyleSpecification {
