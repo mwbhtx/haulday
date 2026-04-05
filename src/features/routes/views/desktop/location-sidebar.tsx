@@ -387,7 +387,7 @@ function RouteChainCard({
                     <div className="w-px flex-1 bg-white/[0.07]" />
                   </div>
                   <div className="flex items-center flex-1 gap-3 py-3">
-                    <span className="flex-1 text-base text-text-body">{origin} → {firstLeg.origin_city}</span>
+                    <span className="flex-1 text-base text-muted-foreground">{origin} → {firstLeg.origin_city}</span>
                     <span className="text-base tabular-nums text-negative">−{formatCurrency(startDh * costPerDhMile)} DH</span>
                   </div>
                 </div>
@@ -406,7 +406,7 @@ function RouteChainCard({
                           <div className="w-px flex-1 bg-white/[0.07]" />
                         </div>
                         <div className="flex items-center flex-1 gap-3 py-3">
-                          <span className="flex-1 text-base text-text-body">
+                          <span className="flex-1 text-base text-muted-foreground">
                             {chain.legs[legIdx - 1].destination_city} → {leg.origin_city}
                           </span>
                           <span className="text-base tabular-nums text-negative">
@@ -457,7 +457,7 @@ function RouteChainCard({
                             {formatCurrency(leg.pay)}
                           </span>
                         </div>
-                        <div className="text-sm mt-1 space-y-0.5 text-text-body">
+                        <div className="text-sm mt-1 space-y-0.5 text-muted-foreground">
                             <p>
                               {[leg.weight != null ? `${leg.weight.toLocaleString()} lbs` : null, leg.miles != null ? `${leg.miles.toLocaleString()} mi` : null].filter(Boolean).join(" · ")}
                               {leg.miles > 0 && <>{" · "}<span className={rateColor(leg.pay / leg.miles, costPerMile)}>${(leg.pay / leg.miles).toFixed(2)}/mi</span></>}
@@ -483,7 +483,7 @@ function RouteChainCard({
                     <div className="w-px flex-1 bg-white/[0.07]" />
                   </div>
                   <div className="flex items-center flex-1 gap-3 py-3">
-                    <span className="flex-1 text-base text-text-body">{lastLeg.destination_city} → {returnCity}</span>
+                    <span className="flex-1 text-base text-muted-foreground">{lastLeg.destination_city} → {returnCity}</span>
                     <span className="text-base tabular-nums text-negative">−{formatCurrency(returnDh * costPerDhMile)} DH</span>
                   </div>
                 </div>
@@ -503,7 +503,7 @@ function RouteChainCard({
           className="flex items-center justify-center w-7 shrink-0 rounded-r-xl bg-surface-elevated hover:bg-surface-overlay border-l border-white/[0.05] transition-colors"
           title="View segment breakdown"
         >
-          <ChevronLeftIcon className="h-4 w-4 text-text-body" />
+          <ChevronLeftIcon className="h-4 w-4 text-muted-foreground" />
         </button>
       )}
 
@@ -523,7 +523,7 @@ function RouteChainCard({
             className="flex items-center justify-center w-7 shrink-0 bg-surface-muted hover:bg-surface-muted-hover border-r border-white/[0.05] transition-colors"
             title="Back to route"
           >
-            <ChevronRightIcon className="h-4 w-4 text-text-body" />
+            <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
           </button>
           {/* Inspector content */}
           <div className="flex-1 min-w-0 overflow-hidden bg-surface-muted">

@@ -76,7 +76,7 @@ export default function HomePage() {
       {/* ── Value prop + Feature sections (joined for beam effect) ── */}
       <div className="relative z-10 border-t border-white/[0.06] bg-black/40 backdrop-blur-xl flex flex-col items-center">
         <div className="relative max-w-4xl mx-auto px-6 py-16 sm:py-20 text-center w-full">
-          <p className="text-xl sm:text-2xl md:text-[1.7rem] leading-relaxed text-text-body">
+          <p className="text-xl sm:text-2xl md:text-[1.7rem] leading-relaxed text-muted-foreground">
             Built for owner-operators who'd rather drive than stare at a load board. We analyze every route, calculate your real profit, and find the
             fastest way home — so you don&apos;t have to.
           </p>

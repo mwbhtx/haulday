@@ -577,7 +577,7 @@ function CompanySelect({
         createPortal(
           <div
             ref={dropdownRef}
-            className="fixed z-50 w-72 rounded-lg border bg-popover text-popover-foreground shadow-md"
+            className="fixed z-50 w-72 rounded-lg border bg-popover text-foreground shadow-md"
             style={{ top: pos.top, left: pos.left }}
           >
             <div className="p-2">
