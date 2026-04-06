@@ -78,10 +78,14 @@ export default function LoginPage() {
 
   const isDev = process.env.NODE_ENV === "development";
 
+  // Hide the shader gradient canvas on the login page
+  const hideShader = <style>{`canvas { display: none !important; }`}</style>;
+
   if (showNoCompany) {
     return (
       <>
-        <div className="fixed inset-0 z-[1] bg-black/40 backdrop-blur-xl" />
+        {hideShader}
+        <div className="fixed inset-0 z-[1]" />
         <div className="fixed inset-0 z-[2] opacity-0 animate-[fade-in_1s_ease-in_forwards] pointer-events-none">
           <BackgroundBeams />
         </div>
@@ -122,8 +126,9 @@ export default function LoginPage() {
 
   return (
     <>
+      {hideShader}
       {/* Glass overlay */}
-      <div className="fixed inset-0 z-[1] bg-black/40 backdrop-blur-xl" />
+      <div className="fixed inset-0 z-[1]" />
 
       {/* Beams */}
       <div className="fixed inset-0 z-[2] opacity-0 animate-[fade-in_1s_ease-in_forwards] pointer-events-none">

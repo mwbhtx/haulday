@@ -148,7 +148,7 @@ export const SHADER_PRESETS: ShaderPreset[] = [
       uAmplitude: 0,
       uDensity: 1.5,
       uFrequency: 0,
-      uSpeed: 0.3,
+      uSpeed: 0.03,
       uStrength: 1.5,
       uTime: 8,
       wireframe: false,

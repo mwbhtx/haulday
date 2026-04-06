@@ -57,6 +57,13 @@ export default function HomePage() {
   return (
     <>
       <div className="relative overflow-hidden min-h-[50vh] flex flex-col">
+        {/* Hero background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/city_digital_graphics_hero.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-black/50" />
+
         <MarketingNav />
 
         {/* ── Hero ── */}
@@ -74,7 +81,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Value prop + Feature sections (joined for beam effect) ── */}
-      <div className="relative z-10 border-t border-white/[0.06] bg-black/40 backdrop-blur-xl flex flex-col items-center">
+      <div className="relative z-10 border-t border-white/[0.06] bg-background flex flex-col items-center">
         <div className="relative max-w-4xl mx-auto px-6 py-16 sm:py-20 text-center w-full">
           <p className="text-xl sm:text-2xl md:text-[1.7rem] leading-relaxed text-muted-foreground">
             Built for owner-operators who'd rather drive than stare at a load board. We analyze every route, calculate your real profit, and find the
@@ -87,7 +94,7 @@ export default function HomePage() {
             {FEATURES.map((feature, i) => (
               <motion.div
                 key={feature.title}
-                className="rounded-2xl bg-black p-8 sm:p-10 flex flex-col"
+                className="rounded-2xl bg-card p-8 sm:p-10 flex flex-col"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
@@ -107,7 +114,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Bottom CTA ── */}
-      <section className="relative z-10 border-t border-white/[0.06] bg-black/40 backdrop-blur-xl">
+      <section className="relative z-10">
         <div className="max-w-6xl mx-auto px-6 py-24 sm:py-32 text-center">
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-normal tracking-wide leading-[0.9]">
             Built for truckers.<br />Available today.
