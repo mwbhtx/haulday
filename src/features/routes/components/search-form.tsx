@@ -431,7 +431,6 @@ export function SearchFilters({
     twic_card: settings.twic_card ?? undefined,
     team_driver: settings.team_driver ?? undefined,
     no_tarps: settings.no_tarps ?? undefined,
-    max_assigned_orders: settings.max_assigned_orders ?? undefined,
     cost_per_mile: (settings.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE,
   } : {};
 

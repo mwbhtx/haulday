@@ -11,7 +11,6 @@ export interface Settings {
   cost_per_mile: number;
   trailer_types: string[];
   max_weight: number | null;
-  max_assigned_orders: number | null;
   hazmat_certified: boolean;
   twic_card: boolean;
   team_driver: boolean;

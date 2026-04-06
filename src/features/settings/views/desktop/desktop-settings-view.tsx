@@ -75,7 +75,6 @@ export function DesktopSettingsView() {
   const [tankSize, setTankSize] = useState("");
   const [avgDrivingHours, setAvgDrivingHours] = useState("");
   const [maxWeight, setMaxWeight] = useState("");
-  const [maxAssigned, setMaxAssigned] = useState("");
   const [trailerLabels, setTrailerLabels] = useState<string[]>([]);
   const [hazmatCertified, setHazmatCertified] = useState(false);
   const [twicCard, setTwicCard] = useState(false);
@@ -125,7 +124,6 @@ export function DesktopSettingsView() {
     setTankSize((settings as any).tank_size_gallons != null ? String((settings as any).tank_size_gallons) : "");
     setAvgDrivingHours(settings.avg_driving_hours_per_day != null ? String(settings.avg_driving_hours_per_day) : "");
     setMaxWeight(settings.max_weight != null ? String(settings.max_weight) : "");
-    setMaxAssigned(settings.max_assigned_orders != null ? String(settings.max_assigned_orders) : "");
     setTrailerLabels(codesToLabels(settings.trailer_types ?? []));
     setHazmatCertified(settings.hazmat_certified ?? false);
     setTwicCard(settings.twic_card ?? false);
@@ -158,7 +156,6 @@ export function DesktopSettingsView() {
     tank_size_gallons: { min: 50, max: 300 },
     avg_driving_hours_per_day: { min: 6, max: 11 },
     max_weight: { min: 1000, max: 80000 },
-    max_assigned_orders: { min: 1, max: 5 },
   };
 
   function saveNumber(key: string, value: string) {
@@ -379,22 +376,6 @@ export function DesktopSettingsView() {
             <Input type="number" min={1000} max={80000} step={1000} value={maxWeight} onChange={(e) => handleNumberChange("max_weight", e.target.value, setMaxWeight)} placeholder="e.g. 45000" />
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium block">Max Assigned Orders</label>
-            <select
-              value={maxAssigned}
-              onChange={(e) => handleNumberChange("max_assigned_orders", e.target.value, setMaxAssigned)}
-              className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <option value="">Not set</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
-            <p className="text-sm text-muted-foreground">
-              How many orders you can carry at once. Loads beyond this are speculative.
-            </p>
-          </div>
 
         </section>
 
