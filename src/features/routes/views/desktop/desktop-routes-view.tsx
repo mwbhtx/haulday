@@ -297,7 +297,7 @@ export function DesktopRoutesView() {
                 <p className="text-xs text-muted-foreground text-center">
                   {progress && progress.pairs_total > 0 ? (
                     <>
-                      Checking {progress.pairs_checked.toLocaleString()} / {progress.pairs_total.toLocaleString()} pairs
+                      Checking {progress.pairs_checked.toLocaleString()} / {progress.pairs_total.toLocaleString()} routes
                     </>
                   ) : (
                     "Warming up the search engine..."
