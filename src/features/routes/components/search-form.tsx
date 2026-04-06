@@ -545,6 +545,15 @@ export function SearchFilters({
   const currentParamsKey = JSON.stringify([origin?.lat, origin?.lng, destination?.lat, destination?.lng, departureDate, daysOut, numOrders, originRadius, destRadius, maxDeadheadPct, minDailyProfit, minRpm, maxInterlegDh, profileKey]);
   const lastSearchedParamsKey = useRef<string>("");
   const hasSearched = lastSearchedParamsKey.current !== "";
+
+  // Reset search state when search is cancelled (isSearching goes false with no results)
+  const prevSearching = useRef(false);
+  useEffect(() => {
+    if (prevSearching.current && !isSearching && !hasResults) {
+      lastSearchedParamsKey.current = "";
+    }
+    prevSearching.current = !!isSearching;
+  }, [isSearching, hasResults]);
   const paramsChanged = currentParamsKey !== lastSearchedParamsKey.current;
 
   // Fire search (shared helper)
