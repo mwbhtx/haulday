@@ -51,7 +51,7 @@ export function RouteRow({
         </div>
         <div>
           <p className="text-sm uppercase tracking-wide text-muted-foreground">Net/mi</p>
-          <p className={`text-lg font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)} bg-black px-2 py-0.5 inline-block`}>
+          <p className="text-lg font-bold tabular-nums text-white bg-black px-2 py-0.5 inline-block">
             {formatRpm(chain.effective_rpm)}
           </p>
           {avgLoadedRpm !== null && (

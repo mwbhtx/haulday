@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDownIcon, ChevronUpIcon, FlameIcon, ClipboardListIcon, BookmarkIcon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ChevronDownIcon, ChevronUpIcon, FlameIcon, ClipboardListIcon, BookmarkIcon, PlayIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/platform/web/components/ui/tooltip";
 import { RouteInspector } from "@/features/routes/components/route-inspector";
 import { useTimeline } from "@/core/hooks/use-timeline";
@@ -62,6 +62,14 @@ export function RouteDetailPanel({
   searchParams,
 }: RouteDetailPanelProps) {
   const [showInspector, setShowInspector] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Reset inspector and scroll to top when route changes
+  const chainKey = chain?.legs.map(l => l.order_id).join(",") ?? "";
+  useEffect(() => {
+    setShowInspector(false);
+    scrollRef.current?.scrollTo(0, 0);
+  }, [chainKey]);
 
   const isExpanded = chain !== null;
 
@@ -100,6 +108,7 @@ export function RouteDetailPanel({
             departureTime={departureTime}
             returnByTime={returnByTime}
             searchParams={searchParams}
+            scrollRef={scrollRef}
           />
         </div>
       )}
@@ -135,6 +144,7 @@ interface RouteDetailContentProps {
     work_start_hour?: number;
     work_end_hour?: number;
   } | null;
+  scrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 function RouteDetailContent({
@@ -152,6 +162,7 @@ function RouteDetailContent({
   departureTime,
   returnByTime,
   searchParams,
+  scrollRef,
 }: RouteDetailContentProps) {
   const { activeCompanyId } = useAuth();
   const { data: timelineData, isLoading: timelineLoading } = useTimeline(
@@ -183,7 +194,7 @@ function RouteDetailContent({
   return (
     <>
       {/* Scrollable main content */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
 
         {/* Route summary + bookmark */}
         <div className="px-4 py-3">
@@ -231,218 +242,218 @@ function RouteDetailContent({
           </div>
         </div>
 
-        {/* Routes section */}
-        <div>
-        <div className="px-4 pt-3 pb-1.5 ">
-          <p className="text-xs font-semibold uppercase tracking-widest text-foreground">Route</p>
+        {/* Orders section */}
+        <div className="px-4 pt-3 pb-1.5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-foreground">Orders</p>
         </div>
-
-        {/* Start deadhead */}
-        {startDh > 0 && firstLeg.origin_city !== origin && (
-          <div className="flex items-stretch gap-3 pl-4 pr-4">
-            <div className="flex flex-col items-center shrink-0">
-              <div className="w-px flex-1 bg-text-body" />
-              <div className="h-3.5 w-3.5 rounded-full border-2 border-text-body shrink-0" />
-              <div className="w-px flex-1 bg-text-body" />
-            </div>
-            <div className="flex items-center flex-1 gap-3 py-3">
-              <span className="flex-1 text-base font-bold text-foreground">
-                {origin} → {firstLeg.origin_city} · {startDh.toLocaleString()} mi · {estDriveTime(startDh, DEFAULT_AVG_SPEED_MPH)}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Legs */}
-        {chain.legs.map((leg: RouteLeg, legIdx: number) => {
-          const color = LEG_COLORS[legIdx % LEG_COLORS.length];
-          const showBetweenDh = leg.deadhead_miles > 0 && legIdx > 0;
-          return (
-            <div key={leg.leg_number}>
-              {/* Between-leg deadhead */}
-              {showBetweenDh && (
-                <div className="flex items-stretch gap-3 pl-4 pr-4">
-                  <div className="flex flex-col items-center shrink-0">
-                    <div className="w-px flex-1 bg-text-body" />
-                    <div className="h-3.5 w-3.5 rounded-full border-2 border-text-body shrink-0" />
-                    <div className="w-px flex-1 bg-text-body" />
-                  </div>
-                  <div className="flex items-center flex-1 gap-3 py-3">
-                    <span className="flex-1 text-base font-bold text-foreground">
-                      {chain.legs[legIdx - 1].destination_city} → {leg.origin_city} · {leg.deadhead_miles.toLocaleString()} mi · {estDriveTime(leg.deadhead_miles, DEFAULT_AVG_SPEED_MPH)}
-                    </span>
-                        </div>
-                </div>
-              )}
-
-              {/* Leg row */}
+        <div className="px-3 space-y-2 pb-3">
+          {chain.legs.map((leg: RouteLeg, legIdx: number) => {
+            const hasTarp = leg.tarp_height != null && parseInt(leg.tarp_height, 10) > 0;
+            return (
               <div
-                className="flex items-stretch gap-3 pl-4 pr-4 "
+                key={leg.order_id ?? legIdx}
+                className="bg-card px-4 py-3 flex gap-3"
                 onMouseEnter={() => onHoverLeg?.(legIdx)}
                 onMouseLeave={() => onHoverLeg?.(null)}
               >
-                <div className="flex flex-col items-center shrink-0">
-                  <div className="w-px h-[1.375rem] bg-text-body" />
-                  <div
-                    className="h-3.5 w-3.5 rounded-full shrink-0"
-                    style={{ backgroundColor: color }}
-                  />
-                  <div className="w-px flex-1 bg-text-body" />
-                </div>
-                <div className="flex-1 py-3">
-                  <div className="flex items-center gap-3">
-                    <p
-                      className="flex-1 text-base font-bold flex items-center gap-1.5 min-w-0 text-foreground"
-                    >
+                <div className="w-[5px] shrink-0 bg-primary" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground truncate">
                       {leg.order_id && orderUrlTemplate ? (
                         <a
                           href={orderUrlTemplate.replace("{{ORDER_ID}}", leg.order_id)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:underline hover:text-primary transition-colors truncate"
+                          className="hover:underline hover:text-primary transition-colors"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {leg.origin_city} → {leg.destination_city}
+                          {leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}
                         </a>
                       ) : (
-                        <span className="truncate">
-                          {leg.origin_city} → {leg.destination_city}
-                        </span>
-                      )}
-                      {leg.lane_rank != null && (
-                        <FlameIcon className="h-4 w-4 shrink-0" style={{ color: '#ff2200' }} />
-                      )}
-                      {leg.order_id && onShowComments && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onShowComments(leg.order_id!);
-                          }}
-                          className="text-foreground hover:text-primary transition-colors shrink-0"
-                          title="View comments"
-                        >
-                          <ClipboardListIcon className="h-4 w-4" />
-                        </button>
+                        <>{leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}</>
                       )}
                     </p>
+                    <span className="text-sm font-bold text-foreground shrink-0 ml-2">{formatCurrency(leg.pay)}</span>
                   </div>
-                  <div className="text-sm mt-1 space-y-0.5 text-foreground">
-                      <p>
-                        {[
-                          leg.weight != null ? `${leg.weight.toLocaleString()} lbs` : null,
-                          leg.miles != null ? `${leg.miles.toLocaleString()} mi` : null,
-                          leg.miles > 0 ? estDriveTime(leg.miles, DEFAULT_LOADED_SPEED_MPH) : null,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                        {leg.miles > 0 && (
-                          <>
-                            {" · "}
-                            <span>${(leg.pay / leg.miles).toFixed(2)}/mi</span>
-                          </>
-                        )}
-                        {leg.tarp_height != null && parseInt(leg.tarp_height, 10) > 0 && (
-                          <>
-                            {" · "}
-                            <span className="text-xs font-semibold uppercase tracking-wide">TARP</span>
-                          </>
-                        )}
-                        {(leg.weight != null || leg.miles > 0) && " · "}{formatCurrency(leg.pay)}
-                      </p>
-                      {leg.stopoffs && leg.stopoffs.length > 0 && (
-                        <div className="mt-2 space-y-2 text-sm text-foreground">
-                          {leg.stopoffs.map((stop, i) => (
-                            <div key={i}>
-                              <span className="capitalize font-medium">{stop.type}</span>
-                              {' — '}
-                              {stop.company_name && <span>{stop.company_name}, </span>}
-                              {stop.city}, {stop.state}
-                              {stop.early_date_local && (
-                                <span className="ml-1">
-                                  {formatDateRange(stop.early_date_local, stop.late_date_local)}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {!leg.stopoffs && (leg.pickup_date_early_local || leg.delivery_date_early_local) && (
-                        <div className="mt-2 space-y-1.5 text-sm text-foreground">
-                          {leg.pickup_date_early_local && (
-                            <p>Pickup: {formatDateRange(leg.pickup_date_early_local, leg.pickup_date_late_local)}</p>
-                          )}
-                          {leg.delivery_date_early_local && (
-                            <p>Delivery: {formatDateRange(leg.delivery_date_early_local, leg.delivery_date_late_local)}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
+                    {leg.order_id && onShowComments && (
+                      <button type="button" onClick={(e) => { e.stopPropagation(); onShowComments(leg.order_id!); }} className="text-muted-foreground hover:text-primary transition-colors shrink-0" title="View comments">
+                        <ClipboardListIcon className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <span>{leg.miles?.toLocaleString()} mi</span>
+                    <span>{estDriveTime(leg.miles, DEFAULT_LOADED_SPEED_MPH)}</span>
+                    {leg.weight != null && <span>{leg.weight.toLocaleString()} lbs</span>}
+                    {leg.trailer_type && <span>{leg.trailer_type}</span>}
+                    {leg.miles > 0 && <span>${(leg.pay / leg.miles).toFixed(2)}/mi</span>}
+                    {hasTarp && <span className="font-semibold uppercase tracking-wide text-warning bg-black px-1.5 py-0.5">TARP</span>}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-
-        {/* Return deadhead — only when destination is explicitly set */}
-        {returnDh > 0 && destCity && lastLeg.destination_city !== returnCity && (
-          <div className="flex items-stretch gap-3 pl-4 pr-4">
-            <div className="flex flex-col items-center shrink-0">
-              <div className="w-px flex-1 bg-text-body" />
-              <div className="h-3.5 w-3.5 rounded-full border-2 border-text-body shrink-0" />
-              <div className="w-px flex-1 bg-text-body" />
-            </div>
-            <div className="flex items-center flex-1 gap-3 py-3">
-              <span className="flex-1 text-base font-bold text-foreground">
-                {lastLeg.destination_city} → {returnCity} · {returnDh.toLocaleString()} mi · {estDriveTime(returnDh, DEFAULT_AVG_SPEED_MPH)}
-              </span>
-            </div>
-          </div>
-        )}
-
+            );
+          })}
         </div>
-        {/* Suggested Departure (always visible) */}
-        {chain.suggested_departure && (
-          <div className="px-4 py-3 bg-muted border-b border-primary/20">
-            <p className="text-xs uppercase tracking-wider font-medium text-foreground">Suggested Departure</p>
-            <p className="text-lg font-bold text-foreground">
-              {new Date(chain.suggested_departure).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} at {new Date(chain.suggested_departure).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-            </p>
-            {chain.trip_summary && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Arrive{returnCity && returnCity === origin ? " home" : ""}: {new Date(new Date(chain.suggested_departure).getTime() + chain.trip_summary.total_hours * 3_600_000).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} at {new Date(new Date(chain.suggested_departure).getTime() + chain.trip_summary.total_hours * 3_600_000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-              </p>
-            )}
-          </div>
-        )}
 
-        {/* Route Planner section (RouteInspector, collapsible) */}
-        <div className="">
-          <button
-            type="button"
-            className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest transition-colors w-full px-4 py-2.5 text-muted-foreground"
-            onClick={onToggleInspector}
-          >
-            <span>Route Planner</span>
-            {showInspector ? (
-              <ChevronUpIcon className="h-3.5 w-3.5" />
-            ) : (
-              <ChevronDownIcon className="h-3.5 w-3.5" />
-            )}
-          </button>
-          {showInspector && (
-            <div className="">
-              <RouteInspector
-                chain={chain}
-                originCity={origin}
-                returnCity={returnCity}
-                onClose={onToggleInspector}
-                departureTime={departureTime}
-                returnByTime={returnByTime}
-                timelineData={timelineData}
-                timelineLoading={timelineLoading}
-              />
+        {/* Route section — left-border accent cards */}
+        <div className="px-4 pt-3 pb-1.5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-foreground">Route</p>
+        </div>
+
+        <div className="px-3 space-y-2 pb-3">
+          {/* Suggested Departure */}
+          {chain.suggested_departure && (
+            <>
+              <div className="bg-card px-4 py-3 flex gap-3">
+                <div className="w-[5px] shrink-0 bg-foreground" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs uppercase tracking-wider font-medium text-foreground">Suggested Departure</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {new Date(chain.suggested_departure).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} at {new Date(chain.suggested_departure).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                  </p>
+                  {chain.trip_summary && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Arrive{returnCity && returnCity === origin ? " home" : ""}: {new Date(new Date(chain.suggested_departure).getTime() + chain.trip_summary.total_hours * 3_600_000).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} at {new Date(new Date(chain.suggested_departure).getTime() + chain.trip_summary.total_hours * 3_600_000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Start deadhead */}
+          {startDh > 0 && firstLeg.origin_city !== origin && (
+            <div className="bg-card px-4 py-2.5 flex gap-3">
+              <div className="w-[5px] shrink-0 bg-transit" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">{origin} → {firstLeg.origin_city}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Deadhead · {startDh.toLocaleString()} mi · {estDriveTime(startDh, DEFAULT_AVG_SPEED_MPH)}</p>
+              </div>
             </div>
+          )}
+
+          {/* Legs */}
+          {chain.legs.map((leg: RouteLeg, legIdx: number) => {
+            const color = LEG_COLORS[legIdx % LEG_COLORS.length];
+            const showBetweenDh = leg.deadhead_miles > 0 && legIdx > 0;
+            const hasTarp = leg.tarp_height != null && parseInt(leg.tarp_height, 10) > 0;
+            return (
+              <div key={leg.leg_number} className="space-y-2">
+                {/* Between-leg deadhead */}
+                {showBetweenDh && (
+                  <div className="bg-card px-4 py-2.5 flex gap-3">
+                    <div className="w-[5px] shrink-0 bg-transit" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{chain.legs[legIdx - 1].destination_city} → {leg.origin_city}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Deadhead · {leg.deadhead_miles.toLocaleString()} mi · {estDriveTime(leg.deadhead_miles, DEFAULT_AVG_SPEED_MPH)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Pickup card */}
+                <div
+                  className="bg-card px-4 py-3 flex gap-3"
+                  onMouseEnter={() => onHoverLeg?.(legIdx)}
+                  onMouseLeave={() => onHoverLeg?.(null)}
+                >
+                  <div className="w-[5px] shrink-0 bg-primary" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground bg-primary px-2 py-1 -mx-1">Pickup</p>
+                    <p className="text-sm font-semibold text-foreground mt-1.5" style={{ padding: '5px 0' }}>{leg.origin_city}, {leg.origin_state}</p>
+                    {(() => {
+                      const earlyDate = leg.stopoffs?.[0]?.early_date_local ?? leg.pickup_date_early_local;
+                      const lateDate = leg.stopoffs?.[0]?.late_date_local ?? leg.pickup_date_late_local;
+                      return (earlyDate || lateDate) ? (
+                        <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
+                          {earlyDate && <p>Early: {new Date(earlyDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} {new Date(earlyDate).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</p>}
+                          {lateDate && <p>Late: {new Date(lateDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} {new Date(lateDate).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</p>}
+                        </div>
+                      ) : null;
+                    })()}
+                    <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
+                      {leg.weight != null && <span>{leg.weight.toLocaleString()} lbs</span>}
+                      {leg.miles > 0 && <span>${(leg.pay / leg.miles).toFixed(2)}/mi</span>}
+                      {hasTarp && <span className="font-semibold uppercase tracking-wide text-warning bg-black px-1.5 py-0.5">TARP</span>}
+                      {leg.lane_rank != null && <FlameIcon className="h-3.5 w-3.5 shrink-0" style={{ color: '#ff2200' }} />}
+                      {leg.order_id && onShowComments && (
+                        <button type="button" onClick={(e) => { e.stopPropagation(); onShowComments(leg.order_id!); }} className="text-muted-foreground hover:text-primary transition-colors shrink-0" title="View comments">
+                          <ClipboardListIcon className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* In transit */}
+                <div className="bg-card px-4 py-2.5 flex gap-3" onMouseEnter={() => onHoverLeg?.(legIdx)} onMouseLeave={() => onHoverLeg?.(null)}>
+                  <div className="w-[5px] shrink-0 bg-transit" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{leg.origin_city} → {leg.destination_city}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">In Transit · {leg.miles?.toLocaleString()} mi · {estDriveTime(leg.miles, DEFAULT_LOADED_SPEED_MPH)}</p>
+                  </div>
+                </div>
+
+                {/* Dropoff card */}
+                <div className="bg-card px-4 py-3 flex gap-3" onMouseEnter={() => onHoverLeg?.(legIdx)} onMouseLeave={() => onHoverLeg?.(null)}>
+                  <div className="w-[5px] shrink-0 bg-delivery" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground bg-delivery px-2 py-1 -mx-1">Dropoff</p>
+                    <p className="text-sm font-semibold text-foreground mt-1.5" style={{ padding: '5px 0' }}>{leg.destination_city}, {leg.destination_state}</p>
+                    {(() => {
+                      const lastStop = leg.stopoffs?.[leg.stopoffs.length - 1];
+                      const earlyDate = lastStop?.early_date_local ?? leg.delivery_date_early_local;
+                      const lateDate = lastStop?.late_date_local ?? leg.delivery_date_late_local;
+                      return (earlyDate || lateDate) ? (
+                        <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
+                          {earlyDate && <p>Early: {new Date(earlyDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} {new Date(earlyDate).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</p>}
+                          {lateDate && <p>Late: {new Date(lateDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} {new Date(lateDate).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</p>}
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Return deadhead — only when destination is explicitly set */}
+          {returnDh > 0 && destCity && lastLeg.destination_city !== returnCity && (
+            <div className="bg-card px-4 py-2.5 flex gap-3">
+              <div className="w-[5px] shrink-0 bg-transit" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">{lastLeg.destination_city} → {returnCity}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Deadhead · {returnDh.toLocaleString()} mi · {estDriveTime(returnDh, DEFAULT_AVG_SPEED_MPH)}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Timeline section */}
+        <div className="px-4 pt-3 pb-1.5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-foreground">Timeline</p>
+        </div>
+        <div className="px-3 pb-3">
+          {!showInspector ? (
+            <div className="py-2">
+            <button
+              type="button"
+              onClick={onToggleInspector}
+              className="flex items-center gap-2 rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:brightness-110 transition-all"
+            >
+              <PlayIcon className="h-4 w-4 fill-current" />
+              Show Timeline
+            </button>
+            </div>
+          ) : (
+            <RouteInspector
+              chain={chain}
+              originCity={origin}
+              returnCity={returnCity}
+              onClose={onToggleInspector}
+              departureTime={departureTime}
+              returnByTime={returnByTime}
+              timelineData={timelineData}
+              timelineLoading={timelineLoading}
+            />
           )}
         </div>
       </div>

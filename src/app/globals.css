@@ -62,6 +62,9 @@ html {
   --color-positive: var(--positive);
   --color-negative: var(--negative);
   --color-warning: var(--warning);
+  --color-delivery: var(--delivery);
+  --color-transit: var(--transit);
+  --color-caution: var(--caution);
   --color-chart-cyan: var(--chart-cyan);
   --color-chart-purple: var(--chart-purple);
   --color-chart-red: var(--chart-red);

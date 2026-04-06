@@ -210,9 +210,9 @@ export function RouteInspector({
       )}
 
       {/* Assumptions footer */}
-      <div className="px-3 py-2.5 border-t border-border shrink-0">
-        <p className="text-sm text-foreground/60 leading-relaxed">
-          <span className="font-medium text-foreground/80">Assumptions:</span>{" "}
+      <div className="px-3 py-2.5 shrink-0 bg-caution">
+        <p className="text-sm text-black leading-relaxed">
+          <span className="font-bold">Assumptions:</span>{" "}
           Loaded @ {TRIP_DEFAULTS.loaded_speed_mph.value} mph · DH @ {TRIP_DEFAULTS.deadhead_speed_mph.value} mph · HOS {TRIP_DEFAULTS.avg_driving_hours_per_day.value}h avg drive day / 10h rest · Loading {TRIP_DEFAULTS.loading_hours.value}h · Unloading {TRIP_DEFAULTS.unloading_hours.value}h
         </p>
       </div>

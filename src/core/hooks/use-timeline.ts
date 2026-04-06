@@ -51,6 +51,7 @@ export function useTimeline(
       return fetchApi<TimelineResponse>(`routes/${companyId}/timeline?${qs.toString()}`);
     },
     enabled: enabled && !!companyId && !!orderIds && !!searchContext,
+    retry: false,
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
