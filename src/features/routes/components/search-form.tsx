@@ -771,8 +771,8 @@ export function SearchFilters({
   }
 
   /* ---- Desktop layout ---- */
-  const showOriginHint = !origin && defaultsLoaded && !isOnboarding;
-  const showSearchHint = !!origin && !isSearching && defaultsLoaded && !isOnboarding;
+  const showOriginHint = !origin && defaultsLoaded && !isOnboarding && !hasResults;
+  const showSearchHint = !!origin && !isSearching && defaultsLoaded && !isOnboarding && !hasResults;
 
   const hintText = showOriginHint
     ? <>Enter an <strong className="bg-primary text-primary-foreground px-1 py-0.5 rounded">origin city</strong> and click <strong className="bg-primary text-primary-foreground px-1 py-0.5 rounded">Search</strong> to get route suggestions.</>
