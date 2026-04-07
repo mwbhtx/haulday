@@ -217,3 +217,113 @@ html {
   color: var(--primary-foreground) !important;
 }
 
+/* ── Legal page ── */
+
+/* Subsection heading (maps to markdown h2) */
+.legal-subsection-heading {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--muted-foreground);
+  margin-top: 2rem;
+  margin-bottom: 0.625rem;
+}
+
+/* Sub-subheading (maps to markdown h3) */
+.legal-sub-subheading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Paragraph */
+.legal-paragraph {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 15px;
+  line-height: 1.75;
+  margin-bottom: 0.75rem;
+}
+
+/* Strong text */
+.legal-strong {
+  color: var(--foreground);
+}
+
+/* Unordered list */
+.legal-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+}
+
+/* List items with accent dot */
+.legal-list-item {
+  position: relative;
+  padding: 6px 0 6px 20px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.legal-list-item:last-child {
+  border-bottom: none;
+}
+.legal-list-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  background: var(--primary);
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+/* Callout (blockquote) — accent border */
+.legal-callout {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 6px 6px 0;
+  padding: 16px 20px;
+  margin: 20px 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.55);
+}
+.legal-callout .legal-strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--foreground);
+}
+/* Callout paragraphs — strip extra margin inside callout */
+.legal-callout .legal-paragraph {
+  margin-bottom: 0;
+}
+
+/* Warning callout — orange border */
+.legal-callout-warning {
+  border-left-color: #ff6b35;
+  background: rgba(255, 107, 53, 0.06);
+}
+
+/* All-caps disclaimer/warranty blocks */
+.legal-caps-block {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.8;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+

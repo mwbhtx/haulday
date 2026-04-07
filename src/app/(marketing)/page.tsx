@@ -7,6 +7,7 @@ import { MarketingNav } from "@/platform/web/components/marketing-nav";
 import { ArrowRight, CalendarCheck, Bookmark, DollarSign, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 import ShaderGradientButton from "@/platform/web/components/shader-gradient-button";
+import Link from "next/link";
 
 const FEATURES = [
   {
@@ -180,8 +181,8 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mt-12 pt-6 border-t border-white/[0.06] flex items-center gap-6 text-xs text-muted-foreground/40">
-            <span>Privacy</span>
-            <span>Terms</span>
+            <Link href="/legal#privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link href="/legal#terms" className="hover:text-foreground transition-colors">Terms</Link>
             <span>&copy; {new Date().getFullYear()} Haulvisor</span>
           </div>
         </div>
