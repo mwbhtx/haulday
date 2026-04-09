@@ -35,8 +35,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="flex h-14 shrink-0 items-center bg-sidebar px-4">
         {/* Logo */}
         <Link href="/routes">
-          <img src="/haulvisor-logo-text-black.svg" alt={brand.name} className="h-6 dark:hidden" />
-          <img src="/haulvisor-logo-text-white.svg" alt={brand.name} className="h-6 hidden dark:block" />
+          <img src="/haulvisor-logo-black.svg" alt={brand.name} className="h-6 dark:hidden" />
+          <img src="/haulvisor-logo-white.svg" alt={brand.name} className="h-6 hidden dark:block" />
         </Link>
 
         {/* Desktop nav */}
