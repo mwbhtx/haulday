@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <Link href="/routes">
           <img src="/haulvisor-logo-black.svg" alt={brand.name} className="h-6 dark:hidden" />
-          <div className="hidden dark:flex items-center gap-6">
+          <div className="hidden dark:flex items-center gap-4">
             <img src="/haulvisor-logo-white.svg" alt={brand.name} className="h-6" />
             <img src="/haulvisor-text-white-regular-condensed.svg" alt="" className="h-5" />
           </div>
