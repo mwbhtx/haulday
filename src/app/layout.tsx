@@ -67,7 +67,7 @@ export const metadata: Metadata = {
   title: "Haulvisor",
   description: brand.tagline,
   icons: {
-    icon: "/favicon.png",
+    icon: "/visor-favicon.svg",
   },
 };
 

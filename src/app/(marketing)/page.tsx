@@ -71,7 +71,7 @@ export default function HomePage() {
         {/* ── Hero ── */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
           <img
-            src="/haulvisor-logo-text-white.svg"
+            src="/visor-logo-text-white.svg"
             alt={brand.name}
             className="h-[39px] sm:h-[67px] w-auto"
           />

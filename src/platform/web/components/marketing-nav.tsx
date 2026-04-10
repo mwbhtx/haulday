@@ -8,7 +8,7 @@ export function MarketingNav({ variant = "dark", hideAuth = false }: { variant?:
     <header className="relative z-10">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-14">
         <Link href="/">
-          <img src="/haulvisor-logo-white.svg" alt={brand.name} className="h-7" />
+          <img src="/visor-logo-white.svg" alt={brand.name} className="h-7" />
         </Link>
         {!hideAuth && (
           <div className="flex items-center gap-2">
