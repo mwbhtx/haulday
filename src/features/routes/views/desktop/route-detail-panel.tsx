@@ -172,6 +172,7 @@ function RouteDetailContent({
   const needsTarp = chain.legs.some(
     (l) => l.tarp_height != null && parseInt(l.tarp_height, 10) > 0,
   );
+  const deliversEarly = chain.trip_summary?.delivers_early === true;
 
   const costPerDhMile =
     chain.total_deadhead_miles > 0
@@ -194,7 +195,10 @@ function RouteDetailContent({
         {/* Route summary + bookmark */}
         <div className="px-4 py-3">
           <div className="flex items-start justify-between mb-2">
-            <p className="text-xs font-semibold uppercase tracking-widest text-foreground">Route Summary</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-foreground">Route Summary</p>
+              {deliversEarly && <span className="font-semibold uppercase tracking-wide text-blue-400 bg-black px-1.5 py-0.5 text-xs">EARLY</span>}
+            </div>
             {onToggleWatchlist && (
               <button
                 type="button"
