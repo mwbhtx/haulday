@@ -51,6 +51,7 @@ export function MobileRoutesView() {
     twic_card: settings.twic_card ?? undefined,
     team_driver: settings.team_driver ?? undefined,
     no_tarps: settings.no_tarps ?? undefined,
+    deliver_early: settings.deliver_early ?? undefined,
     cost_per_mile: costPerMile,
   } : { cost_per_mile: costPerMile };
 
