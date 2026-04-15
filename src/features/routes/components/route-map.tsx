@@ -310,12 +310,32 @@ export function RouteMap({
           const key = `${a[0]},${a[1]};${b[0]},${b[1]}`;
           if (directionsCache.has(key)) return { id: seg.id, coords: directionsCache.get(key)! };
           try {
-            const url = `https://api.openrouteservice.org/v2/directions/driving-car?start=${a[0]},${a[1]}&end=${b[0]},${b[1]}`;
-            const res = await fetch(url, {
-              headers: { "Authorization": ORS_API_KEY },
-            });
+            // POST form with `radiuses: [-1, -1]` tells ORS to snap each
+            // waypoint to the nearest road regardless of distance. Without
+            // this, ZIP-centroid coordinates (which can land in fields, lakes,
+            // or parking lots) fail the default 350m snap radius and ORS
+            // returns a 2010 "routable point not found" error. Profile is
+            // driving-hgv since these are freight routes.
+            const res = await fetch(
+              "https://api.openrouteservice.org/v2/directions/driving-hgv/geojson",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: ORS_API_KEY,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  coordinates: [a, b],
+                  radiuses: [-1, -1],
+                }),
+              },
+            );
             if (!res.ok) {
-              // ORS can't route between these points — fall back to straight line
+              // ORS still can't route — fall back to straight line. Logged so
+              // it's not silent.
+              console.warn(
+                `[route-map] ORS returned ${res.status} for ${a} → ${b}; using straight line`,
+              );
               directionsCache.set(key, [a, b]);
               return { id: seg.id, coords: [a, b] as [number, number][] };
             }
@@ -323,7 +343,8 @@ export function RouteMap({
             const coords: [number, number][] = data.features?.[0]?.geometry?.coordinates ?? [a, b];
             directionsCache.set(key, coords);
             return { id: seg.id, coords };
-          } catch {
+          } catch (err) {
+            console.warn(`[route-map] ORS fetch failed for ${a} → ${b}:`, err);
             return { id: seg.id, coords: [a, b] as [number, number][] };
           }
         }),
