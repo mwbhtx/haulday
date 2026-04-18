@@ -14,7 +14,7 @@ export interface Settings {
   home_base_state: string;
   preferred_radius_miles: number;
   cost_per_mile: number;
-  cost_mode: "simple" | "detailed" | null;
+  cost_mode: "simple" | "auto" | "detailed" | null;
   diesel_price_per_gallon: number | null;
   maintenance_per_mile: number | null;
   tires_per_mile: number | null;

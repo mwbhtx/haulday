@@ -414,6 +414,17 @@ export function DesktopSettingsView() {
             </button>
             <button
               type="button"
+              onClick={() => handleCostModeChange("auto")}
+              className={`px-4 py-2 text-sm font-medium border-l border-border transition-colors ${
+                costMode === "auto"
+                  ? "bg-accent text-foreground"
+                  : "bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Auto
+            </button>
+            <button
+              type="button"
               onClick={() => handleCostModeChange("detailed")}
               className={`px-4 py-2 text-sm font-medium border-l border-border transition-colors ${
                 costMode === "detailed"
@@ -439,6 +450,39 @@ export function DesktopSettingsView() {
               />
               <p className="text-sm text-muted-foreground">
                 Your total operating cost per mile — fuel, maintenance, tires, truck payment, insurance, and all other expenses combined. Net profit on every route is calculated using this number.
+              </p>
+            </div>
+          )}
+
+          {costMode === "auto" && (
+            <div className="space-y-5">
+              <p className="text-sm text-muted-foreground">
+                Auto mode estimates operating cost using industry averages plus the current regional diesel price refreshed weekly from the U.S. Energy Information Administration (EIA). Nothing to configure — your effective cost-per-mile shows below.
+              </p>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Diesel</div>
+                  <div className="font-medium">EIA (home region)</div>
+                </div>
+                <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">MPG</div>
+                  <div className="font-medium">{DEFAULT_AVG_MPG} mpg (industry avg)</div>
+                </div>
+                <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Maintenance</div>
+                  <div className="font-medium">${DEFAULT_MAINTENANCE_PER_MILE.toFixed(3)}/mi</div>
+                </div>
+                <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Tires</div>
+                  <div className="font-medium">${DEFAULT_TIRES_PER_MILE.toFixed(3)}/mi</div>
+                </div>
+                <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">DEF</div>
+                  <div className="font-medium">${DEFAULT_DEF_PER_MILE.toFixed(3)}/mi</div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground italic">
+                Switch to Detailed to override any of these values or add your own per-mile costs like tolls or factoring fees.
               </p>
             </div>
           )}
