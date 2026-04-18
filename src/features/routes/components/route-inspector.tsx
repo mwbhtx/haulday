@@ -258,10 +258,12 @@ function PhaseRow({ phase, timestamp, showTimeOnly, originCity, returnCity }: { 
 
   const label = (() => {
     switch (phase.kind) {
-      case 'deadhead':
-        return <>{cityOnly(phase.origin_city) || cityOnly(originCity)} → {cityOnly(phase.destination_city) || cityOnly(returnCity) || cityOnly(originCity)}</>;
+      case 'deadhead': {
+        const dest = cityOnly(phase.destination_city) || cityOnly(returnCity) || cityOnly(originCity);
+        return <>Deadhead to {dest}</>;
+      }
       case 'driving':
-        return <>{cityOnly(phase.origin_city)} → {cityOnly(phase.destination_city)}</>;
+        return <>Driving to {cityOnly(phase.destination_city)}</>;
       case 'loading':
         return <>Loading at {cityOnly(phase.origin_city)}</>;
       case 'tarping':
