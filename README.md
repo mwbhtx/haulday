@@ -19,7 +19,7 @@ Haulvisor analyzes thousands of available loads and builds the most profitable m
 
 - **Multi-stop route optimization** — Evaluates route chains (1–3 legs) and ranks them by a composite score factoring in pay, deadhead percentage, and cost per mile
 - **Round-trip planning** — "Home By" date constraint ensures routes get drivers back on schedule
-- **Real-time cost modeling** — Per-driver cost-per-mile settings with color-coded rate tiers (red/yellow/green) based on industry benchmarks and individual operating costs
+- **Real-time cost modeling** — Two modes: a single all-in cost-per-mile for drivers who already know their number, or a detailed breakdown (fuel from MPG + regional diesel price, maintenance, tires, DEF, plus user-defined custom costs like tolls or factoring) with a live effective-cpm readout. Color-coded rate tiers (red/yellow/green) reflect the driver's actual cost
 - **Interactive map** — MapLibre + Protomaps route visualization with road-following polylines (via OpenRouteService), origin/destination markers, and LocationIQ geocoding
 - **Guided onboarding** — Step-by-step tour walks new users through the filter bar using Onborda
 - **Analytics dashboard** — Track earnings, costs, and profit per lane over time

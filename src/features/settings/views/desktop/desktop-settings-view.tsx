@@ -3,7 +3,20 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSettings, useUpdateSettings } from "@/core/hooks/use-settings";
 import { PlaceAutocomplete, type PlaceResult } from "@/features/routes/components/search-form";
-import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_COST_PER_MILE } from "@mwbhtx/haulvisor-core";
+import {
+  TRAILER_CATEGORIES,
+  expandTrailerCodes,
+  codesToLabels,
+  computeEffectiveCpm,
+  DEFAULT_COST_PER_MILE,
+  DEFAULT_DIESEL_PRICE_PER_GALLON,
+  DEFAULT_AVG_MPG,
+  DEFAULT_MAINTENANCE_PER_MILE,
+  DEFAULT_TIRES_PER_MILE,
+  DEFAULT_DEF_PER_MILE,
+  type CostMode,
+  type CustomCostComponent,
+} from "@mwbhtx/haulvisor-core";
 import {
   Card,
   CardHeader,
@@ -14,7 +27,7 @@ import {
 import { Input } from "@/platform/web/components/ui/input";
 import { Separator } from "@/platform/web/components/ui/separator";
 import { Skeleton } from "@/platform/web/components/ui/skeleton";
-import { CheckIcon, LogOut } from "lucide-react";
+import { CheckIcon, LogOut, PlusIcon, XIcon } from "lucide-react";
 import { ThemeSelector } from "@/features/settings/components/theme-selector";
 import { useIsMobile } from "@/platform/web/hooks/use-is-mobile";
 import { useAuth } from "@/core/services/auth-provider";
@@ -82,6 +95,12 @@ export function DesktopSettingsView() {
   const [noTarps, setNoTarps] = useState(false);
   const [workStartHour, setWorkStartHour] = useState<string>("6");
   const [workEndHour, setWorkEndHour] = useState<string>("16");
+  const [costMode, setCostMode] = useState<CostMode>("simple");
+  const [dieselPrice, setDieselPrice] = useState("");
+  const [maintenancePerMile, setMaintenancePerMile] = useState("");
+  const [tiresPerMile, setTiresPerMile] = useState("");
+  const [defPerMile, setDefPerMile] = useState("");
+  const [customComponents, setCustomComponents] = useState<CustomCostComponent[]>([]);
 
   // Track whether initial sync has happened to avoid triggering saves
   const initialized = useRef(false);
@@ -131,6 +150,12 @@ export function DesktopSettingsView() {
     setNoTarps(settings.no_tarps ?? false);
     setWorkStartHour(settings.work_start_hour != null ? String(settings.work_start_hour) : "6");
     setWorkEndHour(settings.work_end_hour != null ? String(settings.work_end_hour) : "16");
+    setCostMode(settings.cost_mode ?? "simple");
+    setDieselPrice(settings.diesel_price_per_gallon != null ? String(settings.diesel_price_per_gallon) : "");
+    setMaintenancePerMile(settings.maintenance_per_mile != null ? String(settings.maintenance_per_mile) : "");
+    setTiresPerMile(settings.tires_per_mile != null ? String(settings.tires_per_mile) : "");
+    setDefPerMile(settings.def_per_mile != null ? String(settings.def_per_mile) : "");
+    setCustomComponents(settings.custom_cost_components ?? []);
     // Mark initialized after a tick so the first render doesn't trigger saves
     setTimeout(() => { initialized.current = true; }, 100);
   }, [settings]);
@@ -156,6 +181,10 @@ export function DesktopSettingsView() {
     tank_size_gallons: { min: 50, max: 300 },
     avg_driving_hours_per_day: { min: 6, max: 11 },
     max_weight: { min: 1000, max: 80000 },
+    diesel_price_per_gallon: { min: 1, max: 15 },
+    maintenance_per_mile: { min: 0.01, max: 1 },
+    tires_per_mile: { min: 0.01, max: 0.5 },
+    def_per_mile: { min: 0, max: 0.5 },
   };
 
   function saveNumber(key: string, value: string) {
@@ -231,6 +260,51 @@ export function DesktopSettingsView() {
     setter(next);
     if (initialized.current) saveBool(key, next);
   }
+
+  function handleCostModeChange(next: CostMode) {
+    if (next === costMode) return;
+    setCostMode(next);
+    if (initialized.current) save({ cost_mode: next });
+  }
+
+  function persistCustomComponents(next: CustomCostComponent[]) {
+    setCustomComponents(next);
+    if (initialized.current) save({ custom_cost_components: next.length === 0 ? null : next });
+  }
+
+  function handleCustomComponentAdd() {
+    if (customComponents.length >= 10) return;
+    persistCustomComponents([...customComponents, { label: "", per_mile: 0 }]);
+  }
+
+  function handleCustomComponentRemove(idx: number) {
+    persistCustomComponents(customComponents.filter((_, i) => i !== idx));
+  }
+
+  function handleCustomComponentChange(idx: number, patch: Partial<CustomCostComponent>) {
+    const next = customComponents.map((c, i) => (i === idx ? { ...c, ...patch } : c));
+    // Local state updates immediately; only persist complete valid rows so the
+    // backend isn't spammed with half-entered labels.
+    setCustomComponents(next);
+    const row = next[idx];
+    const ready = row.label.trim().length > 0 && Number.isFinite(row.per_mile) && row.per_mile >= 0 && row.per_mile <= 2;
+    if (initialized.current && ready) {
+      save({ custom_cost_components: next });
+    }
+  }
+
+  // Live effective cpm — mirrors backend computeEffectiveCpm so the user sees
+  // the same number the route engine will use.
+  const effectiveCpm = computeEffectiveCpm({
+    cost_mode: costMode,
+    cost_per_mile: costPerMile ? Number(costPerMile) : undefined,
+    diesel_price_per_gallon: dieselPrice ? Number(dieselPrice) : undefined,
+    avg_mpg: avgMpg ? Number(avgMpg) : undefined,
+    maintenance_per_mile: maintenancePerMile ? Number(maintenancePerMile) : undefined,
+    tires_per_mile: tiresPerMile ? Number(tiresPerMile) : undefined,
+    def_per_mile: defPerMile ? Number(defPerMile) : undefined,
+    custom_cost_components: customComponents.filter(c => c.label.trim().length > 0),
+  });
 
   if (isLoading) {
     return (
@@ -325,20 +399,174 @@ export function DesktopSettingsView() {
             <p className="text-xs text-muted-foreground mt-1">Your actual costs — used to calculate net profit on every route.</p>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium block">Cost Per Mile — All-In ($)</label>
-            <Input
-              type="number"
-              min={0.5}
-              max={10}
-              step={0.01}
-              value={costPerMile}
-              onChange={(e) => handleNumberChange("cost_per_mile", e.target.value, setCostPerMile)}
-              placeholder={String(DEFAULT_COST_PER_MILE)}
-            />
-            <p className="text-sm text-muted-foreground">
-              Your total operating cost per mile — fuel, maintenance, tires, truck payment, insurance, and all other expenses combined. Net profit on every route is calculated using this number.
-            </p>
+          {/* Mode toggle */}
+          <div className="inline-flex rounded-md border border-border overflow-hidden">
+            <button
+              type="button"
+              onClick={() => handleCostModeChange("simple")}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                costMode === "simple"
+                  ? "bg-accent text-foreground"
+                  : "bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Simple
+            </button>
+            <button
+              type="button"
+              onClick={() => handleCostModeChange("detailed")}
+              className={`px-4 py-2 text-sm font-medium border-l border-border transition-colors ${
+                costMode === "detailed"
+                  ? "bg-accent text-foreground"
+                  : "bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Detailed
+            </button>
+          </div>
+
+          {costMode === "simple" && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium block">Cost Per Mile — All-In ($)</label>
+              <Input
+                type="number"
+                min={0.5}
+                max={10}
+                step={0.01}
+                value={costPerMile}
+                onChange={(e) => handleNumberChange("cost_per_mile", e.target.value, setCostPerMile)}
+                placeholder={String(DEFAULT_COST_PER_MILE)}
+              />
+              <p className="text-sm text-muted-foreground">
+                Your total operating cost per mile — fuel, maintenance, tires, truck payment, insurance, and all other expenses combined. Net profit on every route is calculated using this number.
+              </p>
+            </div>
+          )}
+
+          {costMode === "detailed" && (
+            <div className="space-y-5">
+              <p className="text-sm text-muted-foreground">
+                Detailed mode estimates your variable cost per mile from components. This is your <span className="font-medium text-foreground">operating margin</span> — it does not include fixed costs like truck payment, insurance, or taxes.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">Diesel Price ($/gal)</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={15}
+                    step={0.01}
+                    value={dieselPrice}
+                    onChange={(e) => handleNumberChange("diesel_price_per_gallon", e.target.value, setDieselPrice)}
+                    placeholder={String(DEFAULT_DIESEL_PRICE_PER_GALLON)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">Truck Avg. MPG</label>
+                  <Input
+                    type="number"
+                    min={3}
+                    max={12}
+                    step={0.1}
+                    value={avgMpg}
+                    onChange={(e) => handleNumberChange("avg_mpg", e.target.value, setAvgMpg)}
+                    placeholder={String(DEFAULT_AVG_MPG)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">Maintenance ($/mi)</label>
+                  <Input
+                    type="number"
+                    min={0.01}
+                    max={1}
+                    step={0.005}
+                    value={maintenancePerMile}
+                    onChange={(e) => handleNumberChange("maintenance_per_mile", e.target.value, setMaintenancePerMile)}
+                    placeholder={String(DEFAULT_MAINTENANCE_PER_MILE)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">Tires ($/mi)</label>
+                  <Input
+                    type="number"
+                    min={0.01}
+                    max={0.5}
+                    step={0.005}
+                    value={tiresPerMile}
+                    onChange={(e) => handleNumberChange("tires_per_mile", e.target.value, setTiresPerMile)}
+                    placeholder={String(DEFAULT_TIRES_PER_MILE)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">DEF ($/mi)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={0.5}
+                    step={0.005}
+                    value={defPerMile}
+                    onChange={(e) => handleNumberChange("def_per_mile", e.target.value, setDefPerMile)}
+                    placeholder={String(DEFAULT_DEF_PER_MILE)}
+                  />
+                </div>
+              </div>
+
+              {/* Custom components */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Additional per-mile costs</label>
+                  <button
+                    type="button"
+                    onClick={handleCustomComponentAdd}
+                    disabled={customComponents.length >= 10}
+                    className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                    Add cost
+                  </button>
+                </div>
+                {customComponents.length === 0 && (
+                  <p className="text-xs text-muted-foreground italic">
+                    None. Add custom costs like tolls, reefer fuel, or factoring fees.
+                  </p>
+                )}
+                {customComponents.map((comp, idx) => (
+                  <div key={idx} className="grid grid-cols-[1fr_140px_auto] gap-2 items-center">
+                    <Input
+                      type="text"
+                      placeholder="Label (e.g. tolls)"
+                      maxLength={50}
+                      value={comp.label}
+                      onChange={(e) => handleCustomComponentChange(idx, { label: e.target.value })}
+                    />
+                    <Input
+                      type="number"
+                      min={0}
+                      max={2}
+                      step={0.005}
+                      placeholder="$/mi"
+                      value={comp.per_mile || ""}
+                      onChange={(e) => handleCustomComponentChange(idx, { per_mile: Number(e.target.value) || 0 })}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleCustomComponentRemove(idx)}
+                      className="p-2 text-muted-foreground hover:text-destructive"
+                      aria-label="Remove cost"
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Live effective cpm footer */}
+          <div className="flex items-center justify-between rounded-md border border-border bg-accent/30 px-4 py-3">
+            <span className="text-sm text-muted-foreground">Effective cost per mile</span>
+            <span className="text-lg font-semibold tabular-nums">${effectiveCpm.toFixed(3)}/mi</span>
           </div>
         </section>
 

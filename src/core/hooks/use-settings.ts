@@ -4,11 +4,22 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchApi } from "@/core/services/api";
 import { toast } from "sonner";
 
+export interface CustomCostComponent {
+  label: string;
+  per_mile: number;
+}
+
 export interface Settings {
   home_base_city: string;
   home_base_state: string;
   preferred_radius_miles: number;
   cost_per_mile: number;
+  cost_mode: "simple" | "detailed" | null;
+  diesel_price_per_gallon: number | null;
+  maintenance_per_mile: number | null;
+  tires_per_mile: number | null;
+  def_per_mile: number | null;
+  custom_cost_components: CustomCostComponent[] | null;
   trailer_types: string[];
   max_weight: number | null;
   hazmat_certified: boolean;

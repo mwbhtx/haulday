@@ -460,7 +460,7 @@ function RouteChainCard({
                         <div className="text-sm mt-1 space-y-0.5 text-muted-foreground">
                             <p>
                               {[leg.weight != null ? `${leg.weight.toLocaleString()} lbs` : null, leg.miles != null ? `${leg.miles.toLocaleString()} mi` : null].filter(Boolean).join(" · ")}
-                              {leg.miles > 0 && <>{" · "}<span className={rateColor(leg.pay / leg.miles, costPerMile)}>${(leg.pay / leg.miles).toFixed(2)}/mi</span></>}
+                              {leg.miles > 0 && <>{" · "}<span className={rateColor(leg.pay / leg.miles, chain.effective_cost_per_mile ?? costPerMile)}>${(leg.pay / leg.miles).toFixed(2)}/mi</span></>}
                             </p>
                             {(leg.pickup_date_early_local || leg.delivery_date_early_local) && (
                               <div>
