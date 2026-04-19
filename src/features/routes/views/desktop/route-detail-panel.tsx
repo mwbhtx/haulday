@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { ChevronDownIcon, ChevronUpIcon, FlameIcon, ClipboardListIcon, BookmarkIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, FlameIcon, ClipboardListIcon, BookmarkIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/platform/web/components/ui/tooltip";
 import { RouteInspector } from "@/features/routes/components/route-inspector";
 import { useTimeline } from "@/core/hooks/use-timeline";
@@ -162,6 +162,7 @@ function RouteDetailContent({
   scrollRef,
 }: RouteDetailContentProps) {
   const { activeCompanyId } = useAuth();
+  const [expensesOpen, setExpensesOpen] = useState(false);
   const { data: timelineData, isLoading: timelineLoading } = useTimeline(
     activeCompanyId ?? "",
     chain,
@@ -260,50 +261,60 @@ function RouteDetailContent({
         </div>
 
         {/* Expenses breakdown — decomposes the headline Expenses value
-            into its CPM components. Hidden in simple mode (lump sum). */}
+            into its CPM components. Collapsed by default, click header
+            to expand. Hidden in simple mode (lump sum). */}
         {timelineData?.expenses_breakdown && !timelineData.expenses_breakdown.is_lump_sum && (
           <div className="px-4 pb-3">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-foreground">
+            <button
+              type="button"
+              onClick={() => setExpensesOpen((v) => !v)}
+              aria-expanded={expensesOpen}
+              className="mb-2 flex w-full items-center gap-1 text-xs font-semibold uppercase tracking-widest text-foreground hover:text-primary transition-colors"
+            >
+              {expensesOpen ? (
+                <ChevronDownIcon className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronRightIcon className="h-3.5 w-3.5" />
+              )}
               Expenses
-            </p>
-            <div className="text-sm">
-              {(() => {
-                const b = timelineData.expenses_breakdown;
-                const lines: Array<{ label: string; value: number; hint?: string }> = [
-                  { label: "Fuel", value: b.fuel, hint: b.fuel_is_actual ? "per-stop PADD pricing" : "est. diesel ÷ mpg" },
-                  { label: "Maintenance", value: b.maintenance },
-                  { label: "Tires", value: b.tires },
-                  { label: "DEF", value: b.def },
-                  ...b.custom.map((c) => ({ label: c.label, value: c.amount })),
-                ].filter((l) => l.value > 0);
-                return (
-                  <>
-                    {lines.map((line, i) => (
-                      <div
-                        key={line.label}
-                        className={`grid grid-cols-2 px-3 py-1.5 ${i % 2 === 0 ? "bg-muted/50" : ""}`}
-                      >
-                        <span className="text-muted-foreground text-left">
-                          {line.label}
-                          {line.hint && (
-                            <span className="ml-1.5 text-xs text-muted-foreground/70">· {line.hint}</span>
-                          )}
-                        </span>
-                        <span className="text-right tabular-nums font-medium text-foreground">
-                          {formatCurrency(line.value)}
+            </button>
+            {expensesOpen && (
+              <div className="text-sm">
+                {(() => {
+                  const b = timelineData.expenses_breakdown;
+                  const lines: Array<{ label: string; value: number }> = [
+                    { label: "Fuel", value: b.fuel },
+                    { label: "Maintenance", value: b.maintenance },
+                    { label: "Tires", value: b.tires },
+                    { label: "DEF", value: b.def },
+                    ...b.custom.map((c) => ({ label: c.label, value: c.amount })),
+                  ].filter((l) => l.value > 0);
+                  return (
+                    <>
+                      {lines.map((line, i) => (
+                        <div
+                          key={line.label}
+                          className={`grid grid-cols-2 px-3 py-1.5 ${i % 2 === 0 ? "bg-muted/50" : ""}`}
+                        >
+                          <span className="text-muted-foreground text-left">
+                            {line.label}
+                          </span>
+                          <span className="text-right tabular-nums font-medium text-foreground">
+                            {formatCurrency(line.value)}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="grid grid-cols-2 px-3 py-1.5 border-t border-border mt-1">
+                        <span className="text-left font-semibold text-foreground">Total</span>
+                        <span className="text-right tabular-nums font-bold text-foreground">
+                          {formatCurrency(b.total)}
                         </span>
                       </div>
-                    ))}
-                    <div className="grid grid-cols-2 px-3 py-1.5 border-t border-border mt-1">
-                      <span className="text-left font-semibold text-foreground">Total</span>
-                      <span className="text-right tabular-nums font-bold text-foreground">
-                        {formatCurrency(b.total)}
-                      </span>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         )}
 
