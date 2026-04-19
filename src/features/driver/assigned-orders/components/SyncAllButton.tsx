@@ -1,0 +1,98 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/platform/web/components/ui/button";
+import { ApiError } from "@/core/services/api";
+import { syncAllAssignedOrders } from "../api";
+import type { ActiveSyncTask, SyncAllResponse } from "../types";
+import { useSyncAllState } from "../hooks/useSyncAllState";
+
+export interface SyncAllButtonProps {
+  activeSyncTask: ActiveSyncTask | null;
+  nextSyncAvailableAt: string | null;
+  onSyncStarted: (resp: SyncAllResponse) => void;
+  onSyncFinished: () => void;
+}
+
+const ERROR_DWELL_MS = 3_000;
+
+function formatRemaining(ms: number): string {
+  const seconds = Math.ceil(ms / 1000);
+  if (seconds >= 60) return `${Math.ceil(seconds / 60)}m`;
+  return `${seconds}s`;
+}
+
+export function SyncAllButton({
+  activeSyncTask,
+  nextSyncAvailableAt,
+  onSyncStarted,
+  onSyncFinished,
+}: SyncAllButtonProps) {
+  const [isPosting, setIsPosting] = useState(false);
+  const [errorDwell, setErrorDwell] = useState<string | null>(null);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    },
+    [],
+  );
+
+  const { state, enabled, remainingMs, progress } = useSyncAllState({
+    activeSyncTask,
+    nextSyncAvailableAt,
+    onFinished: onSyncFinished,
+  });
+
+  async function handleClick() {
+    if (!enabled || isPosting) return;
+    setIsPosting(true);
+    try {
+      const resp = await syncAllAssignedOrders();
+      onSyncStarted(resp);
+    } catch (err) {
+      let msg = "Sync failed";
+      if (err instanceof ApiError) {
+        if (err.status === 429) msg = "Cooldown still active";
+        else if (err.status === 409) msg = "Sync already in progress";
+      }
+      setErrorDwell(msg);
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+      errorTimerRef.current = setTimeout(
+        () => setErrorDwell(null),
+        ERROR_DWELL_MS,
+      );
+    } finally {
+      setIsPosting(false);
+    }
+  }
+
+  let label: string;
+  if (errorDwell) {
+    label = `\u26A0 ${errorDwell}`;
+  } else if (state === "in_flight" && progress) {
+    label = `\u27F3 Syncing ${progress.completed}/${progress.total}`;
+  } else if (state === "just_finished") {
+    label = "\u2713 Synced";
+  } else if (state === "failed") {
+    label = "\u26A0 Sync failed";
+  } else if (state === "cooldown") {
+    label = `\u21BB Available in ${formatRemaining(remainingMs)}`;
+  } else {
+    label = "\u21BB Sync All";
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={handleClick}
+      disabled={!enabled || isPosting || !!errorDwell}
+      aria-live="polite"
+    >
+      {label}
+    </Button>
+  );
+}

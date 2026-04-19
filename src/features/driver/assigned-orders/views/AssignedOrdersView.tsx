@@ -2,16 +2,26 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { listAssignedOrders } from "../api";
-import type { AssignedOrder } from "../types";
+import type {
+  ActiveSyncTask,
+  AssignedOrder,
+  SyncAllResponse,
+} from "../types";
 import { AssignedOrdersTable } from "../components/AssignedOrdersTable";
 import {
   AssignedOrdersFilterStrip,
   type AssignedOrdersFilter,
 } from "../components/AssignedOrdersFilterStrip";
 import { RefreshButton } from "../components/RefreshButton";
+import { SyncAllButton } from "../components/SyncAllButton";
 
 export function AssignedOrdersView() {
   const [orders, setOrders] = useState<AssignedOrder[]>([]);
+  const [activeSyncTask, setActiveSyncTask] =
+    useState<ActiveSyncTask | null>(null);
+  const [nextSyncAvailableAt, setNextSyncAvailableAt] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<AssignedOrdersFilter>("all");
 
@@ -19,7 +29,9 @@ export function AssignedOrdersView() {
     setLoading(true);
     try {
       const data = await listAssignedOrders();
-      setOrders(data);
+      setOrders(data.orders);
+      setActiveSyncTask(data.active_sync_task);
+      setNextSyncAvailableAt(data.next_sync_available_at);
     } finally {
       setLoading(false);
     }
@@ -28,6 +40,17 @@ export function AssignedOrdersView() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  const handleSyncStarted = useCallback((resp: SyncAllResponse) => {
+    setNextSyncAvailableAt(resp.next_sync_available_at);
+    setActiveSyncTask({
+      task_id: resp.task_id,
+      task_status: "pending",
+      orders_total: resp.orders_total,
+      orders_completed: 0,
+      updated_at: new Date().toISOString(),
+    });
+  }, []);
 
   const visibleOrders = useMemo(() => {
     if (filter === "all") return orders;
@@ -49,7 +72,15 @@ export function AssignedOrdersView() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <AssignedOrdersFilterStrip value={filter} onChange={setFilter} />
-        <RefreshButton onRefreshed={fetchOrders} />
+        <div className="flex items-end gap-2">
+          <SyncAllButton
+            activeSyncTask={activeSyncTask}
+            nextSyncAvailableAt={nextSyncAvailableAt}
+            onSyncStarted={handleSyncStarted}
+            onSyncFinished={fetchOrders}
+          />
+          <RefreshButton onRefreshed={fetchOrders} />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-6 rounded-md border border-border bg-accent/30 px-4 py-3 text-sm">

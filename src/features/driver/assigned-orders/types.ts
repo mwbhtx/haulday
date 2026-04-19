@@ -16,3 +16,32 @@ export interface AssignedOrder {
   unit_number?: string;
   trailer?: string;
 }
+
+export type TaskStatus = "pending" | "processing" | "completed" | "failed";
+
+/**
+ * Subset of the backend Task type (from @mwbhtx/haulvisor-core) needed by the
+ * Sync All UI. The backend returns the full Task object on
+ * GET /driver/assigned-orders.active_sync_task and GET /tasks/:id; we only
+ * type the fields the button + hook actually read.
+ */
+export interface ActiveSyncTask {
+  task_id: string;
+  task_status: TaskStatus;
+  orders_total: number;
+  orders_completed: number;
+  updated_at: string;
+}
+
+export interface AssignedOrdersListResponse {
+  orders: AssignedOrder[];
+  count: number;
+  next_sync_available_at: string | null;
+  active_sync_task: ActiveSyncTask | null;
+}
+
+export interface SyncAllResponse {
+  task_id: string;
+  orders_total: number;
+  next_sync_available_at: string;
+}
