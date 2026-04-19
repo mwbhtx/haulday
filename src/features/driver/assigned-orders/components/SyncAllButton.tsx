@@ -34,6 +34,7 @@ export function SyncAllButton({
   onSyncFinished,
 }: SyncAllButtonProps) {
   const [isPosting, setIsPosting] = useState(false);
+  const [refreshCount, setRefreshCount] = useState<number | null>(null);
   const [errorDwell, setErrorDwell] = useState<string | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,12 +54,13 @@ export function SyncAllButton({
   async function handleClick() {
     if (!enabled || isPosting) return;
     setIsPosting(true);
+    setRefreshCount(null);
     try {
       // Stage 1: refresh the assigned-orders list from Mercer.
       // Fire-and-forget on the backend; poll the list to detect when the
       // scraper finishes.
       await refreshAssignedOrders();
-      await waitForAssignedOrdersToStabilize();
+      await waitForAssignedOrdersToStabilize(setRefreshCount);
 
       // Stage 2: fan out order-detail fetches for every assigned order.
       const resp = await syncAllAssignedOrders();
@@ -84,21 +86,27 @@ export function SyncAllButton({
   /**
    * Wait for the backend's assigned-orders list to finish updating after a
    * /refresh trigger. Polls every 5s; considers the list "stable" once two
-   * consecutive checks return the same count. Caps at ~90s so a silent
-   * scraper failure doesn't lock the user out.
+   * consecutive checks return the same count. Caps at ~3 min so a silent
+   * scraper failure doesn't lock the user out. Reports the live count to
+   * the caller via onCount so the button label can show progress.
    */
-  async function waitForAssignedOrdersToStabilize() {
+  async function waitForAssignedOrdersToStabilize(
+    onCount: (n: number) => void,
+  ) {
     const POLL_MS = 5_000;
-    const MAX_POLLS = 18; // 90s total
+    const MAX_POLLS = 36; // ~3 min total
     let lastCount = -1;
     let stableCount = 0;
     for (let i = 0; i < MAX_POLLS; i++) {
       await new Promise((r) => setTimeout(r, POLL_MS));
       try {
         const data = await listAssignedOrders();
+        onCount(data.orders.length);
         if (data.orders.length === lastCount) {
           stableCount++;
-          if (stableCount >= 2 && data.orders.length > 0) return;
+          // Stable (even at 0) — sync-all will decide; surfacing 422
+          // faster than timing out gives the user a clearer error.
+          if (stableCount >= 2) return;
         } else {
           stableCount = 0;
         }
@@ -117,7 +125,9 @@ export function SyncAllButton({
   } else if (isPosting && state !== "in_flight") {
     // Stage 1 — refresh + wait-for-stable. Before sync-all task is created.
     icon = <Loader2 className="h-4 w-4 animate-spin" />;
-    label = "Updating orders…";
+    label = refreshCount != null
+      ? `Syncing orders… (${refreshCount} found)`
+      : "Syncing orders…";
   } else if (state === "in_flight" && progress) {
     icon = <Loader2 className="h-4 w-4 animate-spin" />;
     label = `Syncing ${progress.completed}/${progress.total}`;
