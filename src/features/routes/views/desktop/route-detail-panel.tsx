@@ -313,20 +313,6 @@ function RouteDetailContent({
                   {leg.commodity && (
                     <p className="text-sm text-muted-foreground mt-1">Commodity: {leg.commodity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}</p>
                   )}
-                  {leg.pickup_date_early_local && (
-                    <div className="flex items-baseline gap-2 mt-3">
-                      <span className="text-sm font-semibold text-foreground shrink-0">Pickup</span>
-                      <span className="flex-1 border-b border-solid border-muted-foreground/30 relative -top-0.5" />
-                      <span className="text-sm text-muted-foreground shrink-0">{formatDateTime(leg.pickup_date_early_local)}{leg.pickup_date_late_local ? ` - ${formatDateTime(leg.pickup_date_late_local)}` : ""}</span>
-                    </div>
-                  )}
-                  {leg.delivery_date_early_local && (
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-sm font-semibold text-foreground shrink-0">Delivery</span>
-                      <span className="flex-1 border-b border-solid border-muted-foreground/30 relative -top-0.5" />
-                      <span className="text-sm text-muted-foreground shrink-0">{formatDateTime(leg.delivery_date_early_local)}{leg.delivery_date_late_local ? ` - ${formatDateTime(leg.delivery_date_late_local)}` : ""}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             );
@@ -342,23 +328,30 @@ function RouteDetailContent({
             <div className="px-3 pb-3">
               <div className="bg-card px-4 py-3 flex gap-3">
                 <div className="w-[2px] shrink-0 bg-primary" />
-                <ol className="flex-1 min-w-0 space-y-1.5">
+                <ol className="flex-1 min-w-0 space-y-3">
                   {chain.legs.flatMap((leg, legIdx) =>
                     (leg.stopoffs ?? []).map((s: Stopoff, i: number) => (
-                      <li
-                        key={`${legIdx}-${i}`}
-                        className="flex items-baseline gap-2 text-sm"
-                      >
-                        <span
-                          className={`font-semibold uppercase tracking-wide text-xs w-[74px] shrink-0 ${
-                            s.type === "pickup" ? "text-primary" : "text-muted-foreground"
-                          }`}
-                        >
-                          {s.type === "pickup" ? "Pickup" : "Delivery"}
-                        </span>
-                        <span className="flex-1 truncate text-foreground">
-                          {s.city}, {s.state}
-                        </span>
+                      <li key={`${legIdx}-${i}`} className="text-sm">
+                        <div className="flex items-baseline gap-2">
+                          <span
+                            className={`font-semibold uppercase tracking-wide text-xs w-[74px] shrink-0 ${
+                              s.type === "pickup" ? "text-primary" : "text-muted-foreground"
+                            }`}
+                          >
+                            {s.type === "pickup" ? "Pickup" : "Delivery"}
+                          </span>
+                          <span className="flex-1 truncate text-foreground">
+                            {s.city}, {s.state}
+                          </span>
+                        </div>
+                        {s.early_date_local && (
+                          <div className="flex items-baseline gap-2 mt-1 pl-[82px] text-xs text-muted-foreground">
+                            <span className="tabular-nums">
+                              {formatDateTime(s.early_date_local)}
+                              {s.late_date_local ? ` – ${formatDateTime(s.late_date_local)}` : ""}
+                            </span>
+                          </div>
+                        )}
                       </li>
                     )),
                   )}
