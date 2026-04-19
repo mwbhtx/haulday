@@ -333,11 +333,7 @@ function RouteDetailContent({
                     (leg.stopoffs ?? []).map((s: Stopoff, i: number) => (
                       <li key={`${legIdx}-${i}`} className="text-sm">
                         <div className="flex items-baseline gap-2">
-                          <span
-                            className={`font-semibold uppercase tracking-wide text-xs w-[74px] shrink-0 ${
-                              s.type === "pickup" ? "text-primary" : "text-foreground"
-                            }`}
-                          >
+                          <span className="font-semibold uppercase tracking-wide text-xs w-[74px] shrink-0 text-foreground">
                             {s.type === "pickup" ? "Pickup" : "Delivery"}
                           </span>
                           <span className="flex-1 truncate text-foreground">
