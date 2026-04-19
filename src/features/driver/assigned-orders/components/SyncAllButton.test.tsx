@@ -90,14 +90,34 @@ describe("SyncAllButton", () => {
     expect(btn).toBeDisabled();
   });
 
-  it("calls syncAllAssignedOrders on click and invokes onSyncStarted", async () => {
-    (api.syncAllAssignedOrders as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+  it("on click: refreshes → waits for stable list → calls syncAllAssignedOrders", async () => {
+    const task = {
+      task_id: "t2",
+      orders_total: 5,
+      next_sync_available_at: new Date(Date.now() + 15 * 60_000).toISOString(),
+    };
+    (api.refreshAssignedOrders as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      undefined,
+    );
+    (api.listAssignedOrders as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
       {
-        task_id: "t2",
-        orders_total: 5,
-        next_sync_available_at: new Date(Date.now() + 15 * 60_000).toISOString(),
+        orders: [
+          { order_id: "A", status: "settled", ingested_at: "t", has_order_details: false },
+          { order_id: "B", status: "settled", ingested_at: "t", has_order_details: false },
+          { order_id: "C", status: "settled", ingested_at: "t", has_order_details: false },
+          { order_id: "D", status: "settled", ingested_at: "t", has_order_details: false },
+          { order_id: "E", status: "settled", ingested_at: "t", has_order_details: false },
+        ],
+        count: 5,
+        next_sync_available_at: null,
+        active_sync_task: null,
       },
     );
+    (api.syncAllAssignedOrders as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      task,
+    );
+
+    vi.useFakeTimers();
     const onSyncStarted = vi.fn();
     render(
       <SyncAllButton
@@ -108,9 +128,17 @@ describe("SyncAllButton", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button"));
-    await waitFor(() => expect(api.syncAllAssignedOrders).toHaveBeenCalled());
+
+    // Run through the poll loop; stable count is reached after the second
+    // list fetch, so advance ~15s of virtual time to let both polls + the
+    // 5s wait between them resolve.
+    await vi.advanceTimersByTimeAsync(20_000);
+
+    expect(api.refreshAssignedOrders).toHaveBeenCalled();
+    expect(api.syncAllAssignedOrders).toHaveBeenCalled();
     expect(onSyncStarted).toHaveBeenCalledWith(
       expect.objectContaining({ task_id: "t2", orders_total: 5 }),
     );
+    vi.useRealTimers();
   });
 });

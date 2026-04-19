@@ -12,7 +12,6 @@ import {
   AssignedOrdersFilterStrip,
   type AssignedOrdersFilter,
 } from "../components/AssignedOrdersFilterStrip";
-import { RefreshButton } from "../components/RefreshButton";
 import { SyncAllButton } from "../components/SyncAllButton";
 
 export function AssignedOrdersView() {
@@ -72,15 +71,12 @@ export function AssignedOrdersView() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <AssignedOrdersFilterStrip value={filter} onChange={setFilter} />
-        <div className="flex items-end gap-2">
-          <SyncAllButton
-            activeSyncTask={activeSyncTask}
-            nextSyncAvailableAt={nextSyncAvailableAt}
-            onSyncStarted={handleSyncStarted}
-            onSyncFinished={fetchOrders}
-          />
-          <RefreshButton onRefreshed={fetchOrders} />
-        </div>
+        <SyncAllButton
+          activeSyncTask={activeSyncTask}
+          nextSyncAvailableAt={nextSyncAvailableAt}
+          onSyncStarted={handleSyncStarted}
+          onSyncFinished={fetchOrders}
+        />
       </div>
 
       <div className="flex flex-wrap gap-6 rounded-md border border-border bg-accent/30 px-4 py-3 text-sm">
