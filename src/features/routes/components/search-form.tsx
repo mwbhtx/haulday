@@ -427,6 +427,11 @@ export function SearchFilters({
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
 
+  // Ephemeral per-search toggle. When on, overrides the driver's persisted
+  // tolerance settings with 0/0 for this search only — useful for "show
+  // me only routes that strictly hit every pickup/delivery window."
+  const [strictSchedule, setStrictSchedule] = useState(false);
+
   const driverProfile = settings ? {
     trailer_types: settings.trailer_types?.length ? settings.trailer_types.join('|') : undefined,
     max_weight: settings.max_weight ?? undefined,
@@ -434,10 +439,11 @@ export function SearchFilters({
     twic_card: settings.twic_card ?? undefined,
     team_driver: settings.team_driver ?? undefined,
     no_tarps: settings.no_tarps ?? undefined,
-    late_tolerance_hours: settings.late_tolerance_hours ?? undefined,
-    early_tolerance_hours: settings.early_tolerance_hours ?? undefined,
+    // Strict-schedule toggle wins over persisted settings when on.
+    late_tolerance_hours: strictSchedule ? 0 : (settings.late_tolerance_hours ?? undefined),
+    early_tolerance_hours: strictSchedule ? 0 : (settings.early_tolerance_hours ?? undefined),
     cost_per_mile: (settings.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE,
-  } : {};
+  } : (strictSchedule ? { late_tolerance_hours: 0, early_tolerance_hours: 0 } : {});
 
   // Restore persisted filter state from sessionStorage
   const restored = useRef<{
@@ -795,6 +801,7 @@ export function SearchFilters({
           minDailyProfit={minDailyProfit} setMinDailyProfit={setMinDailyProfit}
           minRpm={minRpm} setMinRpm={setMinRpm}
           maxInterlegDh={maxInterlegDh} setMaxInterlegDh={setMaxInterlegDh}
+          strictSchedule={strictSchedule} setStrictSchedule={setStrictSchedule}
         /></div>
         {!isSearching && (
           <Button
@@ -824,6 +831,7 @@ function AllFiltersPopover({
   minDailyProfit, setMinDailyProfit,
   minRpm, setMinRpm,
   maxInterlegDh, setMaxInterlegDh,
+  strictSchedule, setStrictSchedule,
 }: {
   maxDeadheadPct: number | undefined;
   setMaxDeadheadPct: (v: number | undefined) => void;
@@ -833,6 +841,8 @@ function AllFiltersPopover({
   setMinRpm: (v: number | undefined) => void;
   maxInterlegDh: number | undefined;
   setMaxInterlegDh: (v: number | undefined) => void;
+  strictSchedule: boolean;
+  setStrictSchedule: (v: boolean) => void;
 }) {
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
@@ -986,6 +996,21 @@ function AllFiltersPopover({
                   </div>
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setStrictSchedule(!strictSchedule)}
+                className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+                title="Reject routes that arrive outside any pickup/delivery window. Ignores your persistent tolerance settings for this search."
+              >
+                <span>Strict schedule</span>
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                    strictSchedule ? "border-primary bg-primary text-primary-foreground" : "border-input"
+                  }`}
+                >
+                  {strictSchedule && <span className="text-xs">✓</span>}
+                </div>
+              </button>
             </div>
           </div>
 
