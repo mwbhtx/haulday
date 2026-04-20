@@ -325,6 +325,7 @@ function RouteDetailContent({
               const rows: Array<{
                 label1: string;
                 value1: React.ReactNode;
+                tooltip1?: string;
                 label2: string;
                 value2: React.ReactNode;
                 tooltip2?: string;
@@ -340,11 +341,34 @@ function RouteDetailContent({
                 { label1: "Days", value1: daysValue, label2: "DH %", value2: `${chain.deadhead_pct.toFixed(0)}%` },
                 { label1: "Gross", value1: formatCurrency(chain.total_pay), label2: "DH mi.", value2: chain.total_deadhead_miles.toLocaleString() },
                 { label1: "Tarp", value1: needsTarp ? "Yes" : "No", label2: "$/mi loaded", value2: avgLoadedRpm !== null ? `$${avgLoadedRpm.toFixed(2)}` : "—" },
+                {
+                  label1: "Gross/mi",
+                  value1: formatRpm(chain.gross_rpm_total),
+                  tooltip1: "Gross pay ÷ all miles driven (loaded + deadhead). Pre-estimation — no fuel/cost assumptions.",
+                  label2: "Gross/hr",
+                  value2: hasSimMetrics && chain.gross_per_on_duty_hour > 0
+                    ? `$${chain.gross_per_on_duty_hour.toFixed(2)}`
+                    : <span className="text-muted-foreground">—</span>,
+                  tooltip2: "Gross pay ÷ on-duty hours (driving + deadhead + loading + unloading + fuel + flex). Pre-estimation.",
+                },
               ];
               return rows.map((row, i) => (
                 <div key={i} className={`grid grid-cols-subgrid col-span-4 px-3 py-1.5 ${i % 2 === 0 ? "bg-muted/50" : ""}`}>
                   <span className="text-muted-foreground text-left">{row.label1}</span>
-                  <span className="text-right tabular-nums font-bold text-foreground">{row.value1}</span>
+                  <span className="text-right">
+                    {row.tooltip1 ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="tabular-nums font-bold text-foreground underline decoration-dashed underline-offset-2 cursor-default">{row.value1}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="left">{row.tooltip1}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <span className="tabular-nums font-bold text-foreground">{row.value1}</span>
+                    )}
+                  </span>
                   <span className="text-muted-foreground text-left">{row.label2}</span>
                   <span className="text-right">
                     {row.tooltip2 ? (
