@@ -6,7 +6,7 @@ export type SortKey = RouteSortKey;
 export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "daily_profit", label: "$/Day" },
   { key: "profit", label: "Profit" },
-  { key: "deadhead", label: "Deadhead" },
+  { key: "gross_rpm_total", label: "$/mi deadhead" },
 ];
 
 export function sortRouteChains(chains: RouteChain[], sortBy: SortKey): RouteChain[] {
@@ -14,7 +14,7 @@ export function sortRouteChains(chains: RouteChain[], sortBy: SortKey): RouteCha
   switch (sortBy) {
     case "profit": sorted.sort((a, b) => b.profit - a.profit); break;
     case "daily_profit": sorted.sort((a, b) => b.daily_net_profit - a.daily_net_profit); break;
-    case "deadhead": sorted.sort((a, b) => a.deadhead_pct - b.deadhead_pct); break;
+    case "gross_rpm_total": sorted.sort((a, b) => b.gross_rpm_total - a.gross_rpm_total); break;
   }
   return sorted;
 }

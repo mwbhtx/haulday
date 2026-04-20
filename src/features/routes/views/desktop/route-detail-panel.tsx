@@ -354,7 +354,7 @@ function RouteDetailContent({
                   value1: hasSimMetrics && chain.gross_per_on_duty_hour > 0
                     ? `$${chain.gross_per_on_duty_hour.toFixed(2)}`
                     : <span className="text-muted-foreground">—</span>,
-                  tooltip1: "Gross pay ÷ on-duty hours (driving + deadhead + loading + unloading + fuel + flex). Pre-estimation.",
+                  tooltip1: "Gross pay ÷ total trip hours (wall-clock from departure to final delivery, includes rest). Pre-estimation.",
                   label2: "DH mi.",
                   value2: chain.total_deadhead_miles.toLocaleString(),
                 },
