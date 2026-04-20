@@ -40,6 +40,7 @@ export interface Settings {
   unloading_hours: number | null;
   tarping_hours: number | null;
   end_of_day_flex_hours: number | null;
+  envelope_tolerance_minutes: number | null;
   onboarding_completed: boolean;
   disabled_settings?: string[];
   last_login: string;

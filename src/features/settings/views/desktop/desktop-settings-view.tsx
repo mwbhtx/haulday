@@ -15,6 +15,11 @@ import {
   DEFAULT_TIRES_PER_MILE,
   DEFAULT_DEF_PER_MILE,
   TRIP_DEFAULTS,
+  LOADING_HOURS_OPTIONS,
+  UNLOADING_HOURS_OPTIONS,
+  TARPING_HOURS_OPTIONS,
+  END_OF_DAY_FLEX_HOURS_OPTIONS,
+  ENVELOPE_TOLERANCE_MINUTES_OPTIONS,
   type CostMode,
   type CustomCostComponent,
 } from "@mwbhtx/haulvisor-core";
@@ -127,6 +132,7 @@ export function DesktopSettingsView() {
   const [unloadingHours, setUnloadingHours] = useState<string>("2");
   const [tarpingHours, setTarpingHours] = useState<string>("1.5");
   const [endOfDayFlexHours, setEndOfDayFlexHours] = useState<string>("1");
+  const [envelopeToleranceMinutes, setEnvelopeToleranceMinutes] = useState<string>("30");
   const [costMode, setCostMode] = useState<CostMode>("simple");
   const [dieselPrice, setDieselPrice] = useState("");
   const [maintenancePerMile, setMaintenancePerMile] = useState("");
@@ -171,6 +177,7 @@ export function DesktopSettingsView() {
     setUnloadingHours(settings.unloading_hours != null ? String(settings.unloading_hours) : "2");
     setTarpingHours(settings.tarping_hours != null ? String(settings.tarping_hours) : "1.5");
     setEndOfDayFlexHours(settings.end_of_day_flex_hours != null ? String(settings.end_of_day_flex_hours) : "1");
+    setEnvelopeToleranceMinutes(settings.envelope_tolerance_minutes != null ? String(settings.envelope_tolerance_minutes) : "30");
     setCostMode(settings.cost_mode ?? "simple");
     setDieselPrice(settings.diesel_price_per_gallon != null ? String(settings.diesel_price_per_gallon) : "");
     setMaintenancePerMile(settings.maintenance_per_mile != null ? String(settings.maintenance_per_mile) : "");
@@ -826,8 +833,8 @@ export function DesktopSettingsView() {
                 }}
                 className="rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm"
               >
-                {[0.25, 0.5, 1, 1.5, 2, 2.5, 3, 4].map((h) => (
-                  <option key={h} value={h}>{h === Math.floor(h) ? `${h}h` : `${h}h`}</option>
+                {LOADING_HOURS_OPTIONS.map((h) => (
+                  <option key={h} value={h}>{h}h</option>
                 ))}
               </select>
             </div>
@@ -843,7 +850,7 @@ export function DesktopSettingsView() {
                 }}
                 className="rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm"
               >
-                {[0.25, 0.5, 1, 1.5, 2, 2.5, 3].map((h) => (
+                {UNLOADING_HOURS_OPTIONS.map((h) => (
                   <option key={h} value={h}>{h}h</option>
                 ))}
               </select>
@@ -860,7 +867,7 @@ export function DesktopSettingsView() {
                 }}
                 className="rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm"
               >
-                {[0, 0.5, 1, 1.5, 2].map((h) => (
+                {TARPING_HOURS_OPTIONS.map((h) => (
                   <option key={h} value={h}>{h === 0 ? "None" : `${h}h`}</option>
                 ))}
               </select>
@@ -877,8 +884,25 @@ export function DesktopSettingsView() {
                 }}
                 className="rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm"
               >
-                {[0.5, 1, 1.5].map((h) => (
+                {END_OF_DAY_FLEX_HOURS_OPTIONS.map((h) => (
                   <option key={h} value={h}>{h}h</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-medium block">{TRIP_DEFAULTS.envelope_tolerance_minutes.label}</label>
+              <p className="text-xs text-muted-foreground">{TRIP_DEFAULTS.envelope_tolerance_minutes.description}</p>
+              <select
+                value={envelopeToleranceMinutes}
+                onChange={(e) => {
+                  setEnvelopeToleranceMinutes(e.target.value);
+                  if (initialized.current) save({ envelope_tolerance_minutes: Number(e.target.value) });
+                }}
+                className="rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm"
+              >
+                {ENVELOPE_TOLERANCE_MINUTES_OPTIONS.map((m) => (
+                  <option key={m} value={m}>{m === 0 ? "Strict (no tolerance)" : `${m} min`}</option>
                 ))}
               </select>
             </div>
