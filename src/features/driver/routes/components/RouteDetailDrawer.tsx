@@ -42,7 +42,7 @@ export function RouteDetailDrawer({ routeId, onClose }: RouteDetailDrawerProps) 
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-background border-l border-border shadow-xl"
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-3xl flex-col bg-background border-l border-border shadow-xl"
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="text-sm font-medium">Route Details</h2>
@@ -61,6 +61,8 @@ export function RouteDetailDrawer({ routeId, onClose }: RouteDetailDrawerProps) 
                 destCity={detail.destination.city}
                 costPerMile={detail.analysis.effective_cost_per_mile ?? 0}
                 searchParams={null}
+                fullWidth
+                hideDeliversEarlyBadge
               />
             )}
             {!loading && !error && detail && !detail.analysis && (
