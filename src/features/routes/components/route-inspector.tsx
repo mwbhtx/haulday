@@ -2,7 +2,7 @@
 
 import { TruckIcon, ClockIcon, Package, PackageOpen, Fuel, Coffee, Bed, Layers } from "lucide-react";
 import type { RouteChain, TripPhase, TripSimulationSummary } from "@/core/types";
-import { TRIP_DEFAULTS } from "@mwbhtx/haulvisor-core";
+import { TRIP_DEFAULTS, HOS_MANDATORY_REST_HOURS } from "@mwbhtx/haulvisor-core";
 
 function cityOnly(name?: string): string {
   return name?.split(",")[0]?.trim() ?? "";
@@ -272,6 +272,13 @@ function PhaseRow({ phase, timestamp, showTimeOnly, originCity, returnCity }: { 
     </span>
   ) : null;
 
+  // A waiting phase ≥ HOS rest (10h) is functionally overnight rest — the
+  // sim resets shift counters when a wait is that long, so the driver is
+  // actually sleeping for most of it. Relabel + swap the icon so the
+  // schedule reads like a real driver day.
+  const isRestWait =
+    phase.kind === 'waiting' && phase.duration_hours >= HOS_MANDATORY_REST_HOURS;
+
   const Icon = {
     deadhead: TruckIcon,
     driving: TruckIcon,
@@ -281,7 +288,7 @@ function PhaseRow({ phase, timestamp, showTimeOnly, originCity, returnCity }: { 
     rest: Bed,
     break: Coffee,
     fuel: Fuel,
-    waiting: ClockIcon,
+    waiting: isRestWait ? Bed : ClockIcon,
   }[phase.kind];
 
   const label = (() => {
@@ -306,7 +313,9 @@ function PhaseRow({ phase, timestamp, showTimeOnly, originCity, returnCity }: { 
         return <>Fueling</>;
       case 'waiting': {
         const loc = phase.origin_city ? prettyCity(phase.origin_city) : phase.destination_city ? prettyCity(phase.destination_city) : '';
-        return <>Waiting for {phase.waiting_for === 'pickup_window' ? 'pickup' : 'delivery'} window{loc ? ` at ${loc}` : ''}</>;
+        const waitFor = phase.waiting_for === 'pickup_window' ? 'pickup' : 'delivery';
+        const body = `waiting for ${waitFor} window${loc ? ` at ${loc}` : ''}`;
+        return isRestWait ? <>Rest ({body})</> : <>Waiting for {waitFor} window{loc ? ` at ${loc}` : ''}</>;
       }
     }
   })();
