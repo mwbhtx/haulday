@@ -22,7 +22,17 @@ import { routeProfitColor } from "@/core/utils/rate-color";
 import type { RouteChain, RouteLeg } from "@/core/types";
 import type { Stopoff } from "@mwbhtx/haulvisor-core";
 
-export interface RouteDetailPanelProps {
+/**
+ * When set, the panel fills its parent (no 40% cap). Useful when embedded
+ * in a drawer or dialog that already constrains width. */
+export interface RouteDetailPanelExtras {
+  fullWidth?: boolean;
+  /** Suppress the "EARLY" badge — not meaningful for completed/driver
+   *  routes where the sim's early-delivery flag is a modeling artifact. */
+  hideDeliversEarlyBadge?: boolean;
+}
+
+export interface RouteDetailPanelProps extends RouteDetailPanelExtras {
   chain: RouteChain | null;
   originCity?: string;
   destCity?: string;
@@ -61,6 +71,8 @@ export function RouteDetailPanel({
   departureTime,
   returnByTime,
   searchParams,
+  fullWidth = false,
+  hideDeliversEarlyBadge = false,
 }: RouteDetailPanelProps) {
   const showInspector = true;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -73,13 +85,19 @@ export function RouteDetailPanel({
 
   const isExpanded = chain !== null;
 
+  // In fullWidth mode (drawer/dialog embed) skip the 40%-of-parent cap
+  // that was designed for the side-by-side Route Search layout.
+  const containerStyle: React.CSSProperties = fullWidth
+    ? { width: '100%' }
+    : { width: isExpanded ? '40%' : 48, maxWidth: 600 };
+
   return (
     <div
       className="flex flex-col h-full bg-surface-elevated overflow-hidden shrink-0 transition-[width] duration-300 ease-in-out"
-      style={{ width: isExpanded ? '40%' : 48, maxWidth: 600 }}
+      style={containerStyle}
     >
       {/* Collapsed state — rotated label */}
-      {!isExpanded && (
+      {!isExpanded && !fullWidth && (
         <div className="flex h-full items-center justify-center">
           <p
             className="text-sm text-muted-foreground whitespace-nowrap select-none"
@@ -97,6 +115,7 @@ export function RouteDetailPanel({
             chain={chain}
             originCity={originCity}
             destCity={destCity}
+            hideDeliversEarlyBadge={hideDeliversEarlyBadge}
             costPerMile={costPerMile}
             orderUrlTemplate={orderUrlTemplate}
             onHoverLeg={onHoverLeg}
@@ -143,6 +162,7 @@ interface RouteDetailContentProps {
     work_end_hour?: number;
   } | null;
   scrollRef?: React.RefObject<HTMLDivElement | null>;
+  hideDeliversEarlyBadge?: boolean;
 }
 
 function RouteDetailContent({
@@ -160,6 +180,7 @@ function RouteDetailContent({
   returnByTime,
   searchParams,
   scrollRef,
+  hideDeliversEarlyBadge = false,
 }: RouteDetailContentProps) {
   const { activeCompanyId } = useAuth();
   const [expensesOpen, setExpensesOpen] = useState(false);
@@ -175,7 +196,7 @@ function RouteDetailContent({
   const needsTarp = chain.legs.some(
     (l) => l.tarp_height != null && parseInt(l.tarp_height, 10) > 0,
   );
-  const deliversEarly = chain.trip_summary?.delivers_early === true;
+  const deliversEarly = chain.trip_summary?.delivers_early === true && !hideDeliversEarlyBadge;
 
   const costPerDhMile =
     chain.total_deadhead_miles > 0
