@@ -1,8 +1,26 @@
 "use client";
 
 import { TruckIcon, ClockIcon, Package, PackageOpen, Fuel, Coffee, Bed, Layers } from "lucide-react";
+import tzlookup from "tz-lookup";
 import type { RouteChain, TripPhase, TripSimulationSummary } from "@/core/types";
 import { TRIP_DEFAULTS, HOS_MANDATORY_REST_HOURS } from "@mwbhtx/haulvisor-core";
+
+/**
+ * Resolve the route's origin IANA timezone from the first leg's
+ * lat/lng. Phase timestamps are rendered in this timezone so the
+ * schedule shows clock times the driver (and shipper/receiver)
+ * actually see on-site — not the browser's local time. Returns null
+ * when the chain has no legs or the lookup fails.
+ */
+function getOriginTimeZone(chain: RouteChain): string | null {
+  const first = chain.legs?.[0];
+  if (!first || first.origin_lat == null || first.origin_lng == null) return null;
+  try {
+    return tzlookup(first.origin_lat, first.origin_lng);
+  } catch {
+    return null;
+  }
+}
 
 function cityOnly(name?: string): string {
   return name?.split(",")[0]?.trim() ?? "";
@@ -37,23 +55,64 @@ function formatDuration(hours: number | undefined): string {
   return `${h}h ${m}m`;
 }
 
-/** Format a Date as short time: "4:00 AM" */
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+/** Format a Date as short time: "4:00 AM" — in `tz` when supplied, else browser-local. */
+function formatTime(date: Date, tz?: string | null): string {
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    ...(tz ? { timeZone: tz } : {}),
+  });
 }
 
-/** Format a Date as day label: "Mon Mar 31" */
-function formatDayLabel(date: Date): string {
-  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+/** Format a Date as day label: "Mon Mar 31" — in `tz` when supplied. */
+function formatDayLabel(date: Date, tz?: string | null): string {
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    ...(tz ? { timeZone: tz } : {}),
+  });
 }
 
-/** Format a Date as MM/DD HH:mm (fallback when no departure) */
-function formatTimestamp(date: Date): string {
+/** Format a Date as MM/DD HH:mm — in `tz` when supplied. */
+function formatTimestamp(date: Date, tz?: string | null): string {
+  if (tz) {
+    // Intl gives us a reliable tz-aware breakdown; piece it back together
+    // to keep the compact MM/DD HH:mm shape used elsewhere in the UI.
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(date);
+    const pick = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+    // Intl in hour12:false mode returns "24" for midnight — normalize to "00".
+    const hh = pick("hour") === "24" ? "00" : pick("hour");
+    return `${pick("month")}/${pick("day")} ${hh}:${pick("minute")}`;
+  }
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
   const hh = String(date.getHours()).padStart(2, "0");
   const min = String(date.getMinutes()).padStart(2, "0");
   return `${mm}/${dd} ${hh}:${min}`;
+}
+
+/** Build a YYYY-M-D key for a Date in the given tz (for day-boundary grouping). */
+function dayKey(date: Date, tz?: string | null): string {
+  if (!tz) {
+    return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  }
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(date);
+  const pick = (t: string) => parts.find((p) => p.type === t)?.value ?? "0";
+  return `${pick("year")}-${pick("month")}-${pick("day")}`;
 }
 
 interface DayGroup {
@@ -68,8 +127,8 @@ interface DayGroup {
   workingHours: number;
 }
 
-/** Group timeline phases into calendar-day buckets */
-function groupByDay(timeline: TripPhase[], timestamps: Date[]): DayGroup[] {
+/** Group timeline phases into calendar-day buckets (in `tz` when supplied). */
+function groupByDay(timeline: TripPhase[], timestamps: Date[], tz?: string | null): DayGroup[] {
   if (timeline.length === 0 || timestamps.length === 0) return [];
 
   const days: DayGroup[] = [];
@@ -77,13 +136,13 @@ function groupByDay(timeline: TripPhase[], timestamps: Date[]): DayGroup[] {
 
   for (let i = 0; i < timeline.length; i++) {
     const ts = timestamps[i];
-    const dateKey = `${ts.getFullYear()}-${ts.getMonth()}-${ts.getDate()}`;
+    const dateKey = dayKey(ts, tz);
 
     if (dateKey !== currentDateKey) {
       currentDateKey = dateKey;
       days.push({
         dayNumber: days.length + 1,
-        dateLabel: formatDayLabel(ts),
+        dateLabel: formatDayLabel(ts, tz),
         phases: [],
         totalMiles: 0,
         driveHours: 0,
@@ -143,6 +202,10 @@ export function RouteInspector({
 }: RouteInspectorProps) {
   // Use lazy-loaded timeline if available, fall back to chain.timeline
   const timeline = timelineData?.timeline ?? chain.timeline ?? [];
+  // Render all phase timestamps in the route's origin timezone so the
+  // schedule reflects the clock time at the pickup location — not the
+  // browser's local time. Falls back to browser-local if the lookup fails.
+  const originTz = getOriginTimeZone(chain);
 
   // Show loading state
   if (timelineLoading) {
@@ -196,7 +259,7 @@ export function RouteInspector({
     ? new Date(timestamps[timestamps.length - 1].getTime() + (timeline[timeline.length - 1].duration_hours ?? 0) * 3_600_000)
     : null;
 
-  const days = timestamps ? groupByDay(timeline, timestamps) : [];
+  const days = timestamps ? groupByDay(timeline, timestamps, originTz) : [];
 
   return (
     <div className="flex flex-col h-full">
@@ -217,13 +280,13 @@ export function RouteInspector({
               </div>
               {/* Phase rows */}
               {day.phases.map(({ phase, timestamp }, i) => (
-                <PhaseRow key={i} phase={phase} timestamp={timestamp} showTimeOnly originCity={originCity} returnCity={returnCity} />
+                <PhaseRow key={i} phase={phase} timestamp={timestamp} showTimeOnly originCity={originCity} returnCity={returnCity} tz={originTz} />
               ))}
             </div>
           ))
         ) : (
           timeline.map((phase, i) => (
-            <PhaseRow key={i} phase={phase} timestamp={null} showTimeOnly={false} originCity={originCity} returnCity={returnCity} />
+            <PhaseRow key={i} phase={phase} timestamp={null} showTimeOnly={false} originCity={originCity} returnCity={returnCity} tz={originTz} />
           ))
         )}
       </div>
@@ -231,7 +294,7 @@ export function RouteInspector({
       {/* Return-by note */}
       {returnByTime && (
         <div className="px-3 py-2 border-t border-border text-xs text-foreground">
-          Return by: <span className="font-medium">{formatTimestamp(returnByTime)}</span>
+          Return by: <span className="font-medium">{formatTimestamp(returnByTime, originTz)}</span>
           {arrivalTime && arrivalTime <= returnByTime && (
             <span className="ml-2">On time</span>
           )}
@@ -265,10 +328,10 @@ export function RouteInspector({
   );
 }
 
-function PhaseRow({ phase, timestamp, showTimeOnly, originCity, returnCity }: { phase: TripPhase; timestamp: Date | null; showTimeOnly: boolean; originCity?: string; returnCity?: string }) {
+function PhaseRow({ phase, timestamp, showTimeOnly, originCity, returnCity, tz }: { phase: TripPhase; timestamp: Date | null; showTimeOnly: boolean; originCity?: string; returnCity?: string; tz?: string | null }) {
   const timeLabel = timestamp ? (
     <span className="text-xs text-foreground/60 tabular-nums w-[4.5rem] shrink-0 text-right">
-      {showTimeOnly ? formatTime(timestamp) : formatTimestamp(timestamp)}
+      {showTimeOnly ? formatTime(timestamp, tz) : formatTimestamp(timestamp, tz)}
     </span>
   ) : null;
 
