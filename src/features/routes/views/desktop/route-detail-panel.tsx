@@ -8,6 +8,76 @@ import { useTimeline } from "@/core/hooks/use-timeline";
 import { useAuth } from "@/core/services/auth-provider";
 import { calcAvgLoadedRpm, DEFAULT_LOADED_SPEED_MPH } from "@mwbhtx/haulvisor-core";
 
+/**
+ * For a given stopoff, return a schedule-fit badge based on the sim output
+ * attached to the chain:
+ *   - LATE  — the sim's violations list has a matching entry (city + window)
+ *             with hours_late > 0
+ *   - EARLY — the sim's timeline has a waiting phase for the matching
+ *             loading/unloading phase at this city
+ *   - null  — on-time (or couldn't correlate)
+ *
+ * Matching uses a city-substring compare since backend cities sometimes
+ * carry state (`"SEGUIN, TX"`) and stopoffs carry city only. Window maps:
+ * stopoff.type='pickup' ↔ violation.window='pickup'; stopoff.type='dropoff'
+ * or 'delivery' ↔ violation.window='delivery'.
+ */
+function getStopoffScheduleBadge(
+  stopoff: Stopoff,
+  chain: RouteChain,
+): { kind: "EARLY" | "LATE"; hours: number } | null {
+  const rawCity = (stopoff.city ?? "").toString().trim().toLowerCase();
+  if (!rawCity) return null;
+  const stopoffWindow: "pickup" | "delivery" =
+    stopoff.type === "pickup" ? "pickup" : "delivery";
+
+  const violations = (chain as unknown as {
+    violations?: Array<{ window: "pickup" | "delivery"; city: string; hours_late: number }>;
+  }).violations ?? [];
+
+  const matchingViolation = violations.find(
+    (v) =>
+      v.window === stopoffWindow &&
+      v.city.toLowerCase().includes(rawCity) &&
+      v.hours_late > 0,
+  );
+  if (matchingViolation) {
+    return { kind: "LATE", hours: matchingViolation.hours_late };
+  }
+
+  // EARLY: find the loading/unloading phase for this stopoff and check
+  // whether the preceding phase is a waiting one for the same window.
+  const timeline = chain.timeline;
+  if (!timeline || timeline.length === 0) return null;
+  const phaseKind = stopoff.type === "pickup" ? "loading" : "unloading";
+  const expectedWaitFor = stopoff.type === "pickup" ? "pickup_window" : "delivery_window";
+
+  for (let i = 0; i < timeline.length; i++) {
+    const p = timeline[i];
+    if (p.kind !== phaseKind) continue;
+    const pCity = (
+      phaseKind === "loading"
+        ? (p as { origin_city?: string }).origin_city
+        : (p as { destination_city?: string }).destination_city
+    ) ?? "";
+    if (!pCity.toLowerCase().includes(rawCity)) continue;
+    // Walk backwards to find the nearest phase that isn't a rest/break/fuel
+    // (those can interleave between the wait and the loading phase).
+    for (let j = i - 1; j >= 0 && j >= i - 4; j--) {
+      const prev = timeline[j];
+      if (prev.kind === "waiting") {
+        const waitingFor = (prev as { waiting_for?: string }).waiting_for;
+        if (waitingFor === expectedWaitFor && prev.duration_hours > 0) {
+          return { kind: "EARLY", hours: prev.duration_hours };
+        }
+      }
+      if (prev.kind !== "rest" && prev.kind !== "break" && prev.kind !== "fuel") break;
+    }
+    break;
+  }
+  return null;
+}
+
 function estDriveTime(miles: number, speed: number): string {
   const hours = miles / speed;
   const h = Math.floor(hours);
@@ -410,26 +480,45 @@ function RouteDetailContent({
                 <div className="w-[2px] shrink-0 bg-primary" />
                 <ol className="flex-1 min-w-0 space-y-3">
                   {chain.legs.flatMap((leg, legIdx) =>
-                    (leg.stopoffs ?? []).map((s: Stopoff, i: number) => (
-                      <li key={`${legIdx}-${i}`} className="text-sm">
-                        <div className="flex items-baseline gap-2">
-                          <span className="font-semibold uppercase tracking-wide text-xs w-[74px] shrink-0 text-foreground">
-                            {s.type === "pickup" ? "Pickup" : "Delivery"}
-                          </span>
-                          <span className="flex-1 truncate text-foreground">
-                            {s.city}, {s.state}
-                          </span>
-                        </div>
-                        {s.early_date_local && (
-                          <div className="flex items-baseline gap-2 mt-1 pl-[82px] text-xs text-muted-foreground">
-                            <span className="tabular-nums">
-                              {formatDateTime(s.early_date_local)}
-                              {s.late_date_local ? ` – ${formatDateTime(s.late_date_local)}` : ""}
+                    (leg.stopoffs ?? []).map((s: Stopoff, i: number) => {
+                      const badge = getStopoffScheduleBadge(s, chain);
+                      return (
+                        <li key={`${legIdx}-${i}`} className="text-sm">
+                          <div className="flex items-baseline gap-2">
+                            <span className="font-semibold uppercase tracking-wide text-xs w-[74px] shrink-0 text-foreground">
+                              {s.type === "pickup" ? "Pickup" : "Delivery"}
                             </span>
+                            <span className="flex-1 truncate text-foreground">
+                              {s.city}, {s.state}
+                            </span>
+                            {badge && (
+                              <span
+                                className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
+                                  badge.kind === "LATE"
+                                    ? "bg-destructive/15 text-destructive border-destructive/50"
+                                    : "bg-blue-500/15 text-blue-400 border-blue-500/50"
+                                }`}
+                                title={
+                                  badge.kind === "LATE"
+                                    ? `Our model arrives ${badge.hours.toFixed(1)}h past the window close`
+                                    : `Our model arrives ${badge.hours.toFixed(1)}h before the window opens`
+                                }
+                              >
+                                {badge.kind} {badge.hours.toFixed(1)}h
+                              </span>
+                            )}
                           </div>
-                        )}
-                      </li>
-                    )),
+                          {s.early_date_local && (
+                            <div className="flex items-baseline gap-2 mt-1 pl-[82px] text-xs text-muted-foreground">
+                              <span className="tabular-nums">
+                                {formatDateTime(s.early_date_local)}
+                                {s.late_date_local ? ` – ${formatDateTime(s.late_date_local)}` : ""}
+                              </span>
+                            </div>
+                          )}
+                        </li>
+                      );
+                    }),
                   )}
                 </ol>
               </div>
