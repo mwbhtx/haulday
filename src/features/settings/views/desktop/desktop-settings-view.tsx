@@ -92,6 +92,8 @@ export function DesktopSettingsView() {
   const [avgMpg, setAvgMpg] = useState("");
   const [tankSize, setTankSize] = useState("");
   const [avgDrivingHours, setAvgDrivingHours] = useState("");
+  const [lateToleranceDays, setLateToleranceDays] = useState("");
+  const [earlyToleranceDays, setEarlyToleranceDays] = useState("");
   const [maxWeight, setMaxWeight] = useState("");
   const [trailerLabels, setTrailerLabels] = useState<string[]>([]);
   const [hazmatCertified, setHazmatCertified] = useState(false);
@@ -129,6 +131,8 @@ export function DesktopSettingsView() {
     setAvgMpg(settings.avg_mpg != null ? String(settings.avg_mpg) : "");
     setTankSize((settings as any).tank_size_gallons != null ? String((settings as any).tank_size_gallons) : "");
     setAvgDrivingHours(settings.avg_driving_hours_per_day != null ? String(settings.avg_driving_hours_per_day) : "");
+    setLateToleranceDays(settings.late_tolerance_hours != null ? String(Math.round(settings.late_tolerance_hours / 24)) : "");
+    setEarlyToleranceDays(settings.early_tolerance_hours != null ? String(Math.round(settings.early_tolerance_hours / 24)) : "");
     setMaxWeight(settings.max_weight != null ? String(settings.max_weight) : "");
     setTrailerLabels(codesToLabels(settings.trailer_types ?? []));
     setHazmatCertified(settings.hazmat_certified ?? false);
@@ -744,6 +748,57 @@ export function DesktopSettingsView() {
             </p>
             <div className="w-40">
               <Input type="number" min={6} max={11} step={1} value={avgDrivingHours} onChange={(e) => handleNumberChange("avg_driving_hours_per_day", e.target.value, setAvgDrivingHours)} placeholder="8" />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-muted-foreground">Schedule Flex</h4>
+            <p className="text-xs text-muted-foreground">
+              How much the trip simulator will accept pickup/delivery arrivals outside a customer's window. Late tolerance defaults to 1 day (covers real-world phone-call flex); early tolerance defaults to 7 days (drivers can arrive early and wait). Set both to 0 for a strict schedule.
+            </p>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-muted-foreground w-28">Late (days)</label>
+                <div className="w-24">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={30}
+                    step={1}
+                    value={lateToleranceDays}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setLateToleranceDays(v);
+                      if (initialized.current) {
+                        const days = v === "" ? null : Number(v);
+                        save({ late_tolerance_hours: days == null ? null : days * 24 });
+                      }
+                    }}
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-muted-foreground w-28">Early (days)</label>
+                <div className="w-24">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={30}
+                    step={1}
+                    value={earlyToleranceDays}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setEarlyToleranceDays(v);
+                      if (initialized.current) {
+                        const days = v === "" ? null : Number(v);
+                        save({ early_tolerance_hours: days == null ? null : days * 24 });
+                      }
+                    }}
+                    placeholder="7"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </section>

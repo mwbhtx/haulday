@@ -26,8 +26,8 @@ export interface Settings {
   twic_card: boolean;
   team_driver: boolean;
   no_tarps: boolean;
-  late_tolerance_hours: number;
-  early_tolerance_hours: number;
+  late_tolerance_hours: number | null;
+  early_tolerance_hours: number | null;
   ignore_radius: boolean;
   home_base_lat: number | null;
   home_base_lng: number | null;
