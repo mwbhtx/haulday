@@ -349,14 +349,14 @@ function RouteDetailContent({
                   value2: chain.total_miles.toLocaleString(),
                 },
                 {
-                  label1: "Gross/mi",
+                  label1: "$/mi deadhead",
                   value1: formatRpm(chain.gross_rpm_total),
                   tooltip1: "Gross pay ÷ all miles driven (loaded + deadhead). Pre-estimation — no fuel/cost assumptions.",
                   label2: "DH mi.",
                   value2: chain.total_deadhead_miles.toLocaleString(),
                 },
                 {
-                  label1: "Gross/hr",
+                  label1: "$/hr deadhead",
                   value1: hasSimMetrics && chain.gross_per_on_duty_hour > 0
                     ? `$${chain.gross_per_on_duty_hour.toFixed(2)}`
                     : <span className="text-muted-foreground">—</span>,
