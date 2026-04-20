@@ -319,6 +319,9 @@ function RouteDetailContent({
               const dailyValue = hasSimMetrics
                 ? <span className={profitChipClass}>{formatCurrency(chain.daily_net_profit)}</span>
                 : <span className="text-muted-foreground">—</span>;
+              const dailyGrossValue = hasSimMetrics
+                ? formatCurrency(chain.gross_per_day)
+                : <span className="text-muted-foreground">—</span>;
               const daysValue = hasSimMetrics
                 ? chain.estimated_days.toFixed(1)
                 : <span className="text-muted-foreground">—</span>;
@@ -331,10 +334,17 @@ function RouteDetailContent({
                 tooltip2?: string;
               }> = [
                 {
-                  label1: "$/Day",
-                  value1: dailyValue,
+                  label1: "$/Day gross",
+                  value1: dailyGrossValue,
+                  tooltip1: "Gross pay ÷ estimated trip days. Pre-estimation — mirrors $/Day net but on total pay.",
                   label2: "Days",
                   value2: daysValue,
+                },
+                {
+                  label1: "$/Day net",
+                  value1: dailyValue,
+                  label2: "DH %",
+                  value2: `${chain.deadhead_pct.toFixed(0)}%`,
                 },
                 {
                   label1: "$/mi loaded",
@@ -343,26 +353,17 @@ function RouteDetailContent({
                   value2: chain.total_miles.toLocaleString(),
                 },
                 {
-                  label1: "$/mi deadhead",
+                  label1: "$/mi dh",
                   value1: formatRpm(chain.gross_rpm_total),
                   tooltip1: "Gross pay ÷ all miles driven (loaded + deadhead). Pre-estimation — no fuel/cost assumptions.",
                   label2: "Total mi.",
                   value2: (chain.total_miles + chain.total_deadhead_miles).toLocaleString(),
                 },
                 {
-                  label1: "$/hr deadhead",
-                  value1: hasSimMetrics && chain.gross_per_on_duty_hour > 0
-                    ? `$${chain.gross_per_on_duty_hour.toFixed(2)}`
-                    : <span className="text-muted-foreground">—</span>,
-                  tooltip1: "Gross pay ÷ total trip hours (wall-clock from departure to final delivery, includes rest). Pre-estimation.",
-                  label2: "DH mi.",
-                  value2: chain.total_deadhead_miles.toLocaleString(),
-                },
-                {
                   label1: "Gross",
                   value1: formatCurrency(chain.total_pay),
-                  label2: "DH %",
-                  value2: `${chain.deadhead_pct.toFixed(0)}%`,
+                  label2: "DH mi.",
+                  value2: chain.total_deadhead_miles.toLocaleString(),
                 },
                 {
                   label1: "Total Profit",

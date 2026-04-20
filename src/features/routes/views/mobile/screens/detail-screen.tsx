@@ -91,7 +91,7 @@ export function DetailScreen({ chain, originCity, onBack, originCoords: originCo
               valueClassName={color}
             />
             <MetricCard
-              label="$/mi deadhead"
+              label="$/mi dh"
               value={formatRpm(deadheadPerMile)}
               valueClassName={color}
             />
