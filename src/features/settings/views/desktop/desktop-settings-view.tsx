@@ -70,7 +70,7 @@ const NAV_SECTIONS = [
   { id: "trailers", label: "Trailer Types" },
   { id: "certifications", label: "Certifications" },
   { id: "load-preferences", label: "Load Preferences" },
-  { id: "schedule", label: "Schedule" },
+  { id: "schedule", label: "Work Schedule" },
   { id: "driver-fees", label: "Driver Fees" },
   { id: "company-integration", label: "Company Integration" },
   { id: "appearance", label: "Theme" },
@@ -696,11 +696,11 @@ export function DesktopSettingsView() {
         </section>
         )}
 
-        {/* Schedule */}
+        {/* Work Schedule */}
         {activeSection === "schedule" && (
         <section id="settings-schedule" className="max-w-2xl space-y-6">
           <div>
-            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Schedule</h3>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Work Schedule</h3>
             <p className="text-xs text-muted-foreground mt-1">Daytime envelope and per-shift caps.</p>
           </div>
 
