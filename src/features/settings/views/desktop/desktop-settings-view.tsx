@@ -18,7 +18,7 @@ import {
   LOADING_HOURS_OPTIONS,
   UNLOADING_HOURS_OPTIONS,
   TARPING_HOURS_OPTIONS,
-  END_OF_DAY_FLEX_HOURS_OPTIONS,
+  END_OF_DAY_DRIVE_TO_PARKING_MINUTES_OPTIONS,
   ENVELOPE_TOLERANCE_MINUTES_OPTIONS,
   type CostMode,
   type CustomCostComponent,
@@ -131,7 +131,7 @@ export function DesktopSettingsView() {
   const [loadingHours, setLoadingHours] = useState<string>("2");
   const [unloadingHours, setUnloadingHours] = useState<string>("2");
   const [tarpingHours, setTarpingHours] = useState<string>("1.5");
-  const [endOfDayFlexHours, setEndOfDayFlexHours] = useState<string>("1");
+  const [endOfDayDriveToParkingMinutes, setEndOfDayDriveToParkingMinutes] = useState<string>("30");
   const [envelopeToleranceMinutes, setEnvelopeToleranceMinutes] = useState<string>("30");
   const [costMode, setCostMode] = useState<CostMode>("simple");
   const [dieselPrice, setDieselPrice] = useState("");
@@ -176,7 +176,7 @@ export function DesktopSettingsView() {
     setLoadingHours(settings.loading_hours != null ? String(settings.loading_hours) : "2");
     setUnloadingHours(settings.unloading_hours != null ? String(settings.unloading_hours) : "2");
     setTarpingHours(settings.tarping_hours != null ? String(settings.tarping_hours) : "1.5");
-    setEndOfDayFlexHours(settings.end_of_day_flex_hours != null ? String(settings.end_of_day_flex_hours) : "1");
+    setEndOfDayDriveToParkingMinutes(settings.end_of_day_drive_to_parking_minutes != null ? String(settings.end_of_day_drive_to_parking_minutes) : "30");
     setEnvelopeToleranceMinutes(settings.envelope_tolerance_minutes != null ? String(settings.envelope_tolerance_minutes) : "30");
     setCostMode(settings.cost_mode ?? "simple");
     setDieselPrice(settings.diesel_price_per_gallon != null ? String(settings.diesel_price_per_gallon) : "");
@@ -874,18 +874,18 @@ export function DesktopSettingsView() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-medium block">{TRIP_DEFAULTS.end_of_day_flex_hours.label}</label>
-              <p className="text-xs text-muted-foreground">{TRIP_DEFAULTS.end_of_day_flex_hours.description}</p>
+              <label className="text-sm font-medium block">{TRIP_DEFAULTS.end_of_day_drive_to_parking_minutes.label}</label>
+              <p className="text-xs text-muted-foreground">{TRIP_DEFAULTS.end_of_day_drive_to_parking_minutes.description}</p>
               <select
-                value={endOfDayFlexHours}
+                value={endOfDayDriveToParkingMinutes}
                 onChange={(e) => {
-                  setEndOfDayFlexHours(e.target.value);
-                  if (initialized.current) save({ end_of_day_flex_hours: Number(e.target.value) });
+                  setEndOfDayDriveToParkingMinutes(e.target.value);
+                  if (initialized.current) save({ end_of_day_drive_to_parking_minutes: Number(e.target.value) });
                 }}
                 className="rounded-lg border border-input bg-transparent px-3 py-1.5 text-sm"
               >
-                {END_OF_DAY_FLEX_HOURS_OPTIONS.map((h) => (
-                  <option key={h} value={h}>{h}h</option>
+                {END_OF_DAY_DRIVE_TO_PARKING_MINUTES_OPTIONS.map((m) => (
+                  <option key={m} value={m}>{m === 60 ? "1h" : `${m} min`}</option>
                 ))}
               </select>
             </div>

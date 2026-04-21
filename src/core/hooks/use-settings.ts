@@ -39,7 +39,7 @@ export interface Settings {
   loading_hours: number | null;
   unloading_hours: number | null;
   tarping_hours: number | null;
-  end_of_day_flex_hours: number | null;
+  end_of_day_drive_to_parking_minutes: number | null;
   envelope_tolerance_minutes: number | null;
   onboarding_completed: boolean;
   disabled_settings?: string[];
