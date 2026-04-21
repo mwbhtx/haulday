@@ -41,8 +41,8 @@ export function BellIcon() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          title="Alert matches"
-          aria-label={count > 0 ? `${count} unread alert matches` : "No unread alert matches"}
+          title="Notifications"
+          aria-label={count > 0 ? `${count} unread notifications` : "No unread notifications"}
           className={cn(
             "relative flex items-center justify-center rounded-md p-1.5",
             "text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
@@ -61,7 +61,7 @@ export function BellIcon() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between border-b px-3 py-2">
-          <span className="text-sm font-semibold">Alert matches</span>
+          <span className="text-sm font-semibold">Notifications</span>
           {count > 0 && (
             <Button
               type="button"
@@ -81,7 +81,7 @@ export function BellIcon() {
           )}
           {!loading && matches.length === 0 && (
             <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-              No new matches
+              No notifications
             </div>
           )}
           {matches.slice(0, 8).map((group) => {
