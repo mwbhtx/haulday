@@ -56,7 +56,7 @@ export function SyncAllButton({
     setIsPosting(true);
     setRefreshCount(null);
     try {
-      // Stage 1: refresh the assigned-orders list from Mercer.
+      // Stage 1: refresh the assigned-orders list from the carrier.
       // Fire-and-forget on the backend; poll the list to detect when the
       // scraper finishes.
       await refreshAssignedOrders();
@@ -70,7 +70,7 @@ export function SyncAllButton({
       if (err instanceof ApiError) {
         if (err.status === 429) msg = "Cooldown still active";
         else if (err.status === 409) msg = "Sync already in progress";
-        else if (err.status === 422) msg = "No orders found on Mercer";
+        else if (err.status === 422) msg = "No orders found on your carrier";
       }
       setErrorDwell(msg);
       if (errorTimerRef.current) clearTimeout(errorTimerRef.current);

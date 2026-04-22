@@ -984,7 +984,7 @@ export function DesktopSettingsView() {
           <div>
             <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Company Integration</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Connect your Mercer account so assigned orders sync into Haulvisor automatically.
+              Connect your carrier account so assigned orders sync into Haulvisor automatically.
             </p>
           </div>
           <CompanyIntegrationView />

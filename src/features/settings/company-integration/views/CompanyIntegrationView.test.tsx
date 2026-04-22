@@ -21,7 +21,7 @@ describe("CompanyIntegrationView", () => {
     ).mockResolvedValue({ configured: false, company_username: null });
     render(<CompanyIntegrationView />);
     await waitFor(() =>
-      screen.getByText(/Connect your Mercer account to enable automatic load sync/i),
+      screen.getByText(/Connect your carrier account to enable automatic load sync/i),
     );
   });
 

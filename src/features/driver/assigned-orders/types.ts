@@ -3,7 +3,7 @@ export interface AssignedOrder {
   status: "dispatched" | "settled";
   ingested_at: string;
   has_order_details: boolean;
-  /** YYYY-MM-DD from Mercer's past-loads list — present whether or not
+  /** YYYY-MM-DD from the carrier's past-loads list — present whether or not
    *  order-details has run. Use this in preference to pickup_date_early_utc
    *  for display + month bucketing. */
   pickup_date?: string | null;

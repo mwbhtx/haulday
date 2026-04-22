@@ -37,7 +37,7 @@ export function CompanyIntegrationView() {
   }
 
   async function handleDisconnect() {
-    if (!confirm("Disconnect your Mercer account? Scraping will stop.")) return;
+    if (!confirm("Disconnect your carrier account? Automatic order sync will stop.")) return;
     await clearCompanyIntegration();
     setStatus({ configured: false, company_username: null });
   }
@@ -68,7 +68,7 @@ export function CompanyIntegrationView() {
         <>
           {!status?.configured && (
             <p className="text-sm text-muted-foreground">
-              Connect your Mercer account to enable automatic load sync.
+              Connect your carrier account to enable automatic load sync.
             </p>
           )}
           <CompanyIntegrationForm
