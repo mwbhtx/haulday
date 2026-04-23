@@ -241,9 +241,9 @@ function NumOrdersPill({ value, onChange }: { value: number; onChange: (v: numbe
   );
 }
 
-function EnginePill({ value, onChange }: { value: 'v1' | 'v2'; onChange: (v: 'v1' | 'v2') => void }) {
+function EnginePill({ value, onChange }: { value: 'v1' | 'v2' | 'v3'; onChange: (v: 'v1' | 'v2' | 'v3') => void }) {
   const [open, setOpen] = useState(false);
-  const options: Array<'v1' | 'v2'> = ['v1', 'v2'];
+  const options: Array<'v1' | 'v2' | 'v3'> = ['v1', 'v2', 'v3'];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -519,7 +519,7 @@ export function SearchFilters({
   const [minDailyProfit, setMinDailyProfit] = useState<number | undefined>(undefined);
   const [minRpm, setMinRpm] = useState<number | undefined>(undefined);
   const [maxInterlegDh, setMaxInterlegDh] = useState<number | undefined>(undefined);
-  const [engineVersion, setEngineVersion] = useState<'v1' | 'v2'>('v1');
+  const [engineVersion, setEngineVersion] = useState<'v1' | 'v2' | 'v3'>('v1');
   const [defaultsLoaded, setDefaultsLoaded] = useState(!!r.origin);
 
   const hasHomeLocation =
@@ -626,7 +626,7 @@ export function SearchFilters({
       ...(minDailyProfit != null ? { min_daily_profit: minDailyProfit } : {}),
       ...(minRpm != null ? { min_rpm: minRpm } : {}),
       ...(maxInterlegDh != null ? { max_interleg_deadhead_miles: maxInterlegDh } : {}),
-      ...(engineVersion === 'v2' ? { engine_version: 'v2' as const } : {}),
+      ...(engineVersion === 'v2' || engineVersion === 'v3' ? { engine_version: engineVersion } : {}),
       ...driverProfile,
       _t: Date.now(),
     });
