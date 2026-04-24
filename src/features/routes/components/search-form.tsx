@@ -16,7 +16,7 @@ import { ChevronDown, LocateIcon, SlidersHorizontal, XIcon, SearchIcon } from "l
 import { BorderBeam } from "@/platform/web/components/ui/border-beam";
 import { Calendar } from "@/platform/web/components/ui/calendar";
 import { useSettings, useUpdateSettings } from "@/core/hooks/use-settings";
-import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_MAX_TRIP_DAYS, DEFAULT_COST_PER_MILE, ORDER_COUNT_OPTIONS, DEFAULT_NUM_ORDERS, DEFAULT_ORIGIN_RADIUS_MILES, DEFAULT_DEST_RADIUS_MILES, MAX_DEADHEAD_PCT_OPTIONS, MIN_DAILY_PROFIT_OPTIONS, MIN_RPM_OPTIONS, MAX_INTERLEG_DEADHEAD_OPTIONS } from "@mwbhtx/haulvisor-core";
+import { TRAILER_CATEGORIES, expandTrailerCodes, codesToLabels, DEFAULT_MAX_TRIP_DAYS, DEFAULT_COST_PER_MILE, ORDER_COUNT_OPTIONS, DEFAULT_NUM_ORDERS, DEFAULT_ORIGIN_RADIUS_MILES, DEFAULT_DEST_RADIUS_MILES } from "@mwbhtx/haulvisor-core";
 
 import type { RouteSearchParams } from "@/core/hooks/use-routes";
 
@@ -476,10 +476,6 @@ export function SearchFilters({
   const [numOrders, setNumOrders] = useState<number>(r.numOrders ?? DEFAULT_NUM_ORDERS);
   const [originRadius, setOriginRadius] = useState<number>(DEFAULT_ORIGIN_RADIUS_MILES);
   const [destRadius, setDestRadius] = useState<number>(DEFAULT_DEST_RADIUS_MILES);
-  const [maxDeadheadPct, setMaxDeadheadPct] = useState<number | undefined>(undefined);
-  const [minDailyProfit, setMinDailyProfit] = useState<number | undefined>(undefined);
-  const [minRpm, setMinRpm] = useState<number | undefined>(undefined);
-  const [maxInterlegDh, setMaxInterlegDh] = useState<number | undefined>(undefined);
   const [defaultsLoaded, setDefaultsLoaded] = useState(!!r.origin);
 
   const hasHomeLocation =
@@ -550,7 +546,7 @@ export function SearchFilters({
   const profileKey = JSON.stringify(driverProfile);
 
   // Track current vs last-searched params to show/hide Search button
-  const currentParamsKey = JSON.stringify([origin?.lat, origin?.lng, destination?.lat, destination?.lng, departureDate, daysOut, numOrders, originRadius, destRadius, maxDeadheadPct, minDailyProfit, minRpm, maxInterlegDh, profileKey]);
+  const currentParamsKey = JSON.stringify([origin?.lat, origin?.lng, destination?.lat, destination?.lng, departureDate, daysOut, numOrders, originRadius, destRadius, profileKey]);
   const lastSearchedParamsKey = useRef<string>("");
   const hasSearched = lastSearchedParamsKey.current !== "";
 
@@ -582,14 +578,11 @@ export function SearchFilters({
       num_orders: numOrders,
       origin_radius_miles: originRadius,
       ...(destination ? { dest_radius_miles: destRadius } : {}),
-      ...(maxDeadheadPct != null ? { max_deadhead_pct: maxDeadheadPct } : {}),
-      ...(minDailyProfit != null ? { min_daily_profit: minDailyProfit } : {}),
-      ...(minRpm != null ? { min_rpm: minRpm } : {}),
-      ...(maxInterlegDh != null ? { max_interleg_deadhead_miles: maxInterlegDh } : {}),
+      max_deadhead_pct: 25,
       ...driverProfile,
       _t: Date.now(),
     });
-  }, [origin, destination, departureDate, daysOut, numOrders, originRadius, destRadius, maxDeadheadPct, minDailyProfit, minRpm, maxInterlegDh, profileKey, onClearSearch, currentParamsKey]);
+  }, [origin, destination, departureDate, daysOut, numOrders, originRadius, destRadius, profileKey, onClearSearch, currentParamsKey]);
 
   // Update map markers when origin/destination change (no auto-search, no clearing results)
   useEffect(() => {
@@ -797,10 +790,6 @@ export function SearchFilters({
         <div id="onborda-days-out"><DaysOutPill value={daysOut} onChange={setDaysOut} departureDate={departureDate} /></div>
         <NumOrdersPill value={numOrders} onChange={setNumOrders} />
         <div id="onborda-all-filters"><AllFiltersPopover
-          maxDeadheadPct={maxDeadheadPct} setMaxDeadheadPct={setMaxDeadheadPct}
-          minDailyProfit={minDailyProfit} setMinDailyProfit={setMinDailyProfit}
-          minRpm={minRpm} setMinRpm={setMinRpm}
-          maxInterlegDh={maxInterlegDh} setMaxInterlegDh={setMaxInterlegDh}
           strictSchedule={strictSchedule} setStrictSchedule={setStrictSchedule}
         /></div>
         {!isSearching && (
@@ -827,20 +816,8 @@ export function SearchFilters({
 /* ---- All Filters Popover ---- */
 
 function AllFiltersPopover({
-  maxDeadheadPct, setMaxDeadheadPct,
-  minDailyProfit, setMinDailyProfit,
-  minRpm, setMinRpm,
-  maxInterlegDh, setMaxInterlegDh,
   strictSchedule, setStrictSchedule,
 }: {
-  maxDeadheadPct: number | undefined;
-  setMaxDeadheadPct: (v: number | undefined) => void;
-  minDailyProfit: number | undefined;
-  setMinDailyProfit: (v: number | undefined) => void;
-  minRpm: number | undefined;
-  setMinRpm: (v: number | undefined) => void;
-  maxInterlegDh: number | undefined;
-  setMaxInterlegDh: (v: number | undefined) => void;
   strictSchedule: boolean;
   setStrictSchedule: (v: boolean) => void;
 }) {
@@ -893,10 +870,6 @@ function AllFiltersPopover({
     twic,
     team,
     noTarps,
-    maxDeadheadPct != null,
-    minDailyProfit != null,
-    minRpm != null,
-    maxInterlegDh != null,
   ].filter(Boolean).length;
 
   return (
@@ -1046,58 +1019,6 @@ function AllFiltersPopover({
                   {strictSchedule && <span className="text-xs">✓</span>}
                 </div>
               </button>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Max DH %</span>
-                <select
-                  value={maxDeadheadPct ?? ''}
-                  onChange={(e) => setMaxDeadheadPct(e.target.value ? Number(e.target.value) : undefined)}
-                  className="h-8 rounded-md border bg-background px-2 text-sm"
-                >
-                  <option value="">Any</option>
-                  {MAX_DEADHEAD_PCT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Min $/Day</span>
-                <select
-                  value={minDailyProfit ?? ''}
-                  onChange={(e) => setMinDailyProfit(e.target.value ? Number(e.target.value) : undefined)}
-                  className="h-8 rounded-md border bg-background px-2 text-sm"
-                >
-                  <option value="">Any</option>
-                  {MIN_DAILY_PROFIT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Min $/Mi</span>
-                <select
-                  value={minRpm ?? ''}
-                  onChange={(e) => setMinRpm(e.target.value ? Number(e.target.value) : undefined)}
-                  className="h-8 rounded-md border bg-background px-2 text-sm"
-                >
-                  <option value="">Any</option>
-                  {MIN_RPM_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Max DH Between</span>
-                <select
-                  value={maxInterlegDh ?? ''}
-                  onChange={(e) => setMaxInterlegDh(e.target.value ? Number(e.target.value) : undefined)}
-                  className="h-8 rounded-md border bg-background px-2 text-sm"
-                >
-                  <option value="">Any</option>
-                  {MAX_INTERLEG_DEADHEAD_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
             </div>
           </div>
 
