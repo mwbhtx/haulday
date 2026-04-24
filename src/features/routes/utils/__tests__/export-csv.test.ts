@@ -140,10 +140,14 @@ describe("buildRoutesCsv — structure", () => {
     expect(lines[0]).toContain("route_rank");
     expect(lines[0]).toContain("stopoffs_json");
     expect(lines[0]).toContain("deadhead_leg1_miles");
+    expect(lines[0]).toContain("deadhead_leg1_provider");
+    expect(lines[0]).toContain("deadhead_leg1_fallback");
     expect(lines[0]).toContain("haversine_leg1_miles");
     expect(lines[0]).toContain("search_origin_city");
     expect(lines[0]).toContain("search_dest_city");
     expect(lines[0]).toContain("final_return_haversine_miles");
+    expect(lines[0]).toContain("destination_deadhead_miles");
+    expect(lines[0]).toContain("destination_deadhead_provider");
   });
 
   it("joins order_ids with semicolons for multi-leg routes", () => {
@@ -294,5 +298,71 @@ describe("buildRoutesCsv — search origin/dest city", () => {
   it("leaves search_dest_city empty when no dest provided", () => {
     const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
     expect(row.search_dest_city).toBe("");
+  });
+});
+
+describe("buildRoutesCsv — routing provenance", () => {
+  const LEG1_PROV = {
+    ...LEG1,
+    stopoffs: [],
+    deadhead_duration_seconds: 1800,
+    deadhead_provider: "stadia",
+    deadhead_fallback: false,
+  };
+  const LEG2_PROV = {
+    ...LEG2,
+    deadhead_duration_seconds: 900,
+    deadhead_provider: "valhalla_v2",
+    deadhead_fallback: true,
+  };
+
+  it("emits deadhead_leg1_duration_s, provider, and fallback when present", () => {
+    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV] })], "v1"));
+    expect(row.deadhead_leg1_duration_s).toBe("1800");
+    expect(row.deadhead_leg1_provider).toBe("stadia");
+    expect(row.deadhead_leg1_fallback).toBe("false");
+  });
+
+  it("emits deadhead_leg2 provenance for 2-leg routes", () => {
+    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV, LEG2_PROV] })], "v2"));
+    expect(row.deadhead_leg2_duration_s).toBe("900");
+    expect(row.deadhead_leg2_provider).toBe("valhalla_v2");
+    expect(row.deadhead_leg2_fallback).toBe("true");
+  });
+
+  it("leaves leg2 provenance empty for single-leg routes", () => {
+    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV] })], "v1"));
+    expect(row.deadhead_leg2_duration_s).toBe("");
+    expect(row.deadhead_leg2_provider).toBe("");
+    expect(row.deadhead_leg2_fallback).toBe("");
+  });
+
+  it("leaves provenance columns empty when leg has no metadata", () => {
+    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    expect(row.deadhead_leg1_duration_s).toBe("");
+    expect(row.deadhead_leg1_provider).toBe("");
+    expect(row.deadhead_leg1_fallback).toBe("");
+  });
+
+  it("emits destination_deadhead_* from chain when present", () => {
+    const chain = makeChain({
+      destination_deadhead_miles: 42,
+      destination_deadhead_duration_seconds: 2700,
+      destination_deadhead_provider: "valhalla_v3",
+      destination_deadhead_fallback: false,
+    });
+    const row = getDataRow(buildRoutesCsv([chain], "v3"));
+    expect(row.destination_deadhead_miles).toBe("42");
+    expect(row.destination_deadhead_duration_s).toBe("2700");
+    expect(row.destination_deadhead_provider).toBe("valhalla_v3");
+    expect(row.destination_deadhead_fallback).toBe("false");
+  });
+
+  it("leaves destination_deadhead_* empty when chain has no return leg", () => {
+    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    expect(row.destination_deadhead_miles).toBe("");
+    expect(row.destination_deadhead_duration_s).toBe("");
+    expect(row.destination_deadhead_provider).toBe("");
+    expect(row.destination_deadhead_fallback).toBe("");
   });
 });
