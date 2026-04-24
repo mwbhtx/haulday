@@ -40,7 +40,6 @@ export function DesktopRoutesView() {
   const [destFilter, setDestFilter] = useState<{ lat: number; lng: number; city: string } | null>(null);
 
   const [filterPending, setFilterPending] = useState(false);
-  const [engine, setEngine] = useState<"v1" | "v2" | "v3">("v1");
   const hoverLegRef = useRef<((legIndex: number | null) => void) | null>(null);
 
   const [watchlistSet, setWatchlistSet] = useState<Set<string>>(new Set());
@@ -278,7 +277,6 @@ export function DesktopRoutesView() {
           isSearching={isLoading}
           onCancel={() => { cancel(); setSearchParams(null); setSelectedChain(null); }}
           hasResults={routes.length > 0}
-          onEngineChange={setEngine}
         />
       </div>
 
@@ -302,7 +300,6 @@ export function DesktopRoutesView() {
               onClearFilters={hasActiveSearch ? handleClearSearch : undefined}
               isLoading={!ready || isLoading || filterPending || (hasPersistedFilters && !hasActiveSearch && !hasSearchedOnce.current)}
               onWatchlistChange={handleWatchlistChange}
-              engine={engine}
               searchOrigin={data?.origin}
               searchDest={destFilter ?? undefined}
             />

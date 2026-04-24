@@ -35,9 +35,6 @@ export interface RouteSearchParams {
   min_daily_profit?: number;
   min_rpm?: number;
   max_interleg_deadhead_miles?: number;
-  /** Route engine variant. 'v1' = per-leg (default); 'v2' = matrix batch (Hetzner);
-   *  'v3' = matrix batch against a second Valhalla endpoint (temporary A/B lane). */
-  engine_version?: 'v1' | 'v2' | 'v3';
   /** Cache-bust token — forces a new search even with identical params */
   _t?: number;
 }
@@ -54,8 +51,8 @@ export interface SearchProgress {
   routes_found: number;
   elapsed_ms: number;
   // Optional Phase B sub-stage emitted by the worker. When present and set to
-  // 'resolving_distances', Phase B is blocked on distance resolution (V1
-  // per-leg batch or V2 matrix call), during which pairs_simulated stays at 0.
+  // 'resolving_distances', Phase B is blocked on distance resolution (matrix
+  // distance lookup), during which pairs_simulated stays at 0.
   phase?: 'resolving_distances';
 }
 

@@ -123,18 +123,18 @@ function getDataRow(csv: string, rowIdx = 0): Record<string, string> {
 }
 
 describe("buildRoutesCsvFilename", () => {
-  it("formats engine + timestamp with dashes instead of colons", () => {
-    expect(buildRoutesCsvFilename("v2", new Date("2026-04-24T14:32:15Z"))).toBe("routes_v2_2026-04-24T14-32-15.csv");
+  it("formats timestamp with dashes instead of colons", () => {
+    expect(buildRoutesCsvFilename(new Date("2026-04-24T14:32:15Z"))).toBe("routes_2026-04-24T14-32-15.csv");
   });
 
-  it("defaults to v1", () => {
-    expect(buildRoutesCsvFilename("v1", new Date("2026-01-01T00:00:00Z"))).toBe("routes_v1_2026-01-01T00-00-00.csv");
+  it("uses current time when no argument provided", () => {
+    expect(buildRoutesCsvFilename(new Date("2026-01-01T00:00:00Z"))).toBe("routes_2026-01-01T00-00-00.csv");
   });
 });
 
 describe("buildRoutesCsv — structure", () => {
   it("produces a header row plus one row per route", () => {
-    const csv = buildRoutesCsv([makeChain({ rank: 1 }), makeChain({ rank: 2 })], "v1");
+    const csv = buildRoutesCsv([makeChain({ rank: 1 }), makeChain({ rank: 2 })]);
     const lines = csv.split("\r\n");
     expect(lines).toHaveLength(3);
     expect(lines[0]).toContain("route_rank");
@@ -152,12 +152,12 @@ describe("buildRoutesCsv — structure", () => {
 
   it("joins order_ids with semicolons for multi-leg routes", () => {
     const chain = makeChain({ legs: [{ ...LEG1, stopoffs: [] }, LEG2] });
-    const row = getDataRow(buildRoutesCsv([chain], "v1"));
+    const row = getDataRow(buildRoutesCsv([chain]));
     expect(row.order_ids).toBe("ORD-A;ORD-B");
   });
 
   it("wraps cells that contain commas in double quotes", () => {
-    const csv = buildRoutesCsv([makeChain()], "v1");
+    const csv = buildRoutesCsv([makeChain()]);
     expect(csv).toContain('"Dallas,TX -> Atlanta,GA"');
   });
 
@@ -173,13 +173,13 @@ describe("buildRoutesCsv — structure", () => {
         }],
       }],
     });
-    expect(buildRoutesCsv([chain], "v1")).toContain('""');
+    expect(buildRoutesCsv([chain])).toContain('""');
   });
 });
 
 describe("buildRoutesCsv — stopoffs", () => {
   it("stopoffs_json round-trips and includes leg_number + order_id", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     const parsed = JSON.parse(row.stopoffs_json);
     expect(parsed).toHaveLength(2);
     expect(parsed[0]).toMatchObject({ leg_number: 1, order_id: "ORD-A", type: "pickup" });
@@ -187,7 +187,7 @@ describe("buildRoutesCsv — stopoffs", () => {
   });
 
   it("produces empty stopoffs_json array for routes with no stopoffs", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [{ ...LEG1, stopoffs: [] }] })], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [{ ...LEG1, stopoffs: [] }] })]));
     expect(row.stopoffs_json).toBe("[]");
   });
 });
@@ -195,7 +195,7 @@ describe("buildRoutesCsv — stopoffs", () => {
 describe("buildRoutesCsv — legs_summary", () => {
   it("builds legs_summary using city,state per leg plus final destination", () => {
     const chain = makeChain({ legs: [{ ...LEG1, stopoffs: [] }, LEG2] });
-    const row = getDataRow(buildRoutesCsv([chain], "v1"));
+    const row = getDataRow(buildRoutesCsv([chain]));
     expect(row.legs_summary).toBe("Dallas,TX -> Atlanta,GA -> Miami,FL");
   });
 });
@@ -203,19 +203,19 @@ describe("buildRoutesCsv — legs_summary", () => {
 describe("buildRoutesCsv — per-leg deadhead", () => {
   it("breaks out deadhead_leg1_miles and deadhead_leg2_miles", () => {
     const chain = makeChain({ legs: [{ ...LEG1, stopoffs: [] }, LEG2] });
-    const row = getDataRow(buildRoutesCsv([chain], "v1"));
+    const row = getDataRow(buildRoutesCsv([chain]));
     expect(row.deadhead_leg1_miles).toBe("150");
     expect(row.deadhead_leg2_miles).toBe("20");
   });
 
   it("leaves deadhead_leg2_miles empty for single-leg routes", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     expect(row.deadhead_leg2_miles).toBe("");
   });
 
   it("emits loaded_miles_leg1 and loaded_miles_leg2", () => {
     const chain = makeChain({ legs: [{ ...LEG1, stopoffs: [] }, LEG2] });
-    const row = getDataRow(buildRoutesCsv([chain], "v1"));
+    const row = getDataRow(buildRoutesCsv([chain]));
     expect(row.loaded_miles_leg1).toBe("780");
     expect(row.loaded_miles_leg2).toBe("660");
   });
@@ -223,7 +223,7 @@ describe("buildRoutesCsv — per-leg deadhead", () => {
 
 describe("buildRoutesCsv — haversine columns", () => {
   it("haversine_leg1_miles is a positive number less than routed miles", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     const h = parseFloat(row.haversine_leg1_miles);
     expect(h).toBeGreaterThan(0);
     // Dallas→Atlanta straight-line is ~720mi; routed is 780 — haversine should be less
@@ -232,30 +232,30 @@ describe("buildRoutesCsv — haversine columns", () => {
 
   it("haversine_leg2_miles is populated for 2-leg routes and empty for 1-leg", () => {
     const chain2 = makeChain({ legs: [{ ...LEG1, stopoffs: [] }, LEG2] });
-    const row2 = getDataRow(buildRoutesCsv([chain2], "v1"));
+    const row2 = getDataRow(buildRoutesCsv([chain2]));
     expect(parseFloat(row2.haversine_leg2_miles)).toBeGreaterThan(0);
 
-    const row1 = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row1 = getDataRow(buildRoutesCsv([makeChain()]));
     expect(row1.haversine_leg2_miles).toBe("");
   });
 
   it("deadhead_haversine_leg1_miles is populated when origin is provided", () => {
     // Origin ~30 miles north of Dallas
     const origin = { lat: 33.0, lng: -96.7970 };
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1", origin));
+    const row = getDataRow(buildRoutesCsv([makeChain()], origin));
     const h = parseFloat(row.deadhead_haversine_leg1_miles);
     expect(h).toBeGreaterThan(0);
     expect(h).toBeLessThan(100); // short deadhead
   });
 
   it("deadhead_haversine_leg1_miles is empty when origin is not provided", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     expect(row.deadhead_haversine_leg1_miles).toBe("");
   });
 
   it("deadhead_haversine_leg2_miles is populated for 2-leg routes", () => {
     const chain = makeChain({ legs: [{ ...LEG1, stopoffs: [] }, LEG2] });
-    const row = getDataRow(buildRoutesCsv([chain], "v1"));
+    const row = getDataRow(buildRoutesCsv([chain]));
     // Atlanta→Atlanta deadhead (same coords) should be ~0 or very small
     const h = parseFloat(row.deadhead_haversine_leg2_miles);
     expect(h).toBeGreaterThanOrEqual(0);
@@ -265,14 +265,14 @@ describe("buildRoutesCsv — haversine columns", () => {
   it("final_return_haversine_miles is populated when dest is provided", () => {
     // Destination ~100 miles south of Miami
     const dest = { lat: 24.5, lng: -80.4, city: "Key West" };
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1", undefined, dest));
+    const row = getDataRow(buildRoutesCsv([makeChain()], undefined, dest));
     const h = parseFloat(row.final_return_haversine_miles);
     // Atlanta (leg1 dest) to Key West area — should be several hundred miles
     expect(h).toBeGreaterThan(100);
   });
 
   it("final_return_haversine_miles is empty when no dest provided", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     expect(row.final_return_haversine_miles).toBe("");
   });
 });
@@ -280,23 +280,23 @@ describe("buildRoutesCsv — haversine columns", () => {
 describe("buildRoutesCsv — search origin/dest city", () => {
   it("populates search_origin_city from origin with city and state", () => {
     const origin = { lat: 32.7767, lng: -96.7970, city: "Dallas", state: "TX" };
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1", origin));
+    const row = getDataRow(buildRoutesCsv([makeChain()], origin));
     expect(row.search_origin_city).toBe("Dallas, TX");
   });
 
   it("populates search_dest_city from dest city", () => {
     const dest = { lat: 25.7617, lng: -80.1918, city: "Miami" };
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1", undefined, dest));
+    const row = getDataRow(buildRoutesCsv([makeChain()], undefined, dest));
     expect(row.search_dest_city).toBe("Miami");
   });
 
   it("leaves search_origin_city empty when no origin provided", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     expect(row.search_origin_city).toBe("");
   });
 
   it("leaves search_dest_city empty when no dest provided", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     expect(row.search_dest_city).toBe("");
   });
 });
@@ -312,33 +312,33 @@ describe("buildRoutesCsv — routing provenance", () => {
   const LEG2_PROV = {
     ...LEG2,
     deadhead_duration_seconds: 900,
-    deadhead_provider: "valhalla_v2",
+    deadhead_provider: "valhalla",
     deadhead_fallback: true,
   };
 
   it("emits deadhead_leg1_duration_s, provider, and fallback when present", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV] })], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV] })]));
     expect(row.deadhead_leg1_duration_s).toBe("1800");
     expect(row.deadhead_leg1_provider).toBe("stadia");
     expect(row.deadhead_leg1_fallback).toBe("false");
   });
 
   it("emits deadhead_leg2 provenance for 2-leg routes", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV, LEG2_PROV] })], "v2"));
+    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV, LEG2_PROV] })]));
     expect(row.deadhead_leg2_duration_s).toBe("900");
-    expect(row.deadhead_leg2_provider).toBe("valhalla_v2");
+    expect(row.deadhead_leg2_provider).toBe("valhalla");
     expect(row.deadhead_leg2_fallback).toBe("true");
   });
 
   it("leaves leg2 provenance empty for single-leg routes", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV] })], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain({ legs: [LEG1_PROV] })]));
     expect(row.deadhead_leg2_duration_s).toBe("");
     expect(row.deadhead_leg2_provider).toBe("");
     expect(row.deadhead_leg2_fallback).toBe("");
   });
 
   it("leaves provenance columns empty when leg has no metadata", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     expect(row.deadhead_leg1_duration_s).toBe("");
     expect(row.deadhead_leg1_provider).toBe("");
     expect(row.deadhead_leg1_fallback).toBe("");
@@ -348,18 +348,18 @@ describe("buildRoutesCsv — routing provenance", () => {
     const chain = makeChain({
       destination_deadhead_miles: 42,
       destination_deadhead_duration_seconds: 2700,
-      destination_deadhead_provider: "valhalla_v3",
+      destination_deadhead_provider: "valhalla",
       destination_deadhead_fallback: false,
     });
-    const row = getDataRow(buildRoutesCsv([chain], "v3"));
+    const row = getDataRow(buildRoutesCsv([chain]));
     expect(row.destination_deadhead_miles).toBe("42");
     expect(row.destination_deadhead_duration_s).toBe("2700");
-    expect(row.destination_deadhead_provider).toBe("valhalla_v3");
+    expect(row.destination_deadhead_provider).toBe("valhalla");
     expect(row.destination_deadhead_fallback).toBe("false");
   });
 
   it("leaves destination_deadhead_* empty when chain has no return leg", () => {
-    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    const row = getDataRow(buildRoutesCsv([makeChain()]));
     expect(row.destination_deadhead_miles).toBe("");
     expect(row.destination_deadhead_duration_s).toBe("");
     expect(row.destination_deadhead_provider).toBe("");

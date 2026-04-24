@@ -1,7 +1,5 @@
 import type { RouteChain } from "@/core/types";
 
-export type RouteEngine = "v1" | "v2" | "v3";
-
 export interface ExportOrigin {
   lat: number;
   lng: number;
@@ -17,7 +15,6 @@ export interface ExportDest {
 
 const HEADERS = [
   "route_rank",
-  "engine",
   "search_origin_city",
   "search_dest_city",
   "order_ids",
@@ -102,14 +99,13 @@ function buildStopoffsJson(chain: RouteChain): string {
   }
 }
 
-export function buildRoutesCsvFilename(engine: RouteEngine, now: Date = new Date()): string {
+export function buildRoutesCsvFilename(now: Date = new Date()): string {
   const iso = now.toISOString().slice(0, 19).replace(/:/g, "-");
-  return `routes_${engine}_${iso}.csv`;
+  return `routes_${iso}.csv`;
 }
 
 export function buildRoutesCsv(
   routes: RouteChain[],
-  engine: RouteEngine,
   origin?: ExportOrigin,
   dest?: ExportDest,
 ): string {
@@ -145,7 +141,6 @@ export function buildRoutesCsv(
 
     const row = [
       csvCell(route.rank),
-      csvCell(engine),
       csvCell(origin?.city && origin?.state ? `${origin.city}, ${origin.state}` : (origin?.city ?? "")),
       csvCell(dest?.city ?? ""),
       csvCell(orderIds),
@@ -193,17 +188,16 @@ export function buildRoutesCsv(
 
 export function downloadRoutesCsv(
   routes: RouteChain[],
-  engine: RouteEngine,
   origin?: ExportOrigin,
   dest?: ExportDest,
 ): void {
-  const csv = buildRoutesCsv(routes, engine, origin, dest);
+  const csv = buildRoutesCsv(routes, origin, dest);
   // BOM so Excel auto-detects UTF-8
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = buildRoutesCsvFilename(engine);
+  a.download = buildRoutesCsvFilename();
   a.style.display = "none";
   document.body.appendChild(a);
   a.click();

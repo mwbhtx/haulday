@@ -241,45 +241,6 @@ function NumOrdersPill({ value, onChange }: { value: number; onChange: (v: numbe
   );
 }
 
-function EnginePill({ value, onChange }: { value: 'v1' | 'v2' | 'v3'; onChange: (v: 'v1' | 'v2' | 'v3') => void }) {
-  const [open, setOpen] = useState(false);
-  const options: Array<'v1' | 'v2' | 'v3'> = ['v1', 'v2', 'v3'];
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="flex h-9 items-center gap-1.5 rounded-full border bg-card/95 backdrop-blur px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent mobile-filter-pill whitespace-nowrap"
-        >
-          <span className="text-muted-foreground">Engine:</span>
-          <span className="flex items-center gap-1.5">
-            <span className="dark:text-primary uppercase">{value}</span>
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-          </span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-44" align="start">
-        <div className="space-y-2 p-1">
-          <p className="text-sm font-medium">Route Engine</p>
-          <div className="flex gap-1.5">
-            {options.map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => { onChange(v); setOpen(false); }}
-                className={`flex-1 rounded-md py-1.5 text-sm font-medium border transition-colors uppercase ${value === v ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}`}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 /* ---- Filter Pill (shared wrapper for floating filter buttons) ---- */
 
 function FilterPill({
@@ -444,8 +405,6 @@ interface SearchFiltersProps {
   onCancel?: () => void;
   /** Whether route results are currently available */
   hasResults?: boolean;
-  /** Called whenever the selected engine changes */
-  onEngineChange?: (engine: "v1" | "v2" | "v3") => void;
 }
 
 export function SearchFilters({
@@ -464,7 +423,6 @@ export function SearchFilters({
   isSearching,
   onCancel,
   hasResults,
-  onEngineChange,
 }: SearchFiltersProps) {
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
@@ -522,8 +480,6 @@ export function SearchFilters({
   const [minDailyProfit, setMinDailyProfit] = useState<number | undefined>(undefined);
   const [minRpm, setMinRpm] = useState<number | undefined>(undefined);
   const [maxInterlegDh, setMaxInterlegDh] = useState<number | undefined>(undefined);
-  const [engineVersion, setEngineVersion] = useState<'v1' | 'v2' | 'v3'>('v1');
-  useEffect(() => { onEngineChange?.(engineVersion); }, [engineVersion, onEngineChange]);
   const [defaultsLoaded, setDefaultsLoaded] = useState(!!r.origin);
 
   const hasHomeLocation =
@@ -594,7 +550,7 @@ export function SearchFilters({
   const profileKey = JSON.stringify(driverProfile);
 
   // Track current vs last-searched params to show/hide Search button
-  const currentParamsKey = JSON.stringify([origin?.lat, origin?.lng, destination?.lat, destination?.lng, departureDate, daysOut, numOrders, originRadius, destRadius, maxDeadheadPct, minDailyProfit, minRpm, maxInterlegDh, engineVersion, profileKey]);
+  const currentParamsKey = JSON.stringify([origin?.lat, origin?.lng, destination?.lat, destination?.lng, departureDate, daysOut, numOrders, originRadius, destRadius, maxDeadheadPct, minDailyProfit, minRpm, maxInterlegDh, profileKey]);
   const lastSearchedParamsKey = useRef<string>("");
   const hasSearched = lastSearchedParamsKey.current !== "";
 
@@ -630,11 +586,10 @@ export function SearchFilters({
       ...(minDailyProfit != null ? { min_daily_profit: minDailyProfit } : {}),
       ...(minRpm != null ? { min_rpm: minRpm } : {}),
       ...(maxInterlegDh != null ? { max_interleg_deadhead_miles: maxInterlegDh } : {}),
-      ...(engineVersion === 'v2' || engineVersion === 'v3' ? { engine_version: engineVersion } : {}),
       ...driverProfile,
       _t: Date.now(),
     });
-  }, [origin, destination, departureDate, daysOut, numOrders, originRadius, destRadius, maxDeadheadPct, minDailyProfit, minRpm, maxInterlegDh, engineVersion, profileKey, onClearSearch, currentParamsKey]);
+  }, [origin, destination, departureDate, daysOut, numOrders, originRadius, destRadius, maxDeadheadPct, minDailyProfit, minRpm, maxInterlegDh, profileKey, onClearSearch, currentParamsKey]);
 
   // Update map markers when origin/destination change (no auto-search, no clearing results)
   useEffect(() => {
@@ -801,7 +756,6 @@ export function SearchFilters({
           {departureDatePill}
           <DaysOutPill value={daysOut} onChange={setDaysOut} departureDate={departureDate} />
           <NumOrdersPill value={numOrders} onChange={setNumOrders} />
-          <EnginePill value={engineVersion} onChange={setEngineVersion} />
           {isSearching ? (
             <Button
               onClick={onCancel}
@@ -842,7 +796,6 @@ export function SearchFilters({
         {departureDatePill}
         <div id="onborda-days-out"><DaysOutPill value={daysOut} onChange={setDaysOut} departureDate={departureDate} /></div>
         <NumOrdersPill value={numOrders} onChange={setNumOrders} />
-        <EnginePill value={engineVersion} onChange={setEngineVersion} />
         <div id="onborda-all-filters"><AllFiltersPopover
           maxDeadheadPct={maxDeadheadPct} setMaxDeadheadPct={setMaxDeadheadPct}
           minDailyProfit={minDailyProfit} setMinDailyProfit={setMinDailyProfit}
