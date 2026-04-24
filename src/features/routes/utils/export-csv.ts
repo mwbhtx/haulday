@@ -2,6 +2,11 @@ import type { RouteChain } from "@/core/types";
 
 export type RouteEngine = "v1" | "v2" | "v3";
 
+export interface ExportOrigin {
+  lat: number;
+  lng: number;
+}
+
 const HEADERS = [
   "route_rank",
   "engine",
@@ -20,6 +25,15 @@ const HEADERS = [
   "estimated_days",
   "estimated_deadhead_cost",
   "cost_total",
+  // Per-leg breakdown (max 2 legs; leg2 columns empty for single-leg routes)
+  "deadhead_leg1_miles",
+  "deadhead_leg2_miles",
+  "loaded_miles_leg1",
+  "loaded_miles_leg2",
+  "haversine_leg1_miles",
+  "haversine_leg2_miles",
+  "deadhead_haversine_leg1_miles",
+  "deadhead_haversine_leg2_miles",
   "legs_summary",
   "stopoffs_json",
 ];
@@ -28,6 +42,18 @@ function csvCell(value: string | number | null | undefined): string {
   const s = value == null ? "" : String(value);
   if (/[,"\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
+}
+
+/** Haversine great-circle distance in miles between two lat/lng points */
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 3958.8; // Earth radius in miles
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.asin(Math.sqrt(a));
 }
 
 function buildLegsSummary(chain: RouteChain): string {
@@ -59,10 +85,34 @@ export function buildRoutesCsvFilename(engine: RouteEngine, now: Date = new Date
   return `routes_${engine}_${iso}.csv`;
 }
 
-export function buildRoutesCsv(routes: RouteChain[], engine: RouteEngine): string {
+export function buildRoutesCsv(
+  routes: RouteChain[],
+  engine: RouteEngine,
+  origin?: ExportOrigin,
+): string {
   const rows: string[] = [HEADERS.join(",")];
   for (const route of routes) {
+    const leg1 = route.legs[0];
+    const leg2 = route.legs[1];
     const orderIds = route.legs.map((l) => l.order_id).join(";");
+
+    const haversine_leg1 = leg1
+      ? haversine(leg1.origin_lat, leg1.origin_lng, leg1.destination_lat, leg1.destination_lng)
+      : null;
+    const haversine_leg2 = leg2
+      ? haversine(leg2.origin_lat, leg2.origin_lng, leg2.destination_lat, leg2.destination_lng)
+      : null;
+
+    // Deadhead haversine: leg1 = search origin → leg1 pickup; leg2 = leg1 drop → leg2 pickup
+    const deadhead_haversine_leg1 =
+      origin && leg1
+        ? haversine(origin.lat, origin.lng, leg1.origin_lat, leg1.origin_lng)
+        : null;
+    const deadhead_haversine_leg2 =
+      leg1 && leg2
+        ? haversine(leg1.destination_lat, leg1.destination_lng, leg2.origin_lat, leg2.origin_lng)
+        : null;
+
     const row = [
       csvCell(route.rank),
       csvCell(engine),
@@ -81,6 +131,14 @@ export function buildRoutesCsv(routes: RouteChain[], engine: RouteEngine): strin
       csvCell(route.estimated_days),
       csvCell(route.estimated_deadhead_cost),
       csvCell(route.cost_breakdown.total),
+      csvCell(leg1?.deadhead_miles),
+      csvCell(leg2?.deadhead_miles),
+      csvCell(leg1?.miles),
+      csvCell(leg2?.miles),
+      csvCell(haversine_leg1 != null ? Math.round(haversine_leg1 * 10) / 10 : null),
+      csvCell(haversine_leg2 != null ? Math.round(haversine_leg2 * 10) / 10 : null),
+      csvCell(deadhead_haversine_leg1 != null ? Math.round(deadhead_haversine_leg1 * 10) / 10 : null),
+      csvCell(deadhead_haversine_leg2 != null ? Math.round(deadhead_haversine_leg2 * 10) / 10 : null),
       csvCell(buildLegsSummary(route)),
       // stopoffs_json always contains commas — quote it explicitly
       `"${buildStopoffsJson(route).replace(/"/g, '""')}"`,
@@ -90,8 +148,12 @@ export function buildRoutesCsv(routes: RouteChain[], engine: RouteEngine): strin
   return rows.join("\r\n");
 }
 
-export function downloadRoutesCsv(routes: RouteChain[], engine: RouteEngine): void {
-  const csv = buildRoutesCsv(routes, engine);
+export function downloadRoutesCsv(
+  routes: RouteChain[],
+  engine: RouteEngine,
+  origin?: ExportOrigin,
+): void {
+  const csv = buildRoutesCsv(routes, engine, origin);
   // BOM so Excel auto-detects UTF-8
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);

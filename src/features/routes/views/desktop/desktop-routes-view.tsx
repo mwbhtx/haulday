@@ -303,6 +303,7 @@ export function DesktopRoutesView() {
               isLoading={!ready || isLoading || filterPending || (hasPersistedFilters && !hasActiveSearch && !hasSearchedOnce.current)}
               onWatchlistChange={handleWatchlistChange}
               engine={engine}
+              searchOrigin={data?.origin}
             />
           </div>
         )}
