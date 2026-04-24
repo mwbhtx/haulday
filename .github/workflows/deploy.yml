@@ -24,7 +24,7 @@ jobs:
           node-version: 22
           registry-url: https://npm.pkg.github.com
 
-      - run: npm install
+      - run: npm install @mwbhtx/haulvisor-core@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
