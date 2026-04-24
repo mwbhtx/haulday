@@ -304,6 +304,7 @@ export function DesktopRoutesView() {
               onWatchlistChange={handleWatchlistChange}
               engine={engine}
               searchOrigin={data?.origin}
+              searchDest={destFilter ?? undefined}
             />
           </div>
         )}

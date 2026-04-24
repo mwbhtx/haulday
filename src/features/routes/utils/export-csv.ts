@@ -5,11 +5,21 @@ export type RouteEngine = "v1" | "v2" | "v3";
 export interface ExportOrigin {
   lat: number;
   lng: number;
+  city?: string;
+  state?: string;
+}
+
+export interface ExportDest {
+  lat: number;
+  lng: number;
+  city?: string;
 }
 
 const HEADERS = [
   "route_rank",
   "engine",
+  "search_origin_city",
+  "search_dest_city",
   "order_ids",
   "total_pay",
   "total_miles",
@@ -34,6 +44,8 @@ const HEADERS = [
   "haversine_leg2_miles",
   "deadhead_haversine_leg1_miles",
   "deadhead_haversine_leg2_miles",
+  // Return leg: last delivery → destination filter (haversine only; routed value needs backend change)
+  "final_return_haversine_miles",
   "legs_summary",
   "stopoffs_json",
 ];
@@ -89,6 +101,7 @@ export function buildRoutesCsv(
   routes: RouteChain[],
   engine: RouteEngine,
   origin?: ExportOrigin,
+  dest?: ExportDest,
 ): string {
   const rows: string[] = [HEADERS.join(",")];
   for (const route of routes) {
@@ -113,9 +126,18 @@ export function buildRoutesCsv(
         ? haversine(leg1.destination_lat, leg1.destination_lng, leg2.origin_lat, leg2.origin_lng)
         : null;
 
+    // Final return leg: last delivery → destination filter
+    const lastLeg = route.legs[route.legs.length - 1];
+    const final_return_haversine =
+      dest && lastLeg
+        ? haversine(lastLeg.destination_lat, lastLeg.destination_lng, dest.lat, dest.lng)
+        : null;
+
     const row = [
       csvCell(route.rank),
       csvCell(engine),
+      csvCell(origin?.city && origin?.state ? `${origin.city}, ${origin.state}` : (origin?.city ?? "")),
+      csvCell(dest?.city ?? ""),
       csvCell(orderIds),
       csvCell(route.total_pay),
       csvCell(route.total_miles),
@@ -139,6 +161,7 @@ export function buildRoutesCsv(
       csvCell(haversine_leg2 != null ? Math.round(haversine_leg2 * 10) / 10 : null),
       csvCell(deadhead_haversine_leg1 != null ? Math.round(deadhead_haversine_leg1 * 10) / 10 : null),
       csvCell(deadhead_haversine_leg2 != null ? Math.round(deadhead_haversine_leg2 * 10) / 10 : null),
+      csvCell(final_return_haversine != null ? Math.round(final_return_haversine * 10) / 10 : null),
       csvCell(buildLegsSummary(route)),
       // stopoffs_json always contains commas — quote it explicitly
       `"${buildStopoffsJson(route).replace(/"/g, '""')}"`,
@@ -152,8 +175,9 @@ export function downloadRoutesCsv(
   routes: RouteChain[],
   engine: RouteEngine,
   origin?: ExportOrigin,
+  dest?: ExportDest,
 ): void {
-  const csv = buildRoutesCsv(routes, engine, origin);
+  const csv = buildRoutesCsv(routes, engine, origin, dest);
   // BOM so Excel auto-detects UTF-8
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);

@@ -141,6 +141,9 @@ describe("buildRoutesCsv — structure", () => {
     expect(lines[0]).toContain("stopoffs_json");
     expect(lines[0]).toContain("deadhead_leg1_miles");
     expect(lines[0]).toContain("haversine_leg1_miles");
+    expect(lines[0]).toContain("search_origin_city");
+    expect(lines[0]).toContain("search_dest_city");
+    expect(lines[0]).toContain("final_return_haversine_miles");
   });
 
   it("joins order_ids with semicolons for multi-leg routes", () => {
@@ -253,5 +256,43 @@ describe("buildRoutesCsv — haversine columns", () => {
     const h = parseFloat(row.deadhead_haversine_leg2_miles);
     expect(h).toBeGreaterThanOrEqual(0);
     expect(h).toBeLessThan(5);
+  });
+
+  it("final_return_haversine_miles is populated when dest is provided", () => {
+    // Destination ~100 miles south of Miami
+    const dest = { lat: 24.5, lng: -80.4, city: "Key West" };
+    const row = getDataRow(buildRoutesCsv([makeChain()], "v1", undefined, dest));
+    const h = parseFloat(row.final_return_haversine_miles);
+    // Atlanta (leg1 dest) to Key West area — should be several hundred miles
+    expect(h).toBeGreaterThan(100);
+  });
+
+  it("final_return_haversine_miles is empty when no dest provided", () => {
+    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    expect(row.final_return_haversine_miles).toBe("");
+  });
+});
+
+describe("buildRoutesCsv — search origin/dest city", () => {
+  it("populates search_origin_city from origin with city and state", () => {
+    const origin = { lat: 32.7767, lng: -96.7970, city: "Dallas", state: "TX" };
+    const row = getDataRow(buildRoutesCsv([makeChain()], "v1", origin));
+    expect(row.search_origin_city).toBe("Dallas, TX");
+  });
+
+  it("populates search_dest_city from dest city", () => {
+    const dest = { lat: 25.7617, lng: -80.1918, city: "Miami" };
+    const row = getDataRow(buildRoutesCsv([makeChain()], "v1", undefined, dest));
+    expect(row.search_dest_city).toBe("Miami");
+  });
+
+  it("leaves search_origin_city empty when no origin provided", () => {
+    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    expect(row.search_origin_city).toBe("");
+  });
+
+  it("leaves search_dest_city empty when no dest provided", () => {
+    const row = getDataRow(buildRoutesCsv([makeChain()], "v1"));
+    expect(row.search_dest_city).toBe("");
   });
 });

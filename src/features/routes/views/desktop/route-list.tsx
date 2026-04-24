@@ -6,7 +6,7 @@ import type { RouteChain } from "@/core/types";
 import { ROUTE_SORT_OPTIONS, DEFAULT_SORT_KEY } from "@mwbhtx/haulvisor-core";
 import type { RouteSortKey } from "@mwbhtx/haulvisor-core";
 import { sortRouteChains } from "@/features/routes/utils/sort-options";
-import { downloadRoutesCsv, type RouteEngine, type ExportOrigin } from "@/features/routes/utils/export-csv";
+import { downloadRoutesCsv, type RouteEngine, type ExportOrigin, type ExportDest } from "@/features/routes/utils/export-csv";
 import { RouteRow } from "./route-row";
 
 /** Unique key for a route chain based on its leg order IDs */
@@ -23,6 +23,7 @@ interface RouteListProps {
   onWatchlistChange?: (watchlist: Set<string>, toggle: (key: string) => void) => void;
   engine?: RouteEngine;
   searchOrigin?: ExportOrigin;
+  searchDest?: ExportDest;
 }
 
 export function RouteList({
@@ -34,6 +35,7 @@ export function RouteList({
   onWatchlistChange,
   engine = "v1",
   searchOrigin,
+  searchDest,
 }: RouteListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [sortBy, setSortBy] = useState<RouteSortKey>(DEFAULT_SORT_KEY);
@@ -140,7 +142,7 @@ export function RouteList({
             disabled={isExporting}
             onClick={() => {
               setIsExporting(true);
-              try { downloadRoutesCsv(allSorted, engine, searchOrigin); } finally { setIsExporting(false); }
+              try { downloadRoutesCsv(allSorted, engine, searchOrigin, searchDest); } finally { setIsExporting(false); }
             }}
             className="rounded-full px-3 py-1 text-sm transition-colors flex items-center gap-1 border border-input hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:pointer-events-none"
           >
