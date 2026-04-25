@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import {
   Table,
   TableBody,
@@ -13,7 +13,7 @@ import { Button } from "@/platform/web/components/ui/button";
 import { Skeleton } from "@/platform/web/components/ui/skeleton";
 import { Badge } from "@/platform/web/components/ui/badge";
 import { Separator } from "@/platform/web/components/ui/separator";
-import { ChevronDownIcon, ChevronRightIcon, Loader2Icon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon, ChevronDownIcon, ChevronRightIcon, Loader2Icon } from "lucide-react";
 import { StopoffsTable } from "@/features/orders/components/stopoffs-table";
 import { useOrder, useTask } from "@/core/hooks/use-orders";
 import { useQueryClient } from "@tanstack/react-query";
@@ -55,6 +55,38 @@ function formatShortDate(raw: string | null | undefined): string {
   return `${month}/${day}/${year}`;
 }
 
+type SortCol =
+  | "pay"
+  | "miles"
+  | "rate_per_mile"
+  | "weight"
+  | "pickup_date_early_local"
+  | "delivery_date_early_local";
+
+function sortOrders(orders: Order[], col: SortCol | null, dir: "asc" | "desc"): Order[] {
+  if (!col) return orders;
+  return [...orders].sort((a, b) => {
+    const nullFallback = dir === "asc" ? Infinity : -Infinity;
+    let aVal: number;
+    let bVal: number;
+    if (col === "pickup_date_early_local" || col === "delivery_date_early_local") {
+      aVal = a[col] ? new Date(a[col]!).getTime() : nullFallback;
+      bVal = b[col] ? new Date(b[col]!).getTime() : nullFallback;
+    } else {
+      aVal = (a[col] as number | undefined) ?? nullFallback;
+      bVal = (b[col] as number | undefined) ?? nullFallback;
+    }
+    return dir === "asc" ? aVal - bVal : bVal - aVal;
+  });
+}
+
+function SortIcon({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol | null; sortDir: "asc" | "desc" }) {
+  if (sortCol !== col) return <ArrowUpDownIcon className="ml-1 inline h-3 w-3 opacity-40" />;
+  return sortDir === "asc"
+    ? <ArrowUpIcon className="ml-1 inline h-3 w-3" />
+    : <ArrowDownIcon className="ml-1 inline h-3 w-3" />;
+}
+
 interface OrdersTableProps {
   companyId: string;
   orders: Order[];
@@ -74,9 +106,6 @@ interface OrdersTableProps {
    *  "dispatch-pickup" shows Dispatch date + Pickup date — appropriate for
    *  the driver's past-loads view where ranges aren't meaningful. */
   dateColumns?: "windows" | "dispatch-pickup";
-  /** When provided, enables multi-select checkboxes (max 2). */
-  selectedOrders?: Order[];
-  onToggleSelected?: (order: Order) => void;
 }
 
 export function OrdersTable({
@@ -91,12 +120,26 @@ export function OrdersTable({
   orderUrlTemplate,
   dimClosed = true,
   dateColumns = "windows",
-  selectedOrders,
-  onToggleSelected,
 }: OrdersTableProps) {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const selectedIds = new Set(selectedOrders?.map((o) => o.order_id) ?? []);
-  const colCount = onToggleSelected ? 12 : 11;
+  const [sortCol, setSortCol] = useState<SortCol | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  function handleSort(col: SortCol) {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortCol(col);
+      setSortDir("desc");
+    }
+  }
+
+  const sortedOrders = useMemo(
+    () => sortOrders(orders, sortCol, sortDir),
+    [orders, sortCol, sortDir],
+  );
+
+  const colCount = 11;
 
   if (error) {
     return (
@@ -111,15 +154,24 @@ export function OrdersTable({
       <Table>
         <TableHeader>
           <TableRow>
-            {onToggleSelected && <TableHead className="w-8" />}
             <TableHead className="w-8" />
             <TableHead>Order #</TableHead>
             <TableHead>Origin</TableHead>
             <TableHead>Destination</TableHead>
             {dateColumns === "windows" ? (
               <>
-                <TableHead>Pickup</TableHead>
-                <TableHead>Delivery</TableHead>
+                <TableHead
+                  className="cursor-pointer select-none hover:text-foreground"
+                  onClick={() => handleSort("pickup_date_early_local")}
+                >
+                  Pickup <SortIcon col="pickup_date_early_local" sortCol={sortCol} sortDir={sortDir} />
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer select-none hover:text-foreground"
+                  onClick={() => handleSort("delivery_date_early_local")}
+                >
+                  Delivery <SortIcon col="delivery_date_early_local" sortCol={sortCol} sortDir={sortDir} />
+                </TableHead>
               </>
             ) : (
               <>
@@ -127,10 +179,30 @@ export function OrdersTable({
                 <TableHead>Pickup</TableHead>
               </>
             )}
-            <TableHead className="text-right">Pay</TableHead>
-            <TableHead className="text-right">Miles</TableHead>
-            <TableHead className="text-right">$/Mi</TableHead>
-            <TableHead className="text-right">Weight</TableHead>
+            <TableHead
+              className="text-right cursor-pointer select-none hover:text-foreground"
+              onClick={() => handleSort("pay")}
+            >
+              Pay <SortIcon col="pay" sortCol={sortCol} sortDir={sortDir} />
+            </TableHead>
+            <TableHead
+              className="text-right cursor-pointer select-none hover:text-foreground"
+              onClick={() => handleSort("miles")}
+            >
+              Miles <SortIcon col="miles" sortCol={sortCol} sortDir={sortDir} />
+            </TableHead>
+            <TableHead
+              className="text-right cursor-pointer select-none hover:text-foreground"
+              onClick={() => handleSort("rate_per_mile")}
+            >
+              $/Mi <SortIcon col="rate_per_mile" sortCol={sortCol} sortDir={sortDir} />
+            </TableHead>
+            <TableHead
+              className="text-right cursor-pointer select-none hover:text-foreground"
+              onClick={() => handleSort("weight")}
+            >
+              Weight <SortIcon col="weight" sortCol={sortCol} sortDir={sortDir} />
+            </TableHead>
             <TableHead>Trailer</TableHead>
           </TableRow>
         </TableHeader>
@@ -161,7 +233,7 @@ export function OrdersTable({
             </TableRow>
           )}
 
-          {orders.map((order) => {
+          {sortedOrders.map((order) => {
             const isExpanded = expandedOrderId === order.order_id;
             const isClosed = dimClosed && order.order_status === "closed";
             return (
@@ -172,19 +244,6 @@ export function OrdersTable({
                     setExpandedOrderId(isExpanded ? null : order.order_id)
                   }
                 >
-                  {onToggleSelected && (
-                    <TableCell className="w-8 px-2" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(order.order_id)}
-                        onChange={() => onToggleSelected(order)}
-                        disabled={
-                          !selectedIds.has(order.order_id) && selectedIds.size >= 2
-                        }
-                        className="h-4 w-4 cursor-pointer rounded border border-border accent-primary disabled:cursor-not-allowed disabled:opacity-40"
-                      />
-                    </TableCell>
-                  )}
                   <TableCell className="w-8 px-2">
                     {isExpanded ? (
                       <ChevronDownIcon className="h-4 w-4 text-muted-foreground" />

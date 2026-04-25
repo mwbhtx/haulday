@@ -11,24 +11,14 @@ import { useOrders, useOrderSearch, useAllActiveOrders } from "@/core/hooks/use-
 import { useAuth } from "@/core/services/auth-provider";
 import { useSettings } from "@/core/hooks/use-settings";
 import { Skeleton } from "@/platform/web/components/ui/skeleton";
-import type { Order, OrderFilters } from "@/core/types";
+import type { OrderFilters } from "@/core/types";
 
 export function DesktopOrdersView() {
   const { activeCompanyId, loading } = useAuth();
   const { data: settings } = useSettings();
   const [filters, setFilters] = useState<Omit<OrderFilters, "offset" | "limit">>({});
   const [search, setSearch] = useState("");
-  const [selectedOrders, setSelectedOrders] = useState<Order[]>([]);
   const [simulateOpen, setSimulateOpen] = useState(false);
-
-  function handleToggleSelected(order: Order) {
-    setSelectedOrders((prev) => {
-      const exists = prev.some((o) => o.order_id === order.order_id);
-      if (exists) return prev.filter((o) => o.order_id !== order.order_id);
-      if (prev.length >= 2) return prev;
-      return [...prev, order];
-    });
-  }
 
   const {
     data,
@@ -74,60 +64,58 @@ export function DesktopOrdersView() {
 
   const simulateButton = (
     <Button
-      variant="outline"
-      disabled={selectedOrders.length !== 2}
-      onClick={() => setSimulateOpen(true)}
+      variant={simulateOpen ? "default" : "outline"}
+      onClick={() => setSimulateOpen((v) => !v)}
     >
       <ZapIcon />
       Simulate
-      {selectedOrders.length > 0 && (
-        <span className="ml-1 text-xs tabular-nums text-muted-foreground">
-          ({selectedOrders.length}/2)
-        </span>
-      )}
     </Button>
   );
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="shrink-0 space-y-6 pb-4">
-        <OrdersFilters onSearch={setFilters} simulateButton={simulateButton}>
-          <div className="relative flex-1 sm:max-w-sm">
-            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by order ID, city, or state..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </OrdersFilters>
+    <div className="flex h-full gap-0 overflow-hidden">
+      {/* Board column */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <div className="shrink-0 space-y-6 pb-4">
+          <OrdersFilters onSearch={setFilters} simulateButton={simulateButton}>
+            <div className="relative flex-1 sm:max-w-sm">
+              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by order ID, city, or state..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </OrdersFilters>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-auto">
+          <OrdersTable
+            companyId={activeCompanyId}
+            orders={orders}
+            isLoading={isSearching ? searchLoading : isLoading}
+            isFetchingNextPage={isSearching ? false : isFetchingNextPage}
+            hasNextPage={isSearching ? false : (hasNextPage ?? false)}
+            onLoadMore={() => fetchNextPage()}
+            onClearFilters={(isSearching || Object.keys(filters).length > 0) ? () => {
+              setSearch("");
+              setFilters({});
+            } : undefined}
+            error={error}
+            orderUrlTemplate={settings?.order_url_template as string | undefined}
+          />
+        </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <OrdersTable
-          companyId={activeCompanyId}
-          orders={orders}
-          isLoading={isSearching ? searchLoading : isLoading}
-          isFetchingNextPage={isSearching ? false : isFetchingNextPage}
-          hasNextPage={isSearching ? false : (hasNextPage ?? false)}
-          onLoadMore={() => fetchNextPage()}
-          onClearFilters={(isSearching || Object.keys(filters).length > 0) ? () => {
-            setSearch("");
-            setFilters({});
-          } : undefined}
-          error={error}
-          orderUrlTemplate={settings?.order_url_template as string | undefined}
-          selectedOrders={selectedOrders}
-          onToggleSelected={handleToggleSelected}
-        />
-      </div>
-
+      {/* Simulate panel column */}
       {simulateOpen && (
-        <SimulatePanel
-          selectedOrders={selectedOrders}
-          onClose={() => setSimulateOpen(false)}
-        />
+        <div className="shrink-0 w-[520px] border-l flex flex-col overflow-hidden">
+          <SimulatePanel
+            companyId={activeCompanyId}
+            onClose={() => setSimulateOpen(false)}
+          />
+        </div>
       )}
     </div>
   );

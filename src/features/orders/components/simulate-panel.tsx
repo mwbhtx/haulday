@@ -1,21 +1,16 @@
 "use client";
 
-import { XIcon, Loader2Icon, AlertCircleIcon } from "lucide-react";
+import { useState } from "react";
+import { XIcon, Loader2Icon, AlertCircleIcon, SearchIcon } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
+import { Input } from "@/platform/web/components/ui/input";
 import { RouteDetailPanel } from "@/features/routes/views/desktop/route-detail-panel";
 import { useSimulate } from "@/core/hooks/use-simulate";
+import { useOrderSearch } from "@/core/hooks/use-orders";
 import { useSettings } from "@/core/hooks/use-settings";
 import { DEFAULT_COST_PER_MILE } from "@mwbhtx/haulvisor-core";
 import type { Order } from "@/core/types";
 
-/**
- * Sort two orders into the most temporally feasible sequence and detect
- * obvious window incompatibilities before hitting the backend.
- *
- * Feasibility test: for A→B to be possible, A must be deliverable (at its
- * earliest) before B's pickup window closes. If neither A→B nor B→A passes
- * this test, the combination is flagged as infeasible.
- */
 function sortForSimulation(a: Order, b: Order): {
   sorted: [Order, Order];
   isInfeasible: boolean;
@@ -40,103 +35,193 @@ function sortForSimulation(a: Order, b: Order): {
   return { sorted: aPickup <= bPickup ? [a, b] : [b, a], isInfeasible };
 }
 
+function OrderPicker({
+  companyId,
+  placeholder,
+  value,
+  onChange,
+}: {
+  companyId: string;
+  placeholder: string;
+  value: Order | null;
+  onChange: (o: Order | null) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const { data: results, isLoading } = useOrderSearch(companyId, query);
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+        <div className="flex-1 min-w-0 truncate">
+          <span className="font-mono font-medium">{value.order_id}</span>
+          <span className="ml-2 text-muted-foreground text-xs">
+            {value.origin_city}, {value.origin_state}
+            {" → "}
+            {value.destination_city}, {value.destination_state}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="shrink-0 text-muted-foreground hover:text-foreground"
+        >
+          <XIcon className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder={placeholder}
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          className="pl-9"
+        />
+      </div>
+      {open && query.length > 0 && (
+        <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md overflow-hidden">
+          {isLoading && (
+            <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+              <Loader2Icon className="h-3 w-3 animate-spin" />
+              Searching...
+            </div>
+          )}
+          {!isLoading && (!results || results.length === 0) && (
+            <div className="px-3 py-2 text-sm text-muted-foreground">No orders found</div>
+          )}
+          {results?.map((order) => (
+            <button
+              key={order.order_id}
+              type="button"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { onChange(order); setQuery(""); setOpen(false); }}
+            >
+              <span className="font-mono font-medium">{order.order_id}</span>
+              <span className="ml-2 text-xs text-muted-foreground">
+                {order.origin_city}, {order.origin_state}
+                {" → "}
+                {order.destination_city}, {order.destination_state}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface SimulatePanelProps {
-  selectedOrders: Order[];
+  companyId: string;
   onClose: () => void;
 }
 
-export function SimulatePanel({ selectedOrders, onClose }: SimulatePanelProps) {
+export function SimulatePanel({ companyId, onClose }: SimulatePanelProps) {
   const { data: settings } = useSettings();
   const hasHomeBase = !!settings?.home_base_lat && !!settings?.home_base_lng;
   const costPerMile = (settings?.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE;
 
-  const [orderA, orderB] = selectedOrders;
+  const [orderA, setOrderA] = useState<Order | null>(null);
+  const [orderB, setOrderB] = useState<Order | null>(null);
+
   const { sorted, isInfeasible } = orderA && orderB
     ? sortForSimulation(orderA, orderB)
-    : { sorted: [orderA, orderB] as [Order, Order], isInfeasible: false };
+    : { sorted: [null, null] as [null, null], isInfeasible: false };
 
-  const orderIds = sorted.filter(Boolean).map((o) => o.order_id);
-
+  const orderIds = (sorted as (Order | null)[]).filter(Boolean).map((o) => o!.order_id);
   const canFetch = !isInfeasible && hasHomeBase && orderIds.length === 2;
   const { data: chain, isLoading, error } = useSimulate(orderIds, canFetch);
 
+  const bothSelected = !!(orderA && orderB);
+
   return (
-    <>
-      <div
-        className="fixed inset-0 z-40 bg-black/40"
-        onClick={onClose}
-      />
-
-      <div className="fixed inset-y-0 right-0 z-50 flex flex-col w-full max-w-[600px] bg-background border-l shadow-2xl">
-        <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-foreground">
-              Route Simulation
-            </p>
-            {sorted[0] && sorted[1] && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {sorted[0].origin_city}, {sorted[0].origin_state}
-                {" → "}
-                {sorted[0].destination_city}, {sorted[0].destination_state}
-                {" → "}
-                {sorted[1].destination_city}, {sorted[1].destination_state}
-              </p>
-            )}
-          </div>
-          <Button variant="ghost" size="icon-sm" onClick={onClose}>
-            <XIcon />
-            <span className="sr-only">Close</span>
-          </Button>
-        </div>
-
-        <div className="flex-1 overflow-hidden">
-          {!hasHomeBase && (
-            <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
-              <AlertCircleIcon className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Set your home base location in Settings to use Route Simulation.
-              </p>
-            </div>
-          )}
-
-          {hasHomeBase && isInfeasible && (
-            <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
-              <AlertCircleIcon className="h-8 w-8 text-amber-500" />
-              <p className="text-sm font-medium">Incompatible time windows</p>
-              <p className="text-sm text-muted-foreground">
-                These two orders have pickup and delivery windows that cannot
-                be combined into a route — neither ordering allows the first
-                delivery to complete before the second pickup window closes.
-              </p>
-            </div>
-          )}
-
-          {hasHomeBase && !isInfeasible && isLoading && (
-            <div className="flex flex-col items-center justify-center h-full gap-3">
-              <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Simulating route...</p>
-            </div>
-          )}
-
-          {hasHomeBase && !isInfeasible && !isLoading && error && (
-            <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
-              <AlertCircleIcon className="h-8 w-8 text-destructive" />
-              <p className="text-sm text-muted-foreground">
-                These orders could not be simulated due to scheduling conflicts.
-              </p>
-            </div>
-          )}
-
-          {hasHomeBase && !isInfeasible && !isLoading && !error && chain && (
-            <RouteDetailPanel
-              chain={chain}
-              costPerMile={costPerMile}
-              searchParams={null}
-              fullWidth
-            />
-          )}
-        </div>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
+        <p className="text-xs font-semibold uppercase tracking-widest text-foreground">
+          Route Simulation
+        </p>
+        <Button variant="ghost" size="icon-sm" onClick={onClose}>
+          <XIcon />
+          <span className="sr-only">Close</span>
+        </Button>
       </div>
-    </>
+
+      <div className="p-4 space-y-2 border-b shrink-0">
+        <OrderPicker
+          companyId={companyId}
+          placeholder="Search first order by ID..."
+          value={orderA}
+          onChange={setOrderA}
+        />
+        <OrderPicker
+          companyId={companyId}
+          placeholder="Search second order by ID..."
+          value={orderB}
+          onChange={setOrderB}
+        />
+      </div>
+
+      <div className="flex-1 overflow-hidden">
+        {!hasHomeBase && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
+            <AlertCircleIcon className="h-8 w-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Set your home base location in Settings to use Route Simulation.
+            </p>
+          </div>
+        )}
+
+        {hasHomeBase && !bothSelected && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Search for two orders above to simulate the route.
+            </p>
+          </div>
+        )}
+
+        {hasHomeBase && bothSelected && isInfeasible && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
+            <AlertCircleIcon className="h-8 w-8 text-amber-500" />
+            <p className="text-sm font-medium">Incompatible time windows</p>
+            <p className="text-sm text-muted-foreground">
+              These two orders cannot be combined in either sequence — the first
+              delivery cannot complete before the second pickup window closes.
+            </p>
+          </div>
+        )}
+
+        {hasHomeBase && bothSelected && !isInfeasible && isLoading && (
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Simulating route...</p>
+          </div>
+        )}
+
+        {hasHomeBase && bothSelected && !isInfeasible && !isLoading && error && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
+            <AlertCircleIcon className="h-8 w-8 text-destructive" />
+            <p className="text-sm text-muted-foreground">
+              These orders could not be simulated due to scheduling conflicts.
+            </p>
+          </div>
+        )}
+
+        {hasHomeBase && bothSelected && !isInfeasible && !isLoading && !error && chain && (
+          <RouteDetailPanel
+            chain={chain}
+            costPerMile={costPerMile}
+            searchParams={null}
+            fullWidth
+          />
+        )}
+      </div>
+    </div>
   );
 }
