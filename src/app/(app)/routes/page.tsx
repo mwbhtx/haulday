@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Workflow, FlaskConical } from "lucide-react";
+import { Zap, FlaskConical } from "lucide-react";
 import { useIsMobile } from "@/platform/web/hooks/use-is-mobile";
 import { DesktopRoutesView } from "@/features/routes/views/desktop/desktop-routes-view";
 import { MobileRoutesView } from "@/features/routes/views/mobile/mobile-routes-view";
@@ -43,7 +43,7 @@ export default function RoutesPage() {
       <div className="sticky top-0 z-10 -mx-6 -mt-6 border-b border-border/50 bg-sidebar px-6 py-2">
         <TabsList variant="line" className="bg-transparent gap-6">
           <TabsTrigger value="generate" className="gap-1.5">
-            <Workflow className="h-4 w-4" />
+            <Zap className="h-4 w-4" />
             Generate
           </TabsTrigger>
           <TabsTrigger value="build" className="gap-1.5">
