@@ -291,16 +291,13 @@ function CandidateList({
             onSortDirToggle={onSortDirToggle}
           />
         </div>
-        <div className="flex items-center justify-between mt-0.5 min-w-0">
-          {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
-          {!isLoading && (
-            <p className="text-[10px] text-muted-foreground tabular-nums shrink-0 ml-2">
-              {filter.trim()
-                ? `${visibleChains.length} of ${chains.length} results`
-                : `${chains.length} ${chains.length === 1 ? "result" : "results"}`}
-            </p>
-          )}
-        </div>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+            {!isLoading && subtitle.startsWith("Within")
+              ? `${chains.length} results ${subtitle.toLowerCase()}`
+              : subtitle}
+          </p>
+        )}
         <div className="relative mt-1.5">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
           <input
@@ -528,7 +525,7 @@ export function DesktopSimulationView() {
             <PlaceAutocomplete
               placeholder="e.g. return to home base..."
               value={destination}
-              onSelect={(p) => { setDestination(p); setHasRun(false); }}
+              onSelect={(p) => { setDestination(p); }}
             />
           </div>
           <div className="col-span-2 space-y-1">
@@ -538,7 +535,7 @@ export function DesktopSimulationView() {
               value={departureDate}
               onChange={(e) => {
                 setDepartureDate(e.target.value);
-                setOrderA(null); setOrderB(null); setHasRun(false);
+                setOrderA(null); setOrderB(null);
               }}
               className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
             />
