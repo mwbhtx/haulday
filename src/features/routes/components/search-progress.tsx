@@ -32,17 +32,7 @@ export function SearchProgressBar({ progress, elapsedMs, onCancel, variant }: Pr
       ? Math.min(100, (progress.pairs_simulated / Math.max(1, progress.survivors_total)) * 100)
       : 0;
 
-  const label = (() => {
-    if (phase === "starting") return "Starting search…";
-    if (phase === "filtering") return "Filtering candidates…";
-    if (phase === "resolving" && progress) {
-      return `Resolving distances for ${progress.survivors_total.toLocaleString()} routes…`;
-    }
-    if (progress) {
-      return `Analyzing ${progress.pairs_simulated.toLocaleString()} / ${progress.survivors_total.toLocaleString()} routes`;
-    }
-    return "Working…";
-  })();
+  const label = "Searching for routes…";
 
   const routesFound = progress?.routes_found ?? 0;
   const elapsed = formatElapsed(elapsedMs);
