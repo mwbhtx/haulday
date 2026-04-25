@@ -33,7 +33,6 @@ export interface RouteSearchParams {
   latest_on_duty_hour?: number;
   max_deadhead_pct?: number;
   min_daily_profit?: number;
-  min_rpm?: number;
   max_interleg_deadhead_miles?: number;
   /** Cache-bust token — forces a new search even with identical params */
   _t?: number;

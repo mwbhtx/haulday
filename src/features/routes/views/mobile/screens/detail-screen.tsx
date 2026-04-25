@@ -34,8 +34,8 @@ export function DetailScreen({ chain, originCity, onBack, originCoords: originCo
   const deadheadPerMile = getDeadheadPerMile(chain) ?? 0;
   const deadhead = getDeadheadPct(chain);
   const legCount = chain.legs.length;
-  const totalMiles = chain.total_miles;
-  const totalPay = chain.total_pay;
+  const totalMiles = chain.loaded_miles;
+  const totalPay = chain.gross_pay;
   const color = routeProfitColor(dailyProfit);
 
   const originCoords = originCoordsProp ?? (chain.legs[0]

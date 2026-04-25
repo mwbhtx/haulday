@@ -77,15 +77,15 @@ export function RouteCard({ route, onOpen, onDelete, selected = false }: RouteCa
           <div className="mt-2 flex gap-6 text-xs tabular-nums">
             <span>
               <span className="text-muted-foreground">Pay </span>
-              {formatCurrency(route.summary.total_pay)}
+              {formatCurrency(route.summary.gross_pay)}
             </span>
             <span>
               <span className="text-muted-foreground">Miles </span>
-              {formatMiles(route.summary.total_miles)}
+              {formatMiles(route.summary.loaded_miles)}
             </span>
             <span>
               <span className="text-muted-foreground">RPM </span>
-              ${route.summary.effective_rpm.toFixed(2)}
+              ${route.summary.all_in_net_rpm.toFixed(2)}
             </span>
             <span>
               <span className="text-muted-foreground">Net </span>

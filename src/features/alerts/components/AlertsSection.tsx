@@ -177,8 +177,7 @@ function criteriaSummary(alert: Alert): string {
   const c = alert.criteria;
   if (c.destination_city) parts.push(`→ ${c.destination_city}`);
   if (c.trailer_types) parts.push(c.trailer_types);
-  if (c.min_rpm) parts.push(`≥ $${c.min_rpm.toFixed(2)}/mi`);
-  if (c.min_daily_profit) parts.push(`≥ $${c.min_daily_profit.toFixed(0)}/day`);
+if (c.min_daily_profit) parts.push(`≥ $${c.min_daily_profit.toFixed(0)}/day`);
   if (c.num_orders && c.num_orders > 1) parts.push(`${c.num_orders} legs`);
   parts.push(`${alert.rolling_window_hours >= 168 ? "7d" : `${alert.rolling_window_hours}h`} window`);
   return parts.join(" · ");

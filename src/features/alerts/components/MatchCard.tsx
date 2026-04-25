@@ -17,8 +17,8 @@ export function MatchCard({ match, onDismiss }: MatchCardProps) {
   const isMultileg = match.orders.length > 1;
   const stale = match.live_status !== "available";
 
-  const totalPay = match.orders.reduce((s, o) => s + (o.total_pay_dollars || 0), 0);
-  const totalMiles = match.orders.reduce((s, o) => s + (o.total_miles || 0), 0);
+  const totalPay = match.orders.reduce((s, o) => s + (o.gross_pay || 0), 0);
+  const totalMiles = match.orders.reduce((s, o) => s + (o.loaded_miles || 0), 0);
   const totalDeadhead = match.orders.reduce((s, o) => s + (o.deadhead_miles || 0), 0);
   const rpm = totalMiles > 0 ? totalPay / (totalMiles + totalDeadhead) : 0;
 

@@ -16,7 +16,7 @@ const summary: DriverRouteSummary = {
   latest_pickup_date: "2026-04-05",
   days_driven: null,
   segments: [],
-  summary: { total_pay: 2500, total_miles: 1200, effective_rpm: 2.08, profit: 400 },
+  summary: { gross_pay: 2500, loaded_miles: 1200, all_in_net_rpm: 2.08, profit: 400 },
 };
 
 describe("RouteCard", () => {

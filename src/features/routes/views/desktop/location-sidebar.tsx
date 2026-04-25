@@ -324,13 +324,13 @@ function RouteChainCard({
             <p className={`text-xl font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
               {formatCurrency(profit)}
             </p>
-            <p className="text-xs tabular-nums mt-0.5 text-muted-foreground">{formatCurrency(chain.total_pay)} gross</p>
+            <p className="text-xs tabular-nums mt-0.5 text-muted-foreground">{formatCurrency(chain.gross_pay)} gross</p>
             <p className="text-xs tabular-nums text-muted-foreground">{formatCurrency(chain.cost_breakdown.total)} costs</p>
           </div>
           <div>
             <p className="text-sm uppercase tracking-wide text-muted-foreground">$/mi all-in</p>
             <p className={`text-xl font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
-              ${chain.gross_rpm_total.toFixed(2)}
+              ${chain.all_in_gross_rpm.toFixed(2)}
             </p>
             {avgLoadedRpm !== null && (
               <p className="text-xs tabular-nums mt-0.5 text-muted-foreground">${avgLoadedRpm.toFixed(2)}/mi loaded</p>
@@ -338,7 +338,7 @@ function RouteChainCard({
           </div>
           <div>
             <p className="text-sm uppercase tracking-wide text-muted-foreground">Miles</p>
-            <p className="text-xl font-bold tabular-nums">{chain.total_miles.toLocaleString()}</p>
+            <p className="text-xl font-bold tabular-nums">{chain.loaded_miles.toLocaleString()}</p>
             <p className="text-xs tabular-nums mt-0.5 text-muted-foreground">{chain.deadhead_pct.toFixed(0)}% DH</p>
           </div>
           {onToggleWatchlist && (
@@ -355,14 +355,14 @@ function RouteChainCard({
 
         {/* Route detail (expanded) */}
         {(() => {
-          const costPerDhMile = chain.total_deadhead_miles > 0
-            ? chain.estimated_deadhead_cost / chain.total_deadhead_miles
+          const costPerDhMile = chain.deadhead_miles > 0
+            ? chain.estimated_deadhead_cost / chain.deadhead_miles
             : 0;
           const firstLeg = chain.legs[0];
           const lastLeg = chain.legs[chain.legs.length - 1];
           const startDh = firstLeg?.deadhead_miles ?? 0;
           const betweenDh = chain.legs.slice(1).reduce((sum, l) => sum + l.deadhead_miles, 0);
-          const returnDh = Math.max(0, chain.total_deadhead_miles - startDh - betweenDh);
+          const returnDh = Math.max(0, chain.deadhead_miles - startDh - betweenDh);
           const origin = originCity || "Origin";
           const returnCity = destCity || origin;
 

@@ -269,15 +269,15 @@ function RouteDetailContent({
     (l) => l.tarp_height != null && parseInt(l.tarp_height, 10) > 0,
   );
   const costPerDhMile =
-    chain.total_deadhead_miles > 0
-      ? chain.estimated_deadhead_cost / chain.total_deadhead_miles
+    chain.deadhead_miles > 0
+      ? chain.estimated_deadhead_cost / chain.deadhead_miles
       : 0;
 
   const firstLeg = chain.legs[0];
   const lastLeg = chain.legs[chain.legs.length - 1];
   const startDh = firstLeg?.deadhead_miles ?? 0;
   const betweenDh = chain.legs.slice(1).reduce((sum, l) => sum + l.deadhead_miles, 0);
-  const returnDh = Math.max(0, chain.total_deadhead_miles - startDh - betweenDh);
+  const returnDh = Math.max(0, chain.deadhead_miles - startDh - betweenDh);
   const origin = originCity || "Origin";
   const returnCity = destCity || origin;
 
@@ -350,27 +350,27 @@ function RouteDetailContent({
                   label1: "$/mi loaded",
                   value1: avgLoadedRpm !== null ? `$${avgLoadedRpm.toFixed(2)}` : "—",
                   label2: "Loaded mi.",
-                  value2: chain.total_miles.toLocaleString(),
+                  value2: chain.loaded_miles.toLocaleString(),
                 },
                 {
                   label1: "$/mi all-in",
-                  value1: <span className={profitChipClass}>${chain.gross_rpm_total.toFixed(2)}</span>,
+                  value1: <span className={profitChipClass}>${chain.all_in_gross_rpm.toFixed(2)}</span>,
                   tooltip1: "Gross pay ÷ all miles driven (loaded + deadhead). Pre-estimation — no fuel/cost assumptions.",
                   label2: "Total mi.",
-                  value2: (chain.total_miles + chain.total_deadhead_miles).toLocaleString(),
+                  value2: (chain.loaded_miles + chain.deadhead_miles).toLocaleString(),
                 },
                 {
                   label1: "Gross",
-                  value1: formatCurrency(chain.total_pay),
+                  value1: formatCurrency(chain.gross_pay),
                   label2: "DH mi.",
-                  value2: chain.total_deadhead_miles.toLocaleString(),
+                  value2: chain.deadhead_miles.toLocaleString(),
                 },
                 {
                   label1: "Total Profit",
                   value1: <span className={profitChipClass}>{formatCurrency(profit)}</span>,
                   label2: "Expenses",
                   value2: formatCurrency(chain.cost_breakdown.total),
-                  tooltip2: `${(chain.total_miles + chain.total_deadhead_miles).toLocaleString()} mi × $${(chain.effective_cost_per_mile ?? costPerMile).toFixed(2)}/mi`,
+                  tooltip2: `${(chain.loaded_miles + chain.deadhead_miles).toLocaleString()} mi × $${(chain.effective_cost_per_mile ?? costPerMile).toFixed(2)}/mi`,
                 },
                 {
                   label1: "Tarp",

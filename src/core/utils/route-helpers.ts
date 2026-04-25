@@ -23,7 +23,7 @@ export function getNetProfit(chain: RouteChain): number | null {
 }
 
 export function getDeadheadPerMile(chain: RouteChain): number | null {
-  if ("gross_rpm_total" in chain && typeof chain.gross_rpm_total === "number") return chain.gross_rpm_total;
+  if ("all_in_gross_rpm" in chain && typeof chain.all_in_gross_rpm === "number") return chain.all_in_gross_rpm;
   return null;
 }
 

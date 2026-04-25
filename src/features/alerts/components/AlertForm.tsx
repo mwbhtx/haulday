@@ -25,7 +25,6 @@ export function AlertForm({ initial, onSubmit, onCancel, submitLabel }: AlertFor
   const [destLng, setDestLng] = useState<string>(initial?.criteria?.destination_lng?.toString() || "");
   const [destCity, setDestCity] = useState<string>(initial?.criteria?.destination_city || "");
   const [trailerTypes, setTrailerTypes] = useState<string>(initial?.criteria?.trailer_types || "");
-  const [minRpm, setMinRpm] = useState<string>(initial?.criteria?.min_rpm?.toString() || "");
   const [minDailyProfit, setMinDailyProfit] = useState<string>(
     initial?.criteria?.min_daily_profit?.toString() || "",
   );
@@ -66,7 +65,6 @@ export function AlertForm({ initial, onSubmit, onCancel, submitLabel }: AlertFor
     if (destLng) criteria.destination_lng = parseFloat(destLng);
     if (destCity) criteria.destination_city = destCity;
     if (trailerTypes) criteria.trailer_types = trailerTypes;
-    if (minRpm) criteria.min_rpm = parseFloat(minRpm);
     if (minDailyProfit) criteria.min_daily_profit = parseFloat(minDailyProfit);
     if (maxWeight) criteria.max_weight = parseFloat(maxWeight);
     if (maxDeadheadPct) criteria.max_deadhead_pct = parseFloat(maxDeadheadPct);
@@ -122,19 +120,14 @@ export function AlertForm({ initial, onSubmit, onCancel, submitLabel }: AlertFor
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Min $/mi all-in">
-          <Input value={minRpm} onChange={(e) => setMinRpm(e.target.value)} placeholder="2.25" disabled={busy} />
-        </Field>
-        <Field label="Min daily profit ($)">
-          <Input
-            value={minDailyProfit}
-            onChange={(e) => setMinDailyProfit(e.target.value)}
-            placeholder="400"
-            disabled={busy}
-          />
-        </Field>
-      </div>
+      <Field label="Min daily profit ($)">
+        <Input
+          value={minDailyProfit}
+          onChange={(e) => setMinDailyProfit(e.target.value)}
+          placeholder="400"
+          disabled={busy}
+        />
+      </Field>
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Max weight (lbs)">
