@@ -62,16 +62,16 @@ export function DesktopOrdersView() {
     );
   }
 
-  const simulateButton = (
+  const simulateButton = !simulateOpen ? (
     <Button
-      variant={simulateOpen ? "default" : "outline"}
+      variant="outline"
       size="icon"
-      onClick={() => setSimulateOpen((v) => !v)}
+      onClick={() => setSimulateOpen(true)}
       title="Simulate route"
     >
       <ZapIcon />
     </Button>
-  );
+  ) : null;
 
   return (
     <div className="flex h-full gap-0 overflow-hidden">
