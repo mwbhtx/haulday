@@ -12,11 +12,40 @@ import { useSimulate, isSimulateRejection, type SimulateRejection } from "@/core
 import { formatCurrency } from "@/core/utils/route-helpers";
 import { routeProfitColor } from "@/core/utils/rate-color";
 import type { RouteChain, RouteLeg } from "@/core/types";
-import { DEFAULT_COST_PER_MILE } from "@mwbhtx/haulvisor-core";
+import { DEFAULT_COST_PER_MILE, haversine, ROAD_DISTANCE_FALLBACK_MULTIPLIER } from "@mwbhtx/haulvisor-core";
 
 const MS_PER_HOUR = 3_600_000;
 const DEFAULT_RADIUS = 250;
 const DEFAULT_EARLY_TOLERANCE_HOURS = 168;
+const DEFAULT_LATE_TOLERANCE_HOURS = 24;
+// Conservative loaded-truck speed for the ETA prefilter. Intentionally
+// low so we only drop candidates that *obviously* can't be made — keep
+// borderline ones in the list and let the full sim adjudicate.
+const ETA_AVG_SPEED_MPH = 50;
+
+/**
+ * Returns true if even with the driver's late tolerance, the haversine
+ * ETA from A's earliest delivery overshoots B's pickup-late close.
+ * Lenient by design: missing data → don't drop. Only blatant misses are
+ * filtered. Anything close stays in the list.
+ */
+function isObviouslyMissedConnection(
+  aLeg: RouteLeg,
+  bLeg: RouteLeg,
+  lateToleranceHours: number,
+): boolean {
+  if (!aLeg.delivery_date_early_utc || !bLeg.pickup_date_late_utc) return false;
+  const aDeliveryMs = new Date(aLeg.delivery_date_early_utc).getTime();
+  const bPickupCloseMs = new Date(bLeg.pickup_date_late_utc).getTime();
+  if (!Number.isFinite(aDeliveryMs) || !Number.isFinite(bPickupCloseMs)) return false;
+  const distMi =
+    haversine(aLeg.destination_lat, aLeg.destination_lng, bLeg.origin_lat, bLeg.origin_lng) *
+    ROAD_DISTANCE_FALLBACK_MULTIPLIER;
+  const driveMs = (distMi / ETA_AVG_SPEED_MPH) * MS_PER_HOUR;
+  const earliestAtB = aDeliveryMs + driveMs;
+  const buffer = lateToleranceHours * MS_PER_HOUR;
+  return earliestAtB > bPickupCloseMs + buffer;
+}
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -211,6 +240,22 @@ export function DesktopSimulationView() {
 
   const col2 = useRouteSearch(activeCompanyId ?? "", col2Params);
 
+  // Lenient client-side prune: drop column-2 candidates the driver
+  // obviously can't make even with their full late tolerance applied.
+  // Server-side `min_pickup_late_utc` only checks calendar overlap;
+  // this also accounts for drive time from A's drop to B's pickup.
+  const lateToleranceHours = settings?.late_tolerance_hours ?? DEFAULT_LATE_TOLERANCE_HOURS;
+  const col2Chains = useMemo<RouteChain[]>(() => {
+    const all = col2.data?.routes ?? [];
+    const aLeg = orderA ? legFromChain(orderA) : null;
+    if (!aLeg) return all;
+    return all.filter((chain) => {
+      const bLeg = legFromChain(chain);
+      if (!bLeg) return false;
+      return !isObviouslyMissedConnection(aLeg, bLeg, lateToleranceHours);
+    });
+  }, [col2.data?.routes, orderA, lateToleranceHours]);
+
   // Reset selection chain when inputs change.
   const handleOriginChange = (p: PlaceResult | null) => {
     setOrigin(p);
@@ -362,7 +407,7 @@ export function DesktopSimulationView() {
               ? `Within ${radius} mi of ${aLeg.destination_city}, ${aLeg.destination_state}`
               : "Pick a first order to populate"}
             isLoading={col2.isLoading}
-            chains={col2.data?.routes ?? []}
+            chains={col2Chains}
             selectedKey={bLeg?.order_id ?? null}
             onSelect={handleSelectB}
             emptyMessage={aLeg
