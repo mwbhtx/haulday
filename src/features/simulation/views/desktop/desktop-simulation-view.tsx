@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, PlayIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation } from "lucide-react";
+import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, PlayIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation, Search } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Slider } from "@/platform/web/components/ui/slider";
 import {
@@ -204,11 +204,17 @@ function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRow
           })()}
         </div>
         <div className="flex flex-col justify-between text-right shrink-0">
-          <div>
-            <p className={`text-sm font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
-              {formatCurrency(chain.profit)}
-            </p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">profit</p>
+          <div className="space-y-1">
+            <div>
+              <p className="text-sm font-medium tabular-nums">{formatCurrency(chain.gross_pay)}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">gross</p>
+            </div>
+            <div>
+              <p className={`text-sm font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
+                {formatCurrency(chain.profit)}
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">net</p>
+            </div>
           </div>
           {estDeadhead != null && (
             <div
@@ -254,6 +260,25 @@ function CandidateList({
   onSortDirToggle,
   deadheadAnchor,
 }: CandidateListProps) {
+  const [filter, setFilter] = useState("");
+
+  const visibleChains = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return chains;
+    return chains.filter((chain) => {
+      const leg = chain.legs[0];
+      if (!leg) return false;
+      return (
+        (leg.order_id?.toLowerCase() ?? "").includes(q) ||
+        (leg.origin_city?.toLowerCase() ?? "").includes(q) ||
+        (leg.origin_state?.toLowerCase() ?? "").includes(q) ||
+        (leg.destination_city?.toLowerCase() ?? "").includes(q) ||
+        (leg.destination_state?.toLowerCase() ?? "").includes(q) ||
+        (leg.trailer_type?.toLowerCase() ?? "").includes(q)
+      );
+    });
+  }, [chains, filter]);
+
   return (
     <div className="flex flex-col h-full border-r min-w-0">
       <div className="px-4 py-3 border-b shrink-0 bg-sidebar/40">
@@ -267,9 +292,21 @@ function CandidateList({
           />
         </div>
         {subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
+        <div className="relative mt-1.5">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search by city or order ID..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="h-7 w-full rounded-md border border-input bg-transparent pl-6 pr-2 text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+        </div>
         {!isLoading && (
           <p className="text-[10px] text-muted-foreground tabular-nums mt-0.5">
-            {chains.length} {chains.length === 1 ? "result" : "results"}
+            {filter.trim()
+              ? `${visibleChains.length} of ${chains.length} results`
+              : `${chains.length} ${chains.length === 1 ? "result" : "results"}`}
           </p>
         )}
       </div>
@@ -278,10 +315,12 @@ function CandidateList({
           <div className="flex items-center justify-center py-12">
             <Loader2Icon className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
-        ) : chains.length === 0 ? (
-          <div className="px-4 py-12 text-center text-sm text-muted-foreground">{emptyMessage}</div>
+        ) : visibleChains.length === 0 ? (
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">
+            {filter.trim() ? "No orders match your search." : emptyMessage}
+          </div>
         ) : (
-          chains.map((chain) => {
+          visibleChains.map((chain) => {
             const leg = legFromChain(chain);
             if (!leg) return null;
             const key = leg.order_id;
