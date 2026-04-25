@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation, Search } from "lucide-react";
+import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation, Truck, Search } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Slider } from "@/platform/web/components/ui/slider";
 import {
@@ -184,7 +184,7 @@ function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRow
             {leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}
           </p>
           <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
-            {Math.round(leg.miles)} mi · {formatCurrency(leg.pay)} · {leg.trailer_type ?? "—"}
+            {formatCurrency(leg.pay)} · {leg.trailer_type ?? "—"}
           </p>
           {(() => {
             const pickup = formatWindow(leg.pickup_date_early_local, leg.pickup_date_late_local);
@@ -210,15 +210,18 @@ function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRow
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">net</p>
             </div>
           </div>
-          {estDeadhead != null && (
-            <div
-              className="flex items-center justify-end gap-1 text-xs text-muted-foreground tabular-nums"
-              title="Estimated deadhead miles"
-            >
-              <Navigation className="h-3 w-3" />
-              <span>{estDeadhead} mi</span>
+          <div className="flex items-center justify-end gap-2.5 text-xs text-muted-foreground tabular-nums">
+            <div className="flex items-center gap-1" title="Loaded miles">
+              <Truck className="h-3 w-3" />
+              <span>{Math.round(leg.miles)} mi</span>
             </div>
-          )}
+            {estDeadhead != null && (
+              <div className="flex items-center gap-1" title="Estimated deadhead miles">
+                <Navigation className="h-3 w-3" />
+                <span>{estDeadhead} mi</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </button>
