@@ -12,7 +12,7 @@ import { useSimulate, isSimulateRejection, type SimulateRejection } from "@/core
 import { formatCurrency } from "@/core/utils/route-helpers";
 import { routeProfitColor } from "@/core/utils/rate-color";
 import type { RouteChain, RouteLeg } from "@/core/types";
-import { DEFAULT_COST_PER_MILE, haversine, ROAD_DISTANCE_FALLBACK_MULTIPLIER } from "@mwbhtx/haulvisor-core";
+import { DEFAULT_COST_PER_MILE, haversine } from "@mwbhtx/haulvisor-core";
 
 const MS_PER_HOUR = 3_600_000;
 const DEFAULT_RADIUS = 250;
@@ -24,10 +24,13 @@ const DEFAULT_LATE_TOLERANCE_HOURS = 24;
 const ETA_AVG_SPEED_MPH = 50;
 
 /**
- * Returns true if even with the driver's late tolerance, the haversine
- * ETA from A's earliest delivery overshoots B's pickup-late close.
- * Lenient by design: missing data → don't drop. Only blatant misses are
- * filtered. Anything close stays in the list.
+ * Returns true if even with the driver's late tolerance, the
+ * straight-line ETA from A's earliest delivery overshoots B's
+ * pickup-late close. Uses haversine × 1.0 (no road-distance fudge) to
+ * give the most generous best-case arrival — so we only drop
+ * candidates that are unreachable even at as-the-crow-flies speed.
+ * Borderline ones stay; the backend's /timeline is the authoritative
+ * feasibility check.
  */
 function isObviouslyMissedConnection(
   aLeg: RouteLeg,
@@ -38,9 +41,7 @@ function isObviouslyMissedConnection(
   const aDeliveryMs = new Date(aLeg.delivery_date_early_utc).getTime();
   const bPickupCloseMs = new Date(bLeg.pickup_date_late_utc).getTime();
   if (!Number.isFinite(aDeliveryMs) || !Number.isFinite(bPickupCloseMs)) return false;
-  const distMi =
-    haversine(aLeg.destination_lat, aLeg.destination_lng, bLeg.origin_lat, bLeg.origin_lng) *
-    ROAD_DISTANCE_FALLBACK_MULTIPLIER;
+  const distMi = haversine(aLeg.destination_lat, aLeg.destination_lng, bLeg.origin_lat, bLeg.origin_lng);
   const driveMs = (distMi / ETA_AVG_SPEED_MPH) * MS_PER_HOUR;
   const earliestAtB = aDeliveryMs + driveMs;
   const buffer = lateToleranceHours * MS_PER_HOUR;
