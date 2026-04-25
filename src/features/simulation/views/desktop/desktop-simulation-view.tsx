@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, PlayIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation, Search } from "lucide-react";
+import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation, Search } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Slider } from "@/platform/web/components/ui/slider";
 import {
@@ -364,7 +364,6 @@ export function DesktopSimulationView() {
 
   const [orderA, setOrderA] = useState<RouteChain | null>(null);
   const [orderB, setOrderB] = useState<RouteChain | null>(null);
-  const [hasRun, setHasRun] = useState(false);
 
   const [col1Sort, setCol1Sort] = useState<{ key: SortKey; dir: SortDir }>({ key: "pay", dir: "desc" });
   const [col2Sort, setCol2Sort] = useState<{ key: SortKey; dir: SortDir }>({ key: "pay", dir: "desc" });
@@ -454,22 +453,18 @@ export function DesktopSimulationView() {
     setOrigin(p);
     setOrderA(null);
     setOrderB(null);
-    setHasRun(false);
   };
   const handleRadiusChange = (v: number) => {
     setRadius(v);
     setOrderA(null);
     setOrderB(null);
-    setHasRun(false);
   };
   const handleSelectA = (chain: RouteChain | null) => {
     setOrderA(chain);
     setOrderB(null);
-    setHasRun(false);
   };
   const handleSelectB = (chain: RouteChain | null) => {
     setOrderB(chain);
-    setHasRun(false);
   };
 
   const orderIds = useMemo(() => {
@@ -480,7 +475,7 @@ export function DesktopSimulationView() {
 
   const sim = useSimulate(
     orderIds,
-    hasRun && orderIds.length === 2,
+    orderIds.length === 2,
     effectiveOrigin ? { lat: effectiveOrigin.lat, lng: effectiveOrigin.lng } : undefined,
     destination
       ? { lat: destination.lat, lng: destination.lng, city: destination.name.split(",")[0] }
@@ -508,7 +503,6 @@ export function DesktopSimulationView() {
 
   const aLeg = orderA ? legFromChain(orderA) : null;
   const bLeg = orderB ? legFromChain(orderB) : null;
-  const canRun = !!orderA && !!orderB && !sim.isLoading;
   const costPerMile = (settings?.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE;
 
   return (
@@ -549,7 +543,7 @@ export function DesktopSimulationView() {
               className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
             />
           </div>
-          <div className="col-span-3 space-y-1">
+          <div className="col-span-4 space-y-1">
             <div className="flex justify-between items-center">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Search Radius</label>
               <span className="text-xs tabular-nums">{radius} mi</span>
@@ -561,16 +555,6 @@ export function DesktopSimulationView() {
               max={500}
               step={25}
             />
-          </div>
-          <div className="col-span-1">
-            <Button
-              className="w-full"
-              disabled={!canRun}
-              onClick={() => setHasRun(true)}
-            >
-              <PlayIcon className="h-4 w-4" />
-              Run
-            </Button>
           </div>
         </div>
       </div>
@@ -625,38 +609,36 @@ export function DesktopSimulationView() {
             <p className="text-xs font-semibold uppercase tracking-widest">Simulation Result</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {orderA && orderB
-                ? hasRun ? "Computed via /timeline" : "Click Run to simulate this 2-order chain."
-                : "Pick one order from each column to enable Run."}
+                ? sim.isLoading ? "Computing..." : "Computed via /timeline"
+                : "Pick one order from each column."}
             </p>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
-            {!hasRun && (
+            {orderIds.length < 2 && (
               <div className="flex flex-col items-center justify-center h-full gap-2 text-center text-sm text-muted-foreground">
                 <MapPin className="h-8 w-8 text-muted-foreground/50" />
-                <p>{orderA && orderB
-                  ? "Click Run to compute miles, profit, and feasibility."
-                  : "Build your chain to the left."}</p>
+                <p>Build your chain to the left.</p>
               </div>
             )}
-            {hasRun && sim.isLoading && (
+            {orderIds.length === 2 && sim.isLoading && (
               <div className="flex items-center justify-center h-full">
                 <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             )}
-            {hasRun && sim.error && (
+            {orderIds.length === 2 && sim.error && (
               <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
                 <AlertCircleIcon className="h-8 w-8 text-destructive" />
                 <p className="text-sm text-destructive">Failed to load simulation.</p>
                 <p className="text-xs text-muted-foreground">{(sim.error as Error).message}</p>
               </div>
             )}
-            {hasRun && !sim.isLoading && !sim.error && sim.data && isSimulateRejection(sim.data) && (
+            {orderIds.length === 2 && !sim.isLoading && !sim.error && sim.data && isSimulateRejection(sim.data) && (
               <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3">
                 <AlertCircleIcon className="h-5 w-5 text-destructive shrink-0" />
                 <p className="text-sm">{rejectionMessage(sim.data)}</p>
               </div>
             )}
-            {hasRun && !sim.isLoading && !sim.error && sim.data && !isSimulateRejection(sim.data) && (
+            {orderIds.length === 2 && !sim.isLoading && !sim.error && sim.data && !isSimulateRejection(sim.data) && (
               <SimulationSummary chain={sim.data} costPerMile={costPerMile} />
             )}
           </div>
