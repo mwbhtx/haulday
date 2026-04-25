@@ -85,6 +85,11 @@ function getStopoffScheduleBadge(
   return null;
 }
 
+function fmtScheduleOffset(hours: number): string {
+  if (hours >= 12) return `${Math.round(hours / 24)}d`;
+  return `${Math.round(hours)}h`;
+}
+
 function estDriveTime(miles: number, speed: number): string {
   const hours = miles / speed;
   const h = Math.floor(hours);
@@ -568,11 +573,11 @@ function RouteDetailContent({
                                 }`}
                                 title={
                                   badge.kind === "LATE"
-                                    ? `Our model arrives ${badge.hours.toFixed(1)}h past the window close`
-                                    : `Our model arrives ${badge.hours.toFixed(1)}h before the window opens`
+                                    ? `Our model arrives ${fmtScheduleOffset(badge.hours)} past the window close`
+                                    : `Our model arrives ${fmtScheduleOffset(badge.hours)} before the window opens`
                                 }
                               >
-                                {badge.kind} {badge.hours.toFixed(1)}h
+                                {badge.kind} {fmtScheduleOffset(badge.hours)}
                               </span>
                             )}
                           </div>
