@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useRoutesStore } from "@/core/stores/routes-store";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { tourSteps } from "@/platform/web/components/tour-steps";
@@ -32,12 +33,16 @@ const EMPTY_LOCATION: LocationGroup = {
 export function DesktopRoutesView() {
   const { activeCompanyId, loading } = useAuth();
   const { data: settings, isLoading: settingsLoading } = useSettings();
-  const [searchParams, setSearchParams] = useState<RouteSearchParams | null>(null);
-  const [selectedItemIndex, setSelectedItemIndex] = useState(0);
-  const [selectedChain, setSelectedChain] = useState<RouteChain | null>(null);
+  const {
+    searchParams, selectedItemIndex, selectedChain, originFilter, destFilter,
+    set: setStore,
+  } = useRoutesStore();
+  const setSearchParams = (v: RouteSearchParams | null) => setStore({ searchParams: v });
+  const setSelectedItemIndex = (v: number) => setStore({ selectedItemIndex: v });
+  const setSelectedChain = (v: RouteChain | null) => setStore({ selectedChain: v });
+  const setOriginFilter = (v: { lat: number; lng: number; city: string } | null) => setStore({ originFilter: v });
+  const setDestFilter = (v: { lat: number; lng: number; city: string } | null) => setStore({ destFilter: v });
   const [filterResetKey, setFilterResetKey] = useState(0);
-  const [originFilter, setOriginFilter] = useState<{ lat: number; lng: number; city: string } | null>(null);
-  const [destFilter, setDestFilter] = useState<{ lat: number; lng: number; city: string } | null>(null);
 
   const [filterPending, setFilterPending] = useState(false);
   const hoverLegRef = useRef<((legIndex: number | null) => void) | null>(null);

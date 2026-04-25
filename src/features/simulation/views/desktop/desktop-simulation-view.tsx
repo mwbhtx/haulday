@@ -20,9 +20,9 @@ import { formatCurrency } from "@/core/utils/route-helpers";
 import { routeProfitColor } from "@/core/utils/rate-color";
 import type { RouteChain, RouteLeg } from "@/core/types";
 import { DEFAULT_COST_PER_MILE, haversine, ROAD_DISTANCE_FALLBACK_MULTIPLIER } from "@mwbhtx/haulvisor-core";
+import { useSimulationStore, type SortKey, type SortDir } from "@/core/stores/simulation-store";
 
 const MS_PER_HOUR = 3_600_000;
-const DEFAULT_RADIUS = 250;
 const DEFAULT_EARLY_TOLERANCE_HOURS = 168;
 const DEFAULT_LATE_TOLERANCE_HOURS = 24;
 // Conservative loaded-truck speed for the ETA prefilter. Intentionally
@@ -55,20 +55,14 @@ function isObviouslyMissedConnection(
   return earliestAtB > bPickupCloseMs + buffer;
 }
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function legFromChain(chain: RouteChain): RouteLeg | null {
   return chain.legs[0] ?? null;
 }
 
-type SortKey = "profit" | "pay" | "distance" | "pickup";
-type SortDir = "asc" | "desc";
-
 const SORT_OPTIONS: { value: SortKey; label: string; defaultDir: SortDir }[] = [
-  { value: "profit", label: "Profit", defaultDir: "desc" },
-  { value: "pay", label: "Pay", defaultDir: "desc" },
+  { value: "profit", label: "Net", defaultDir: "desc" },
+  { value: "pay", label: "Gross", defaultDir: "desc" },
   { value: "distance", label: "Distance", defaultDir: "asc" },
   { value: "pickup", label: "Pickup", defaultDir: "asc" },
 ];
@@ -293,7 +287,7 @@ function CandidateList({
         </div>
         {subtitle && (
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-            {!isLoading && subtitle.startsWith("Within")
+            {!isLoading && chains.length > 0 && subtitle.startsWith("Within")
               ? `${chains.length} results ${subtitle.toLowerCase()}`
               : subtitle}
           </p>
@@ -352,29 +346,23 @@ export function DesktopSimulationView() {
     };
   }, [settings?.home_base_lat, settings?.home_base_lng, settings?.home_base_city, settings?.home_base_state]);
 
-  const [origin, setOrigin] = useState<PlaceResult | null>(null);
-  const [destination, setDestination] = useState<PlaceResult | null>(null);
-  const [radius, setRadius] = useState<number>(DEFAULT_RADIUS);
-  const [departureDate, setDepartureDate] = useState<string>(todayIso());
+  const {
+    origin, destination, radius, departureDate, orderA, orderB, col1Sort, col2Sort,
+    set: setStore,
+  } = useSimulationStore();
 
   const effectiveOrigin = origin ?? homeBasePlace;
 
-  const [orderA, setOrderA] = useState<RouteChain | null>(null);
-  const [orderB, setOrderB] = useState<RouteChain | null>(null);
-
-  const [col1Sort, setCol1Sort] = useState<{ key: SortKey; dir: SortDir }>({ key: "pay", dir: "desc" });
-  const [col2Sort, setCol2Sort] = useState<{ key: SortKey; dir: SortDir }>({ key: "pay", dir: "desc" });
-
   const handleCol1SortKey = (k: SortKey) => {
     const opt = SORT_OPTIONS.find(o => o.value === k);
-    setCol1Sort({ key: k, dir: opt?.defaultDir ?? "desc" });
+    setStore({ col1Sort: { key: k, dir: opt?.defaultDir ?? "desc" } });
   };
   const handleCol2SortKey = (k: SortKey) => {
     const opt = SORT_OPTIONS.find(o => o.value === k);
-    setCol2Sort({ key: k, dir: opt?.defaultDir ?? "desc" });
+    setStore({ col2Sort: { key: k, dir: opt?.defaultDir ?? "desc" } });
   };
-  const toggleCol1Dir = () => setCol1Sort(s => ({ ...s, dir: s.dir === "asc" ? "desc" : "asc" }));
-  const toggleCol2Dir = () => setCol2Sort(s => ({ ...s, dir: s.dir === "asc" ? "desc" : "asc" }));
+  const toggleCol1Dir = () => setStore({ col1Sort: { ...col1Sort, dir: col1Sort.dir === "asc" ? "desc" : "asc" } });
+  const toggleCol2Dir = () => setStore({ col2Sort: { ...col2Sort, dir: col2Sort.dir === "asc" ? "desc" : "asc" } });
 
   const earlyToleranceHours = settings?.early_tolerance_hours ?? DEFAULT_EARLY_TOLERANCE_HOURS;
 
@@ -447,21 +435,16 @@ export function DesktopSimulationView() {
 
   // Reset selection chain when inputs change.
   const handleOriginChange = (p: PlaceResult | null) => {
-    setOrigin(p);
-    setOrderA(null);
-    setOrderB(null);
+    setStore({ origin: p, orderA: null, orderB: null });
   };
   const handleRadiusChange = (v: number) => {
-    setRadius(v);
-    setOrderA(null);
-    setOrderB(null);
+    setStore({ radius: v, orderA: null, orderB: null });
   };
   const handleSelectA = (chain: RouteChain | null) => {
-    setOrderA(chain);
-    setOrderB(null);
+    setStore({ orderA: chain, orderB: null });
   };
   const handleSelectB = (chain: RouteChain | null) => {
-    setOrderB(chain);
+    setStore({ orderB: chain });
   };
 
   const orderIds = useMemo(() => {
@@ -525,7 +508,7 @@ export function DesktopSimulationView() {
             <PlaceAutocomplete
               placeholder="e.g. return to home base..."
               value={destination}
-              onSelect={(p) => { setDestination(p); }}
+              onSelect={(p) => setStore({ destination: p })}
             />
           </div>
           <div className="col-span-2 space-y-1">
@@ -533,10 +516,7 @@ export function DesktopSimulationView() {
             <input
               type="date"
               value={departureDate}
-              onChange={(e) => {
-                setDepartureDate(e.target.value);
-                setOrderA(null); setOrderB(null);
-              }}
+              onChange={(e) => setStore({ departureDate: e.target.value, orderA: null, orderB: null })}
               className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
             />
           </div>
