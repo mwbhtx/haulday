@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation, Truck, Search } from "lucide-react";
+import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation, Truck, Search, ExternalLink } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Slider } from "@/platform/web/components/ui/slider";
 import {
@@ -18,7 +18,7 @@ import { useSimulate, isSimulateRejection, type SimulateRejection } from "@/core
 import { formatCurrency } from "@/core/utils/route-helpers";
 import { routeProfitColor } from "@/core/utils/rate-color";
 import type { RouteChain, RouteLeg } from "@/core/types";
-import { DEFAULT_COST_PER_MILE, haversine, ROAD_DISTANCE_FALLBACK_MULTIPLIER } from "@mwbhtx/haulvisor-core";
+import { haversine } from "@mwbhtx/haulvisor-core";
 import { useSimulationStore, type SortKey, type SortDir } from "@/core/stores/simulation-store";
 import { useSimulationSearchContext } from "@/core/providers/simulation-search-provider";
 
@@ -154,21 +154,13 @@ interface CandidateRowProps {
   chain: RouteChain;
   selected: boolean;
   onClick: () => void;
-  /** When provided, shows an estimated deadhead from this anchor to the
-   *  candidate's pickup origin (haversine × 1.18). Used on Pickup #2 to
-   *  show how far the driver has to drive from order A's drop. */
   deadheadAnchor?: { lat: number; lng: number };
+  orderUrlTemplate?: string;
 }
 
-function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRowProps) {
+function CandidateRow({ chain, selected, onClick, deadheadAnchor, orderUrlTemplate }: CandidateRowProps) {
   const leg = legFromChain(chain);
   if (!leg) return null;
-  const estDeadhead = deadheadAnchor
-    ? Math.round(
-        haversine(deadheadAnchor.lat, deadheadAnchor.lng, leg.origin_lat, leg.origin_lng) *
-          ROAD_DISTANCE_FALLBACK_MULTIPLIER,
-      )
-    : null;
   return (
     <button
       type="button"
@@ -179,9 +171,23 @@ function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRow
     >
       <div className="flex justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate">
-            {leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}
-          </p>
+          <div className="flex items-center gap-1 min-w-0">
+            <p className="text-sm font-medium truncate">
+              {leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}
+            </p>
+            {leg.order_id && orderUrlTemplate && (
+              <a
+                href={orderUrlTemplate.replace("{{ORDER_ID}}", leg.order_id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
+                title="Open in portal"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
             {formatCurrency(leg.pay)} · {leg.trailer_type ?? "—"}
           </p>
@@ -212,10 +218,10 @@ function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRow
               <Truck className="h-3 w-3" />
               <span>{Math.round(leg.miles)} mi</span>
             </div>
-            {estDeadhead != null && (
-              <div className="flex items-center gap-1" title="Estimated deadhead miles">
+            {deadheadAnchor != null && chain.deadhead_pct != null && (
+              <div className="flex items-center gap-1" title="Deadhead percentage">
                 <Navigation className="h-3 w-3" />
-                <span>{estDeadhead} mi</span>
+                <span>{chain.deadhead_pct}%</span>
               </div>
             )}
           </div>
@@ -240,6 +246,7 @@ interface CandidateListProps {
   deadheadAnchor?: { lat: number; lng: number };
   filterValue: string;
   onFilterChange: (v: string) => void;
+  orderUrlTemplate?: string;
 }
 
 function CandidateList({
@@ -257,6 +264,7 @@ function CandidateList({
   deadheadAnchor,
   filterValue,
   onFilterChange,
+  orderUrlTemplate,
 }: CandidateListProps) {
   const filter = filterValue;
 
@@ -328,6 +336,7 @@ function CandidateList({
                 selected={selectedKey === key}
                 onClick={() => onSelect(selectedKey === key ? null : chain)}
                 deadheadAnchor={deadheadAnchor}
+                orderUrlTemplate={orderUrlTemplate}
               />
             );
           })
@@ -370,6 +379,7 @@ export function DesktopSimulationView() {
   const toggleCol2Dir = () => setStore({ col2Sort: { ...col2Sort, dir: col2Sort.dir === "asc" ? "desc" : "asc" } });
 
   const { col1, col2 } = useSimulationSearchContext();
+  const orderUrlTemplate = col1.data?.order_url_template ?? col2.data?.order_url_template;
 
   const col1Chains = useMemo<RouteChain[]>(
     () => sortChains(col1.data?.routes ?? [], col1Sort.key, col1Sort.dir),
@@ -513,6 +523,7 @@ export function DesktopSimulationView() {
             deadheadAnchor={effectiveOrigin ? { lat: effectiveOrigin.lat, lng: effectiveOrigin.lng } : undefined}
             filterValue={col1Filter}
             onFilterChange={(v) => setStore({ col1Filter: v })}
+            orderUrlTemplate={orderUrlTemplate}
           />
         </div>
 
@@ -537,6 +548,7 @@ export function DesktopSimulationView() {
             deadheadAnchor={aLeg ? { lat: aLeg.destination_lat, lng: aLeg.destination_lng } : undefined}
             filterValue={col2Filter}
             onFilterChange={(v) => setStore({ col2Filter: v })}
+            orderUrlTemplate={orderUrlTemplate}
           />
         </div>
 
@@ -602,7 +614,7 @@ function SimulationSummary({ chain }: { chain: RouteChain }) {
         <Stat label="Deadhead mi" value={Math.round(chain.deadhead_miles).toLocaleString()} />
         <Stat label="$/mi all-in" value={`$${chain.all_in_gross_rpm.toFixed(2)}`} />
         <Stat label="$/mi loaded" value={`$${chain.rate_per_mile.toFixed(2)}`} />
-        <Stat label="Deadhead %" value={`${chain.deadhead_pct.toFixed(0)}%`} />
+        <Stat label="Deadhead %" value={chain.deadhead_pct != null ? `${chain.deadhead_pct.toFixed(0)}%` : "—"} />
       </div>
 
       <div className="space-y-2">

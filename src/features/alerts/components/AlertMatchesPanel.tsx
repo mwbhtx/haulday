@@ -78,7 +78,7 @@ export function AlertMatchesPanel({ defaultExpanded = false }: AlertMatchesPanel
                 : status === "dismissed"
                   ? "No dismissed matches. "
                   : "No matches in the last 7 days. "}
-              <Link href="/settings#alerts" className="underline hover:text-primary">
+              <Link href="/driver/alerts" className="underline hover:text-primary">
                 Manage alerts
               </Link>
             </div>
