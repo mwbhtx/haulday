@@ -421,8 +421,13 @@ export function DesktopSimulationView() {
       num_orders: 1,
       min_pickup_late_utc: minPickupLateUtc,
       candidates_only: true,
+      ...(destination ? {
+        destination_lat: destination.lat,
+        destination_lng: destination.lng,
+        dest_radius_miles: radius,
+      } : {}),
     };
-  }, [orderA, radius, departureDate, earlyToleranceHours]);
+  }, [orderA, radius, departureDate, earlyToleranceHours, destination]);
 
   const col2 = useRouteSearch(activeCompanyId ?? "", col2Params);
 
