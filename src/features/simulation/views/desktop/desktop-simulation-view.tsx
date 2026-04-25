@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, PlayIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon } from "lucide-react";
+import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, PlayIcon, CheckCircle2Icon, ArrowUpIcon, ArrowDownIcon, Navigation } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Slider } from "@/platform/web/components/ui/slider";
 import {
@@ -184,7 +184,7 @@ function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRow
         selected ? "bg-primary/15 border-primary/40" : "hover:bg-surface-elevated/50"
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium truncate">
             {leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}
@@ -192,11 +192,6 @@ function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRow
           <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
             {Math.round(leg.miles)} mi · {formatCurrency(leg.pay)} · {leg.trailer_type ?? "—"}
           </p>
-          {estDeadhead != null && (
-            <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
-              Est. DH: {estDeadhead} mi
-            </p>
-          )}
           {(() => {
             const pickup = formatWindow(leg.pickup_date_early_local, leg.pickup_date_late_local);
             const delivery = formatWindow(leg.delivery_date_early_local, leg.delivery_date_late_local);
@@ -208,11 +203,22 @@ function CandidateRow({ chain, selected, onClick, deadheadAnchor }: CandidateRow
             );
           })()}
         </div>
-        <div className="text-right shrink-0">
-          <p className={`text-sm font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
-            {formatCurrency(chain.profit)}
-          </p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">profit</p>
+        <div className="flex flex-col justify-between text-right shrink-0">
+          <div>
+            <p className={`text-sm font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
+              {formatCurrency(chain.profit)}
+            </p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">profit</p>
+          </div>
+          {estDeadhead != null && (
+            <div
+              className="flex items-center justify-end gap-1 text-xs text-muted-foreground tabular-nums"
+              title="Estimated deadhead miles"
+            >
+              <Navigation className="h-3 w-3" />
+              <span>{estDeadhead} mi</span>
+            </div>
+          )}
         </div>
       </div>
     </button>
@@ -534,6 +540,7 @@ export function DesktopSimulationView() {
             sortDir={col1Sort.dir}
             onSortKeyChange={handleCol1SortKey}
             onSortDirToggle={toggleCol1Dir}
+            deadheadAnchor={effectiveOrigin ? { lat: effectiveOrigin.lat, lng: effectiveOrigin.lng } : undefined}
           />
         </div>
 
