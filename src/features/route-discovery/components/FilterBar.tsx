@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Input } from "@/platform/web/components/ui/input";
-import { US_CITIES, parseCityState } from "../utils/city-list";
+import { LocationCombobox } from "./LocationCombobox";
+import { parseCityState } from "../utils/city-list";
 
 export interface FilterBarValues {
   city: string;
@@ -41,9 +42,6 @@ export function FilterBar({ onSearch }: Props) {
     }
   };
 
-  // Each control is a label-on-top + 32px input pattern. All children of the
-  // outer flex row are the same height; items-end keeps the input baselines
-  // aligned even if a future label wraps to two lines.
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className="w-72">
@@ -51,20 +49,13 @@ export function FilterBar({ onSearch }: Props) {
           <span className="text-sm font-medium">Location</span>
           <span className="text-xs text-muted-foreground">City, ST</span>
         </label>
-        <Input
+        <LocationCombobox
           id="rd-location"
-          list="rd-location-list"
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onChange={setLocation}
+          onEnter={() => isValid && handleSubmit()}
           placeholder="Houston, TX"
-          autoComplete="off"
         />
-        <datalist id="rd-location-list">
-          {US_CITIES.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
       </div>
 
       <div className="w-28">
