@@ -590,7 +590,7 @@ export function DesktopSimulationView() {
             selectedKey={bLeg?.order_id ?? null}
             onSelect={handleSelectB}
             emptyMessage={aLeg
-              ? "No follow-on orders fit (radius or pickup window)."
+              ? "No orders found near this delivery location."
               : "Pick a first order to see candidates."}
             sortKey={col2Sort.key}
             sortDir={col2Sort.dir}
