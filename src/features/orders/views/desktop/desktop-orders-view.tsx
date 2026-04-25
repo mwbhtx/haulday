@@ -111,7 +111,7 @@ export function DesktopOrdersView() {
 
       {/* Simulate panel column */}
       {simulateOpen && (
-        <div className="shrink-0 w-[520px] border-l flex flex-col min-h-0">
+        <div className="shrink-0 w-[520px] border-l ml-4 flex flex-col min-h-0">
           <SimulatePanel
             companyId={activeCompanyId}
             onClose={() => setSimulateOpen(false)}
