@@ -57,6 +57,17 @@ export interface AnalyticsTopCitiesEntry {
   avg_count: number;
 }
 
+export type {
+  DiscoveredRoute,
+  DiscoveredOrder,
+  RouteDiscoveryResult,
+  RegionInspectorResult,
+  LaneDensityResult,
+  LegDeadheadResult,
+  RegionAnchor,
+  LaneDensityDay,
+} from "@mwbhtx/haulvisor-core";
+
 // Frontend-only types (not shared with backend)
 
 export interface LocationGroup {
