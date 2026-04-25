@@ -39,6 +39,9 @@ export interface RouteSearchParams {
    *  delivery-early (minus driver early_tolerance) so chronologically
    *  impossible orders are filtered server-side. */
   min_pickup_late_utc?: number;
+  /** Simulation-page mode: skip Phase B simulation + top-K ranking,
+   *  return every reachable order as a 1-leg shell for manual pairing. */
+  candidates_only?: boolean;
   /** Cache-bust token — forces a new search even with identical params */
   _t?: number;
 }

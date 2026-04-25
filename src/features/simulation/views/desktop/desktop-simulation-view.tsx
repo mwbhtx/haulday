@@ -267,6 +267,11 @@ function CandidateList({
           />
         </div>
         {subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
+        {!isLoading && (
+          <p className="text-[10px] text-muted-foreground tabular-nums mt-0.5">
+            {chains.length} {chains.length === 1 ? "result" : "results"}
+          </p>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
@@ -346,6 +351,7 @@ export function DesktopSimulationView() {
       search_radius_miles: radius,
       origin_radius_miles: radius,
       num_orders: 1,
+      candidates_only: true,
     };
   }, [effectiveOrigin, departureDate, radius]);
 
@@ -373,6 +379,7 @@ export function DesktopSimulationView() {
       origin_radius_miles: radius,
       num_orders: 1,
       min_pickup_late_utc: minPickupLateUtc,
+      candidates_only: true,
     };
   }, [orderA, radius, departureDate, earlyToleranceHours]);
 
