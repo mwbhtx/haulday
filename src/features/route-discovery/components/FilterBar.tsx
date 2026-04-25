@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Input } from "@/platform/web/components/ui/input";
-import { US_STATES } from "../utils/state-list";
+import { US_CITIES, parseCityState } from "../utils/city-list";
 
 export interface FilterBarValues {
   city: string;
@@ -17,63 +17,61 @@ interface Props {
 }
 
 export function FilterBar({ onSearch }: Props) {
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
+  const [location, setLocation] = useState("");
   const [radius, setRadius] = useState(100);
   const [orders, setOrders] = useState<2 | 3 | 4>(3);
 
-  const isValid =
-    city.trim().length >= 2 && state !== "" && radius >= 50 && radius <= 500;
+  const parsed = useMemo(() => parseCityState(location), [location]);
+  const isValid = parsed !== null && radius >= 50 && radius <= 500;
 
   const handleSubmit = () => {
-    if (!isValid) return;
-    onSearch({ city: city.trim(), state, radius_miles: radius, order_count: orders });
+    if (!parsed) return;
+    onSearch({
+      city: parsed.city,
+      state: parsed.state,
+      radius_miles: radius,
+      order_count: orders,
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && isValid) {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <div>
-        <label
-          htmlFor="rd-city"
-          className="block text-sm font-medium mb-1.5"
-        >
-          City
+      <div className="flex-1 min-w-[260px]">
+        <label htmlFor="rd-location" className="block text-sm font-medium mb-1.5">
+          Location
         </label>
         <Input
-          id="rd-city"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="Houston"
+          id="rd-location"
+          list="rd-location-list"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Houston, TX"
+          aria-describedby="rd-location-hint"
+          autoComplete="off"
         />
-      </div>
-
-      <div>
-        <label
-          htmlFor="rd-state"
-          className="block text-sm font-medium mb-1.5"
-        >
-          State
-        </label>
-        <select
-          id="rd-state"
-          value={state}
-          onChange={(e) => setState(e.target.value)}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <option value="">Select...</option>
-          {US_STATES.map((s) => (
-            <option key={s.code} value={s.code}>
-              {s.code} — {s.name}
-            </option>
+        <datalist id="rd-location-list">
+          {US_CITIES.map((c) => (
+            <option key={c} value={c} />
           ))}
-        </select>
+        </datalist>
+        <span
+          id="rd-location-hint"
+          className="block text-xs text-muted-foreground mt-1"
+        >
+          City, ST
+        </span>
       </div>
 
       <div>
-        <label
-          htmlFor="rd-radius"
-          className="block text-sm font-medium mb-1.5"
-        >
+        <label htmlFor="rd-radius" className="block text-sm font-medium mb-1.5">
           Radius (mi)
         </label>
         <Input
@@ -83,6 +81,8 @@ export function FilterBar({ onSearch }: Props) {
           max={500}
           value={radius}
           onChange={(e) => setRadius(Number(e.target.value))}
+          onKeyDown={handleKeyDown}
+          className="w-24"
         />
       </div>
 
