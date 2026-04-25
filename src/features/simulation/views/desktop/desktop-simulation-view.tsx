@@ -1,0 +1,465 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { FlaskConical, MapPin, Loader2Icon, AlertCircleIcon, PlayIcon, CheckCircle2Icon } from "lucide-react";
+import { Button } from "@/platform/web/components/ui/button";
+import { Slider } from "@/platform/web/components/ui/slider";
+import { PlaceAutocomplete, type PlaceResult } from "@/features/routes/components/search-form";
+import { useAuth } from "@/core/services/auth-provider";
+import { useSettings } from "@/core/hooks/use-settings";
+import { useRouteSearch, type RouteSearchParams } from "@/core/hooks/use-routes";
+import { useSimulate, isSimulateRejection, type SimulateRejection } from "@/core/hooks/use-simulate";
+import { formatCurrency } from "@/core/utils/route-helpers";
+import { routeProfitColor } from "@/core/utils/rate-color";
+import type { RouteChain, RouteLeg } from "@/core/types";
+import { DEFAULT_COST_PER_MILE } from "@mwbhtx/haulvisor-core";
+
+const MS_PER_HOUR = 3_600_000;
+const DEFAULT_RADIUS = 250;
+const DEFAULT_EARLY_TOLERANCE_HOURS = 168;
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function legFromChain(chain: RouteChain): RouteLeg | null {
+  return chain.legs[0] ?? null;
+}
+
+function rejectionMessage(rej: SimulateRejection): string {
+  switch (rej.reason) {
+    case "WINDOW_VIOLATION": {
+      if (rej.violations.length === 0) return "Pickup or delivery window violated.";
+      return rej.violations
+        .map(v => `${v.window} window @ leg ${v.leg_index} (${v.city}): ${v.hours_late.toFixed(1)}h late`)
+        .join("; ");
+    }
+    case "ENVELOPE_VIOLATION_END":
+      return "Trip extends past your latest on-duty hour. Adjust work hours in Settings or pick orders that fit your day.";
+    case "ON_DUTY_CAP_EXCEEDED":
+      return "Trip exceeds your max on-duty hours per day. Pick orders with more time between them.";
+    default:
+      return "This chain is infeasible.";
+  }
+}
+
+interface CandidateRowProps {
+  chain: RouteChain;
+  selected: boolean;
+  onClick: () => void;
+}
+
+function CandidateRow({ chain, selected, onClick }: CandidateRowProps) {
+  const leg = legFromChain(chain);
+  if (!leg) return null;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full text-left px-4 py-3 border-b transition-colors ${
+        selected ? "bg-primary/15 border-primary/40" : "hover:bg-surface-elevated/50"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium truncate">
+            {leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}
+          </p>
+          <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
+            {Math.round(leg.miles)} mi · {formatCurrency(leg.pay)} · {leg.trailer_type ?? "—"}
+          </p>
+          {leg.pickup_date_early_local && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Pickup: {leg.pickup_date_early_local.slice(0, 16).replace("T", " ")}
+            </p>
+          )}
+        </div>
+        <div className="text-right shrink-0">
+          <p className={`text-sm font-bold tabular-nums ${routeProfitColor(chain.daily_net_profit)}`}>
+            {formatCurrency(chain.profit)}
+          </p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">profit</p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+interface CandidateListProps {
+  title: string;
+  subtitle?: string;
+  isLoading: boolean;
+  chains: RouteChain[];
+  selectedKey: string | null;
+  onSelect: (chain: RouteChain | null) => void;
+  emptyMessage: string;
+}
+
+function CandidateList({ title, subtitle, isLoading, chains, selectedKey, onSelect, emptyMessage }: CandidateListProps) {
+  return (
+    <div className="flex flex-col h-full border-r min-w-0">
+      <div className="px-4 py-3 border-b shrink-0 bg-sidebar/40">
+        <p className="text-xs font-semibold uppercase tracking-widest">{title}</p>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2Icon className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : chains.length === 0 ? (
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">{emptyMessage}</div>
+        ) : (
+          chains.map((chain) => {
+            const leg = legFromChain(chain);
+            if (!leg) return null;
+            const key = leg.order_id;
+            return (
+              <CandidateRow
+                key={key}
+                chain={chain}
+                selected={selectedKey === key}
+                onClick={() => onSelect(selectedKey === key ? null : chain)}
+              />
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function DesktopSimulationView() {
+  const { activeCompanyId, loading: authLoading } = useAuth();
+  const { data: settings } = useSettings();
+
+  const homeBasePlace = useMemo<PlaceResult | null>(() => {
+    if (!settings?.home_base_lat || !settings.home_base_lng) return null;
+    return {
+      name: [settings.home_base_city, settings.home_base_state].filter(Boolean).join(", "),
+      lat: settings.home_base_lat,
+      lng: settings.home_base_lng,
+    };
+  }, [settings?.home_base_lat, settings?.home_base_lng, settings?.home_base_city, settings?.home_base_state]);
+
+  const [origin, setOrigin] = useState<PlaceResult | null>(null);
+  const [destination, setDestination] = useState<PlaceResult | null>(null);
+  const [radius, setRadius] = useState<number>(DEFAULT_RADIUS);
+  const [departureDate, setDepartureDate] = useState<string>(todayIso());
+
+  const effectiveOrigin = origin ?? homeBasePlace;
+
+  const [orderA, setOrderA] = useState<RouteChain | null>(null);
+  const [orderB, setOrderB] = useState<RouteChain | null>(null);
+  const [hasRun, setHasRun] = useState(false);
+
+  const earlyToleranceHours = settings?.early_tolerance_hours ?? DEFAULT_EARLY_TOLERANCE_HOURS;
+
+  // Column 1: candidates near origin
+  const col1Params = useMemo<RouteSearchParams | null>(() => {
+    if (!effectiveOrigin) return null;
+    return {
+      origin_lat: effectiveOrigin.lat,
+      origin_lng: effectiveOrigin.lng,
+      departure_date: departureDate,
+      search_radius_miles: radius,
+      origin_radius_miles: radius,
+      num_orders: 1,
+    };
+  }, [effectiveOrigin, departureDate, radius]);
+
+  const col1 = useRouteSearch(activeCompanyId ?? "", col1Params);
+
+  // Column 2: candidates anchored at order A's last delivery, with min_pickup_late_utc filter.
+  const col2Params = useMemo<RouteSearchParams | null>(() => {
+    const aLeg = orderA ? legFromChain(orderA) : null;
+    if (!aLeg) return null;
+    const aDeliveryEarlyMs = aLeg.delivery_date_early_utc
+      ? new Date(aLeg.delivery_date_early_utc).getTime()
+      : null;
+    const minPickupLateUtc = aDeliveryEarlyMs != null
+      ? aDeliveryEarlyMs - earlyToleranceHours * MS_PER_HOUR
+      : undefined;
+    return {
+      origin_lat: aLeg.destination_lat,
+      origin_lng: aLeg.destination_lng,
+      departure_date: departureDate,
+      search_radius_miles: radius,
+      origin_radius_miles: radius,
+      num_orders: 1,
+      min_pickup_late_utc: minPickupLateUtc,
+    };
+  }, [orderA, radius, departureDate, earlyToleranceHours]);
+
+  const col2 = useRouteSearch(activeCompanyId ?? "", col2Params);
+
+  // Reset selection chain when inputs change.
+  const handleOriginChange = (p: PlaceResult | null) => {
+    setOrigin(p);
+    setOrderA(null);
+    setOrderB(null);
+    setHasRun(false);
+  };
+  const handleRadiusChange = (v: number) => {
+    setRadius(v);
+    setOrderA(null);
+    setOrderB(null);
+    setHasRun(false);
+  };
+  const handleSelectA = (chain: RouteChain | null) => {
+    setOrderA(chain);
+    setOrderB(null);
+    setHasRun(false);
+  };
+  const handleSelectB = (chain: RouteChain | null) => {
+    setOrderB(chain);
+    setHasRun(false);
+  };
+
+  const orderIds = useMemo(() => {
+    const aId = orderA ? legFromChain(orderA)?.order_id : undefined;
+    const bId = orderB ? legFromChain(orderB)?.order_id : undefined;
+    return [aId, bId].filter((x): x is string => !!x);
+  }, [orderA, orderB]);
+
+  const sim = useSimulate(
+    orderIds,
+    hasRun && orderIds.length === 2,
+    effectiveOrigin ? { lat: effectiveOrigin.lat, lng: effectiveOrigin.lng } : undefined,
+    destination
+      ? { lat: destination.lat, lng: destination.lng, city: destination.name.split(",")[0] }
+      : undefined,
+  );
+
+  if (authLoading) {
+    return (
+      <div className="flex h-full items-center justify-center -m-6 w-[calc(100%+3rem)] h-[calc(100%+3rem)]">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!activeCompanyId) {
+    return (
+      <div className="flex h-full items-center justify-center -m-6 w-[calc(100%+3rem)] h-[calc(100%+3rem)]">
+        <div className="text-center space-y-2">
+          <p className="text-lg font-medium text-muted-foreground">No company assigned</p>
+          <p className="text-sm text-muted-foreground/70">Contact your admin to get access.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const aLeg = orderA ? legFromChain(orderA) : null;
+  const bLeg = orderB ? legFromChain(orderB) : null;
+  const canRun = !!orderA && !!orderB && !sim.isLoading;
+  const costPerMile = (settings?.cost_per_mile as number | undefined) ?? DEFAULT_COST_PER_MILE;
+
+  return (
+    <div className="flex flex-col overflow-hidden -m-6 w-[calc(100%+3rem)] h-[calc(100%+3rem)]">
+      {/* Header — origin / radius / date / destination */}
+      <div className="bg-sidebar p-4 shrink-0 border-b">
+        <div className="flex items-center gap-2 mb-3">
+          <FlaskConical className="h-5 w-5 text-primary" />
+          <h1 className="text-base font-semibold">Route Simulation</h1>
+          <span className="text-xs text-muted-foreground ml-2">Build a 2-order tour by picking each leg manually.</span>
+        </div>
+        <div className="grid grid-cols-12 gap-3 items-end">
+          <div className="col-span-3 space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Origin</label>
+            <PlaceAutocomplete
+              placeholder={homeBasePlace ? `Home base: ${homeBasePlace.name}` : "Pickup origin..."}
+              value={origin}
+              onSelect={handleOriginChange}
+            />
+          </div>
+          <div className="col-span-3 space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Search Radius</label>
+              <span className="text-xs tabular-nums">{radius} mi</span>
+            </div>
+            <Slider
+              value={[radius]}
+              onValueChange={([v]) => handleRadiusChange(v)}
+              min={50}
+              max={500}
+              step={25}
+            />
+          </div>
+          <div className="col-span-2 space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Departure</label>
+            <input
+              type="date"
+              value={departureDate}
+              onChange={(e) => {
+                setDepartureDate(e.target.value);
+                setOrderA(null); setOrderB(null); setHasRun(false);
+              }}
+              className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+            />
+          </div>
+          <div className="col-span-3 space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Final Destination (optional)</label>
+            <PlaceAutocomplete
+              placeholder="e.g. return to home base..."
+              value={destination}
+              onSelect={(p) => { setDestination(p); setHasRun(false); }}
+            />
+          </div>
+          <div className="col-span-1">
+            <Button
+              className="w-full"
+              disabled={!canRun}
+              onClick={() => setHasRun(true)}
+            >
+              <PlayIcon className="h-4 w-4" />
+              Run
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* 3-column area */}
+      <div className="flex flex-1 min-h-0">
+        {/* Column 1: candidates near origin */}
+        <div className="w-1/3 min-h-0">
+          <CandidateList
+            title="Pickup #1"
+            subtitle={effectiveOrigin
+              ? `Within ${radius} mi of ${effectiveOrigin.name}`
+              : "Set an origin to begin"}
+            isLoading={col1.isLoading}
+            chains={col1.data?.routes ?? []}
+            selectedKey={aLeg?.order_id ?? null}
+            onSelect={handleSelectA}
+            emptyMessage={effectiveOrigin ? "No orders found near this origin." : "Pick an origin in the bar above."}
+          />
+        </div>
+
+        {/* Column 2: candidates anchored on order A's drop */}
+        <div className="w-1/3 min-h-0">
+          <CandidateList
+            title="Pickup #2"
+            subtitle={aLeg
+              ? `Within ${radius} mi of ${aLeg.destination_city}, ${aLeg.destination_state}`
+              : "Pick a first order to populate"}
+            isLoading={col2.isLoading}
+            chains={col2.data?.routes ?? []}
+            selectedKey={bLeg?.order_id ?? null}
+            onSelect={handleSelectB}
+            emptyMessage={aLeg
+              ? "No follow-on orders fit (radius or pickup window)."
+              : "Pick a first order to see candidates."}
+          />
+        </div>
+
+        {/* Column 3: simulation result */}
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div className="px-4 py-3 border-b shrink-0 bg-sidebar/40">
+            <p className="text-xs font-semibold uppercase tracking-widest">Simulation Result</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {orderA && orderB
+                ? hasRun ? "Computed via /timeline" : "Click Run to simulate this 2-order chain."
+                : "Pick one order from each column to enable Run."}
+            </p>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            {!hasRun && (
+              <div className="flex flex-col items-center justify-center h-full gap-2 text-center text-sm text-muted-foreground">
+                <MapPin className="h-8 w-8 text-muted-foreground/50" />
+                <p>{orderA && orderB
+                  ? "Click Run to compute miles, profit, and feasibility."
+                  : "Build your chain to the left."}</p>
+              </div>
+            )}
+            {hasRun && sim.isLoading && (
+              <div className="flex items-center justify-center h-full">
+                <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {hasRun && sim.error && (
+              <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
+                <AlertCircleIcon className="h-8 w-8 text-destructive" />
+                <p className="text-sm text-destructive">Failed to load simulation.</p>
+                <p className="text-xs text-muted-foreground">{(sim.error as Error).message}</p>
+              </div>
+            )}
+            {hasRun && !sim.isLoading && !sim.error && sim.data && isSimulateRejection(sim.data) && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3">
+                  <AlertCircleIcon className="h-5 w-5 text-destructive shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-destructive">Chain is infeasible</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{rejectionMessage(sim.data)}</p>
+                  </div>
+                </div>
+                {sim.data.violations.length > 0 && (
+                  <ul className="text-xs space-y-1 text-muted-foreground">
+                    {sim.data.violations.map((v, i) => (
+                      <li key={i} className="rounded bg-surface-elevated/50 px-2 py-1">
+                        {v.window} window @ leg {v.leg_index} ({v.city}) — {v.hours_late.toFixed(1)}h late
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            {hasRun && !sim.isLoading && !sim.error && sim.data && !isSimulateRejection(sim.data) && (
+              <SimulationSummary chain={sim.data} costPerMile={costPerMile} />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SimulationSummary({ chain, costPerMile }: { chain: RouteChain; costPerMile: number }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 p-3">
+        <CheckCircle2Icon className="h-5 w-5 text-emerald-500" />
+        <p className="text-sm font-semibold">Feasible chain</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <Stat label="Profit" value={formatCurrency(chain.profit)} colorClass={routeProfitColor(chain.daily_net_profit)} />
+        <Stat label="$/Day" value={formatCurrency(chain.daily_net_profit)} colorClass={routeProfitColor(chain.daily_net_profit)} />
+        <Stat label="Days" value={chain.estimated_days.toFixed(1)} />
+        <Stat label="Gross Pay" value={formatCurrency(chain.gross_pay)} />
+        <Stat label="Loaded mi" value={Math.round(chain.loaded_miles).toLocaleString()} />
+        <Stat label="Deadhead mi" value={Math.round(chain.deadhead_miles).toLocaleString()} />
+        <Stat label="$/mi all-in" value={`$${chain.all_in_gross_rpm.toFixed(2)}`} />
+        <Stat label="$/mi loaded" value={`$${chain.rate_per_mile.toFixed(2)}`} />
+        <Stat label="Deadhead %" value={`${chain.deadhead_pct.toFixed(0)}%`} />
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Legs</p>
+        {chain.legs.map((leg) => (
+          <div key={leg.leg_number} className="rounded-md border p-3 text-sm">
+            <p className="font-medium">
+              Leg {leg.leg_number}: {leg.origin_city}, {leg.origin_state} → {leg.destination_city}, {leg.destination_state}
+            </p>
+            <p className="text-xs text-muted-foreground tabular-nums mt-1">
+              {Math.round(leg.miles)} mi · {formatCurrency(leg.pay)} · deadhead {Math.round(leg.deadhead_miles)} mi
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-[11px] text-muted-foreground">
+        Cost model uses ${costPerMile.toFixed(2)}/mi.
+      </p>
+    </div>
+  );
+}
+
+function Stat({ label, value, colorClass }: { label: string; value: string; colorClass?: string }) {
+  return (
+    <div className="rounded-md border bg-card/40 p-3">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={`text-base font-bold tabular-nums mt-0.5 ${colorClass ?? ""}`}>{value}</p>
+    </div>
+  );
+}

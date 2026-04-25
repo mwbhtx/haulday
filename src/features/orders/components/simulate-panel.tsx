@@ -5,7 +5,7 @@ import { XIcon, Loader2Icon, AlertCircleIcon, SearchIcon, MapPinIcon, PlayIcon }
 import { Button } from "@/platform/web/components/ui/button";
 import { Input } from "@/platform/web/components/ui/input";
 import { RouteDetailPanel } from "@/features/routes/views/desktop/route-detail-panel";
-import { useSimulate } from "@/core/hooks/use-simulate";
+import { useSimulate, isSimulateRejection } from "@/core/hooks/use-simulate";
 import { useOrderSearch } from "@/core/hooks/use-orders";
 import { useSettings } from "@/core/hooks/use-settings";
 import { searchPlaces } from "@/features/routes/components/search-form";
@@ -348,7 +348,22 @@ export function SimulatePanel({ companyId, onClose }: SimulatePanelProps) {
           </div>
         )}
 
-        {hasHomeBase && hasRun && !isInfeasible && !isLoading && !error && chain && (
+        {hasHomeBase && hasRun && !isInfeasible && !isLoading && !error && chain && isSimulateRejection(chain) && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
+            <AlertCircleIcon className="h-8 w-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              {chain.reason === 'WINDOW_VIOLATION'
+                ? `Pickup/delivery window conflict: ${chain.violations.map(v => `${v.window} @ leg ${v.leg_index} (${v.city}) ${v.hours_late.toFixed(1)}h late`).join('; ')}`
+                : chain.reason === 'ENVELOPE_VIOLATION_END'
+                  ? "Trip extends past your latest on-duty hour."
+                  : chain.reason === 'ON_DUTY_CAP_EXCEEDED'
+                    ? "Trip exceeds your max on-duty hours per day."
+                    : "This chain is infeasible."}
+            </p>
+          </div>
+        )}
+
+        {hasHomeBase && hasRun && !isInfeasible && !isLoading && !error && chain && !isSimulateRejection(chain) && (
           <RouteDetailPanel
             chain={chain}
             costPerMile={costPerMile}

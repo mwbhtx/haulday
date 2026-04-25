@@ -12,6 +12,28 @@ export interface SimulateLocation {
   city?: string;
 }
 
+/**
+ * The /timeline endpoint now returns either a full evaluated chain
+ * (success) or a structured rejection shape so the UI can explain *why*
+ * a user-pinned chain failed (window violation, envelope, on-duty cap).
+ */
+export type SimulateRejection = {
+  feasible: false;
+  reason: 'WINDOW_VIOLATION' | 'ENVELOPE_VIOLATION_END' | 'ON_DUTY_CAP_EXCEEDED' | 'UNKNOWN';
+  violations: Array<{
+    leg_index: number;
+    window: 'pickup' | 'delivery';
+    hours_late: number;
+    city: string;
+  }>;
+};
+
+export type SimulateResult = (RouteChain & { expenses_breakdown?: unknown }) | SimulateRejection;
+
+export function isSimulateRejection(r: SimulateResult | undefined): r is SimulateRejection {
+  return !!r && (r as SimulateRejection).feasible === false;
+}
+
 export function useSimulate(
   orderIds: string[],
   enabled: boolean,
@@ -34,7 +56,7 @@ export function useSimulate(
     !!originLat &&
     !!originLng;
 
-  return useQuery<RouteChain & { expenses_breakdown?: unknown }>({
+  return useQuery<SimulateResult>({
     queryKey: [
       "simulate",
       activeCompanyId,
@@ -60,7 +82,7 @@ export function useSimulate(
       if (settings!.max_on_duty_hours_per_day != null) qs.set("max_on_duty_hours_per_day", String(settings!.max_on_duty_hours_per_day));
       if (settings!.earliest_on_duty_hour != null) qs.set("earliest_on_duty_hour", String(settings!.earliest_on_duty_hour));
       if (settings!.latest_on_duty_hour != null) qs.set("latest_on_duty_hour", String(settings!.latest_on_duty_hour));
-      return fetchApi<RouteChain>(`routes/${activeCompanyId}/timeline?${qs.toString()}`);
+      return fetchApi<SimulateResult>(`routes/${activeCompanyId}/timeline?${qs.toString()}`);
     },
     enabled: canFetch,
     staleTime: 10 * 60 * 1000,

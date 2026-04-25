@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { RouteIcon, ClipboardList, BarChart3, Settings, Shield, LogOut, Moon, Sun, User } from "lucide-react";
+import { RouteIcon, ClipboardList, BarChart3, Settings, Shield, LogOut, Moon, Sun, User, FlaskConical } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/core/utils";
 import { useAuth } from "@/core/services/auth-provider";
@@ -11,6 +11,7 @@ import { BellIcon } from "@/features/alerts/components/BellIcon";
 
 const navItems = [
   { href: "/routes", label: "Routes", icon: RouteIcon },
+  { href: "/simulation", label: "Simulation", icon: FlaskConical },
   { href: "/driver", label: "Driver", icon: User },
   { href: "/dashboard", label: "Company", icon: BarChart3 },
   { href: "/orders", label: "Board", icon: ClipboardList },

@@ -34,6 +34,11 @@ export interface RouteSearchParams {
   max_deadhead_pct?: number;
   min_daily_profit?: number;
   max_interleg_deadhead_miles?: number;
+  /** Lower bound for pickup_date_late_utc (epoch ms). Used by the
+   *  simulation page when fetching column-2 candidates: pass A's
+   *  delivery-early (minus driver early_tolerance) so chronologically
+   *  impossible orders are filtered server-side. */
+  min_pickup_late_utc?: number;
   /** Cache-bust token — forces a new search even with identical params */
   _t?: number;
 }
