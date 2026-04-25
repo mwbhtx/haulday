@@ -11,7 +11,7 @@ import { BellIcon } from "@/features/alerts/components/BellIcon";
 
 const navItems = [
   { href: "/routes", label: "Routes", icon: RouteIcon },
-  { href: "/simulation", label: "Simulation", icon: FlaskConical },
+  { href: "/lab", label: "Lab", icon: FlaskConical },
   { href: "/driver", label: "Driver", icon: User },
   { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { href: "/orders", label: "Board", icon: ClipboardList },

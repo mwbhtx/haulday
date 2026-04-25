@@ -1,7 +1,5 @@
-"use client";
-
-import { DesktopSimulationView } from "@/features/simulation/views/desktop/desktop-simulation-view";
+import { redirect } from "next/navigation";
 
 export default function SimulationPage() {
-  return <DesktopSimulationView />;
+  redirect("/routes?tab=build");
 }
