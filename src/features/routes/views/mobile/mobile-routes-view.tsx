@@ -18,7 +18,7 @@ import { ResultsScreen } from "./screens/results-screen";
 import { DetailScreen } from "./screens/detail-screen";
 
 export function MobileRoutesView() {
-  const { activeCompanyId, logout } = useAuth();
+  const { activeCompanyId, loading, logout } = useAuth();
   const { data: settings } = useSettings();
   const { currentScreen, push, pop, goToResults } = useMobileRouteNav();
   const saveRecent = useSaveRecentSearch();
@@ -169,6 +169,14 @@ export function MobileRoutesView() {
     },
     [push],
   );
+
+  if (loading) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-base text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   // No company assigned edge case
   if (!activeCompanyId) {

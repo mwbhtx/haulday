@@ -8,10 +8,11 @@ import { OrdersTable } from "@/features/orders/components/orders-table";
 import { useOrders, useOrderSearch, useAllActiveOrders } from "@/core/hooks/use-orders";
 import { useAuth } from "@/core/services/auth-provider";
 import { useSettings } from "@/core/hooks/use-settings";
+import { Skeleton } from "@/platform/web/components/ui/skeleton";
 import type { OrderFilters } from "@/core/types";
 
 export function DesktopOrdersView() {
-  const { activeCompanyId } = useAuth();
+  const { activeCompanyId, loading } = useAuth();
   const { data: settings } = useSettings();
   const [filters, setFilters] = useState<Omit<OrderFilters, "offset" | "limit">>({});
   const [search, setSearch] = useState("");
@@ -37,6 +38,16 @@ export function DesktopOrdersView() {
   const orders = isSearching
     ? (searchResults ?? [])
     : (data?.pages.flatMap((page) => page.items) ?? []);
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    );
+  }
 
   if (!activeCompanyId) {
     return (

@@ -30,7 +30,7 @@ const EMPTY_LOCATION: LocationGroup = {
 };
 
 export function DesktopRoutesView() {
-  const { activeCompanyId } = useAuth();
+  const { activeCompanyId, loading } = useAuth();
   const { data: settings, isLoading: settingsLoading } = useSettings();
   const [searchParams, setSearchParams] = useState<RouteSearchParams | null>(null);
   const [selectedItemIndex, setSelectedItemIndex] = useState(0);
@@ -249,6 +249,14 @@ export function DesktopRoutesView() {
       setSelectedRouteLegs(null);
     }
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center -m-6 w-[calc(100%+3rem)] h-[calc(100%+3rem)]">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   if (!activeCompanyId) {
     return (
