@@ -91,13 +91,10 @@ export function RouteList({
     return () => clearTimeout(timer);
   }, [selectedIndex]);
 
-  // Sync detail panel / map to show the first *sorted* route
+  // Sync detail panel / map to show the first *sorted* route, or clear it on 0 results
   useEffect(() => {
     if (selectedIndex !== 0 || isLoading) return;
-    const firstChain = sorted[0] ?? null;
-    if (firstChain) {
-      onSelectIndex(0, firstChain);
-    }
+    onSelectIndex(0, sorted[0] ?? null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIndex, isLoading, sortBy, chains]);
 
