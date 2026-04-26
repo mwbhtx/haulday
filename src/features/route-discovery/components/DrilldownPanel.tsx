@@ -35,12 +35,50 @@ export function DrilldownPanel({ route, radiusMiles }: Props) {
     );
   }
 
+  const startCity = route.orders[0]?.origin_anchor.display_city ?? "home";
+  const startState = route.orders[0]?.origin_anchor.display_state ?? "";
+  const start = `${startCity}${startState ? `, ${startState}` : ""}`;
+  const legCount = route.orders.length;
+  const totalPay = route.total_pay.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
+  const reliabilityPct = Math.round(route.composite_reliability * 100);
+  const deadheadPct = Math.round(route.all_in_deadhead_pct);
+  const days = route.estimated_days.toFixed(1);
+  const rpm = route.all_in_gross_rpm.toFixed(2);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Route detail</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          From{" "}
+          <span className="font-medium text-foreground">{start}</span>, you'd
+          run{" "}
+          <span className="font-medium text-foreground">
+            {legCount} loads over ~{days} days
+          </span>
+          , earning{" "}
+          <span className="font-medium text-foreground">
+            {totalPay} total gross
+          </span>{" "}
+          at{" "}
+          <span className="font-medium text-foreground">${rpm}/mi all-in</span>
+          . Only{" "}
+          <span className="font-medium text-foreground">
+            {deadheadPct}% of miles are empty
+          </span>
+          . Based on history, there's a{" "}
+          <span className="font-medium text-foreground">
+            {reliabilityPct}% chance
+          </span>{" "}
+          all {legCount} loads are available within their 3-day windows.
+        </p>
+
         <DiscoveredRouteMap
           orders={route.orders}
           onClickOrder={(i) => {

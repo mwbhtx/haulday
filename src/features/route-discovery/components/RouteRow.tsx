@@ -79,10 +79,10 @@ export function RouteRow({ route, index, selected, onClick }: Props) {
           {fmtPct(route.all_in_deadhead_pct)} deadhead
         </span>
         <span className="text-muted-foreground">
-          {fmtMoney(route.total_pay)} typical
+          {fmtMoney(route.total_pay)} total gross
         </span>
         <span className="text-muted-foreground">
-          {route.estimated_days.toFixed(1)} days
+          {route.estimated_days.toFixed(1)} total days
         </span>
         <Tooltip>
           <TooltipTrigger asChild>
