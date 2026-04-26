@@ -4,21 +4,23 @@ import { useEffect, useState } from "react";
 import { Skeleton } from "@/platform/web/components/ui/skeleton";
 import { FilterBar, type FilterBarValues } from "../../components/FilterBar";
 import { RoutesList } from "../../components/RoutesList";
+import { TopRoutes } from "../../components/TopRoutes";
 import { DrilldownPanel } from "../../components/DrilldownPanel";
 import { EngineInspectors } from "../../components/EngineInspectors";
 import { EmptyState } from "../../components/EmptyState";
 import { HowItWorks } from "../../components/HowItWorks";
 import { useDiscoveredRoutes } from "../../hooks/use-routes";
+import { useTopRoutes } from "../../hooks/use-top-routes";
 import { useRouteDiscoveryStore } from "../../store";
 import type { RoutesQuery } from "../../api";
 
 export function DesktopRouteDiscoveryView() {
   const [query, setQuery] = useState<RoutesQuery | null>(null);
   const { data, isLoading, error } = useDiscoveredRoutes(query);
+  const { data: topData, isLoading: topLoading } = useTopRoutes();
   const selectedRowIndex = useRouteDiscoveryStore((s) => s.selectedRowIndex);
   const resetSelection = useRouteDiscoveryStore((s) => s.resetSelection);
 
-  // Reset selection when query changes
   useEffect(() => {
     resetSelection();
   }, [query, resetSelection]);
@@ -28,21 +30,16 @@ export function DesktopRouteDiscoveryView() {
       city: values.city,
       state: values.state,
       radius_miles: values.radius_miles,
-      order_count: values.order_count,
     });
   };
 
   const rows = data?.rows ?? [];
   const selectedRoute = selectedRowIndex !== null ? rows[selectedRowIndex] ?? null : null;
 
-  // Engine inspector queries
   const regionQuery = query
     ? { city: query.city, state: query.state, radius_miles: query.radius_miles }
     : null;
 
-  // Default lane query: selected row's first order. Active-order changes
-  // happen via the panel; for the inspector card we just show the first order
-  // of the selected row as the default seed.
   const laneQuery =
     selectedRoute && selectedRoute.orders[0]
       ? {
@@ -54,8 +51,6 @@ export function DesktopRouteDiscoveryView() {
         }
       : null;
 
-  // Leg deadhead: only when there's at least 2 orders + drilldown context
-  // (default to the gap between order 0 dest and order 1 origin).
   const legQuery =
     selectedRoute && selectedRoute.orders.length >= 2
       ? {
@@ -78,8 +73,11 @@ export function DesktopRouteDiscoveryView() {
 
       <HowItWorks />
 
+      {/* Company-wide top routes — loaded on mount, always visible above the search bar */}
+      <TopRoutes routes={topData?.rows ?? []} isLoading={topLoading} />
+
       <p className="text-sm text-muted-foreground">
-        Enter a location, radius, and order count, then click Search.
+        Enter a location and radius, then click Search to find routes in a specific area.
       </p>
 
       <FilterBar onSearch={handleSearch} />
