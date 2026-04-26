@@ -3,6 +3,7 @@
 import type { DiscoveredRoute } from "@/core/types";
 import { useRouteDiscoveryStore } from "../store";
 import { LEG_COLORS } from "@/core/utils/route-colors";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/platform/web/components/ui/tooltip";
 
 interface Props {
   route: DiscoveredRoute;
@@ -21,7 +22,21 @@ export function ReliabilityTable({ route, onHoverOrder }: Props) {
             <th scope="col" className="px-2 py-1 font-medium">#</th>
             <th scope="col" className="px-2 py-1 font-medium">Origin → Dest</th>
             <th scope="col" className="px-2 py-1 font-medium text-right">Rate (orders/day)</th>
-            <th scope="col" className="px-2 py-1 font-medium text-right">Reliability (W=3)</th>
+            <th scope="col" className="px-2 py-1 font-medium text-right">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="underline decoration-dashed underline-offset-2 cursor-default">
+                    Reliability (W=3)
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  Probability that at least one matching order arrives on this
+                  lane within the 3-day wait window.{" "}
+                  <span className="whitespace-nowrap">1 − e^(−rate × 3)</span>,
+                  where rate = historical matching orders per day on this lane.
+                </TooltipContent>
+              </Tooltip>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -61,7 +76,18 @@ export function ReliabilityTable({ route, onHoverOrder }: Props) {
           })}
           <tr className="border-t font-semibold">
             <td colSpan={3} className="px-2 py-1 text-right">
-              Total composite reliability
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="underline decoration-dashed underline-offset-2 cursor-default">
+                    Total composite reliability
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  Per-leg probabilities multiplied together. Assumes legs are
+                  independent — a 4-leg route at 60% per leg composites to
+                  ~13% end-to-end.
+                </TooltipContent>
+              </Tooltip>
             </td>
             <td className="px-2 py-1 text-right tabular-nums">
               {Math.round(route.composite_reliability * 100)}%

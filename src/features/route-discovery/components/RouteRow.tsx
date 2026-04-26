@@ -3,6 +3,7 @@
 import type { DiscoveredRoute } from "@/core/types";
 import { LEG_COLORS } from "@/core/utils/route-colors";
 import { cn } from "@/core/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/platform/web/components/ui/tooltip";
 
 interface Props {
   route: DiscoveredRoute;
@@ -83,9 +84,20 @@ export function RouteRow({ route, index, selected, onClick }: Props) {
         <span className="text-muted-foreground">
           {route.estimated_days.toFixed(1)} days
         </span>
-        <span title="Predicted likelihood that all orders are available within wait tolerance">
-          {fmtPct(route.composite_reliability * 100)} reliable
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="underline decoration-dashed underline-offset-2 cursor-default">
+              {fmtPct(route.composite_reliability * 100)} reliable
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            Likelihood every leg has at least one matching order within the
+            3-day wait tolerance. Per leg:{" "}
+            <span className="whitespace-nowrap">1 − e^(−rate × 3)</span>, where
+            rate = historical matching orders per day on that lane. Composite =
+            per-leg probabilities multiplied (assumes legs are independent).
+          </TooltipContent>
+        </Tooltip>
       </div>
     </button>
   );
