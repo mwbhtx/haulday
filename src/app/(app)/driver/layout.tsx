@@ -29,7 +29,7 @@ export default function DriverLayout({ children }: { children: React.ReactNode }
   const activeTab = tabs.find((t) => pathname.startsWith(t.value))?.value ?? tabs[0].value;
 
   return (
-    <div className="-mx-6 -mt-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden">
+    <div className="-m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden">
       <div className="shrink-0 border-b border-border/50 bg-sidebar px-6 py-2">
         <Tabs value={activeTab} className="w-fit">
           <TabsList variant="line" className="bg-transparent gap-6" asChild>
