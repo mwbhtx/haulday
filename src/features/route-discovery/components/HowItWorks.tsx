@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/platform/web/components/ui/card";
 import { ChevronDown, ChevronRight, Route } from "lucide-react";
 
 export function HowItWorks() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <Card>
@@ -23,7 +23,7 @@ export function HowItWorks() {
           )}
           <Route className="h-4 w-4 text-muted-foreground" />
           <h2 className="text-sm font-semibold">
-            Find round-trip routes that bring you home
+            Discover round-trip routes that bring you home
           </h2>
         </button>
 
