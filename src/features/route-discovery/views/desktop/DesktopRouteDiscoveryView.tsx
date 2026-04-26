@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { DiscoveredRoute } from "@/core/types";
 import { Skeleton } from "@/platform/web/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/platform/web/components/ui/tabs";
 import { FilterBar, type FilterBarValues } from "../../components/FilterBar";
 import { RoutesList } from "../../components/RoutesList";
-import { TopRoutes } from "../../components/TopRoutes";
 import { DrilldownPanel } from "../../components/DrilldownPanel";
 import { EngineInspectors } from "../../components/EngineInspectors";
 import { EmptyState } from "../../components/EmptyState";
@@ -15,37 +14,40 @@ import { useTopRoutes } from "../../hooks/use-top-routes";
 import { useRouteDiscoveryStore } from "../../store";
 import type { RoutesQuery } from "../../api";
 
+type TabId = "search" | "leaderboard";
+
 export function DesktopRouteDiscoveryView() {
+  const [tab, setTab] = useState<TabId>("search");
   const [query, setQuery] = useState<RoutesQuery | null>(null);
-  const [selectedTopRoute, setSelectedTopRoute] = useState<DiscoveredRoute | null>(null);
   const { data, isLoading, error } = useDiscoveredRoutes(query);
   const { data: topData, isLoading: topLoading } = useTopRoutes();
   const selectedRowIndex = useRouteDiscoveryStore((s) => s.selectedRowIndex);
   const resetSelection = useRouteDiscoveryStore((s) => s.resetSelection);
 
+  const searchRows = data?.rows ?? [];
+  const topRows = topData?.rows ?? [];
+  const activeRows = tab === "search" ? searchRows : topRows;
+  const selectedRoute = selectedRowIndex !== null ? activeRows[selectedRowIndex] ?? null : null;
+
+  const handleTabChange = (value: string) => {
+    resetSelection();
+    setTab(value as TabId);
+  };
+
   useEffect(() => {
     resetSelection();
-    setSelectedTopRoute(null);
   }, [query, resetSelection]);
 
   const handleSearch = (values: FilterBarValues) => {
-    setQuery({
-      city: values.city,
-      state: values.state,
-      radius_miles: values.radius_miles,
-    });
+    setQuery({ city: values.city, state: values.state, radius_miles: values.radius_miles });
   };
-
-  const rows = data?.rows ?? [];
-  // Search result selection takes precedence; fall back to top-routes selection.
-  const selectedRoute = selectedRowIndex !== null ? rows[selectedRowIndex] ?? null : selectedTopRoute;
 
   const regionQuery = query
     ? { city: query.city, state: query.state, radius_miles: query.radius_miles }
     : null;
 
   const laneQuery =
-    selectedRoute && selectedRoute.orders[0]
+    selectedRoute?.orders[0]
       ? {
           origin_lat: selectedRoute.orders[0].origin_anchor.lat,
           origin_lng: selectedRoute.orders[0].origin_anchor.lng,
@@ -75,61 +77,88 @@ export function DesktopRouteDiscoveryView() {
         </p>
       </header>
 
-      <HowItWorks />
+      <Tabs value={tab} onValueChange={handleTabChange}>
+        <TabsList variant="line">
+          <TabsTrigger value="search">Search</TabsTrigger>
+          <TabsTrigger value="leaderboard">Top Routes</TabsTrigger>
+        </TabsList>
 
-      {/* Company-wide top routes — loaded on mount, always visible above the search bar */}
-      <TopRoutes
-        routes={topData?.rows ?? []}
-        isLoading={topLoading}
-        onRouteSelect={setSelectedTopRoute}
-      />
+        {/* ── Search tab ── */}
+        <TabsContent value="search" className="mt-6 space-y-6">
+          <HowItWorks />
 
-      <p className="text-sm text-muted-foreground">
-        Enter a location and radius, then click Search to find routes in a specific area.
-      </p>
+          <p className="text-sm text-muted-foreground">
+            Enter a location and radius, then click Search to find routes in a specific area.
+          </p>
 
-      <FilterBar onSearch={handleSearch} />
+          <FilterBar onSearch={handleSearch} />
 
-      {error && (
-        <div className="text-sm text-destructive">
-          Failed to load routes. {(error as Error).message}
-        </div>
-      )}
+          {error && (
+            <div className="text-sm text-destructive">
+              Failed to load routes. {(error as Error).message}
+            </div>
+          )}
 
-      {isLoading && (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-3 space-y-2">
-            {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
-          </div>
-          <div className="lg:col-span-2">
-            <Skeleton className="h-96 w-full" />
-          </div>
-        </div>
-      )}
+          {isLoading && (
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              <div className="lg:col-span-3 space-y-2">
+                {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
+              </div>
+              <div className="lg:col-span-2">
+                <Skeleton className="h-96 w-full" />
+              </div>
+            </div>
+          )}
 
-      {!isLoading && data && rows.length === 0 && query && (
-        <EmptyState city={query.city} state={query.state} radiusMiles={query.radius_miles} />
-      )}
+          {!isLoading && data && searchRows.length === 0 && query && (
+            <EmptyState city={query.city} state={query.state} radiusMiles={query.radius_miles} />
+          )}
 
-      {/* Drilldown from a top-route row click (no search results yet) */}
-      {!query && selectedTopRoute && (
-        <DrilldownPanel route={selectedTopRoute} radiusMiles={100} />
-      )}
+          {!isLoading && data && searchRows.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              <div className="lg:col-span-3">
+                <RoutesList routes={searchRows} />
+              </div>
+              <div className="lg:col-span-2">
+                <div key={selectedRoute?.route_id ?? "empty"} className="animate-in slide-in-from-right-4 duration-200">
+                  <DrilldownPanel route={selectedRoute} radiusMiles={query?.radius_miles ?? 100} />
+                </div>
+              </div>
+            </div>
+          )}
 
-      {!isLoading && data && rows.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-3">
-            <RoutesList routes={rows} />
-          </div>
-          <div className="lg:col-span-2">
-            <DrilldownPanel route={selectedRoute} radiusMiles={query?.radius_miles ?? 100} />
-          </div>
-        </div>
-      )}
+          {query && (
+            <EngineInspectors regionQuery={regionQuery} laneQuery={laneQuery} legQuery={legQuery} />
+          )}
+        </TabsContent>
 
-      {query && (
-        <EngineInspectors regionQuery={regionQuery} laneQuery={laneQuery} legQuery={legQuery} />
-      )}
+        {/* ── Top Routes (leaderboard) tab ── */}
+        <TabsContent value="leaderboard" className="mt-6">
+          {topLoading && (
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              <div className="lg:col-span-3 space-y-2">
+                {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
+              </div>
+              <div className="lg:col-span-2">
+                <Skeleton className="h-96 w-full" />
+              </div>
+            </div>
+          )}
+
+          {!topLoading && (
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              <div className="lg:col-span-3">
+                <RoutesList routes={topRows} />
+              </div>
+              <div className="lg:col-span-2">
+                <div key={selectedRoute?.route_id ?? "empty"} className="animate-in slide-in-from-right-4 duration-200">
+                  <DrilldownPanel route={selectedRoute} radiusMiles={100} />
+                </div>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
