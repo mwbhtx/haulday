@@ -78,13 +78,11 @@ export function DesktopRouteDiscoveryView() {
 
       <HowItWorks />
 
-      <FilterBar onSearch={handleSearch} />
+      <p className="text-sm text-muted-foreground">
+        Enter a location, radius, and order count, then click Search.
+      </p>
 
-      {!query && (
-        <p className="text-sm text-muted-foreground">
-          Enter a location, radius, and order count, then click Search.
-        </p>
-      )}
+      <FilterBar onSearch={handleSearch} />
 
       {error && (
         <div className="text-sm text-destructive">
