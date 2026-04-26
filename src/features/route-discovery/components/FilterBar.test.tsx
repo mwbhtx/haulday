@@ -5,11 +5,11 @@ import { FilterBar } from "./FilterBar";
 afterEach(() => cleanup());
 
 describe("FilterBar", () => {
-  it("renders a single Location input, Radius, Orders, and Search", () => {
+  it("renders Location and Radius inputs with no order count picker", () => {
     render(<FilterBar onSearch={vi.fn()} />);
     expect(screen.getByLabelText(/location/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/radius/i)).toBeInTheDocument();
-    expect(screen.getByText(/orders/i)).toBeInTheDocument();
+    expect(screen.queryByText(/orders/i)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /search/i })).toBeInTheDocument();
   });
 
@@ -18,41 +18,34 @@ describe("FilterBar", () => {
     const button = screen.getByRole("button", { name: /search/i });
     expect(button).toBeDisabled();
 
-    const loc = screen.getByLabelText(/location/i);
-    fireEvent.change(loc, { target: { value: "Houston" } });
+    fireEvent.change(screen.getByLabelText(/location/i), { target: { value: "Houston" } });
     expect(button).toBeDisabled();
 
-    fireEvent.change(loc, { target: { value: "Houston, TX" } });
+    fireEvent.change(screen.getByLabelText(/location/i), { target: { value: "Houston, TX" } });
     expect(button).not.toBeDisabled();
   });
 
-  it("emits onSearch with the parsed city + state", () => {
+  it("emits onSearch with city, state, and radius — no order_count", () => {
     const onSearch = vi.fn();
     render(<FilterBar onSearch={onSearch} />);
-    fireEvent.change(screen.getByLabelText(/location/i), {
-      target: { value: "Houston, TX" },
-    });
+    fireEvent.change(screen.getByLabelText(/location/i), { target: { value: "Houston, TX" } });
     fireEvent.click(screen.getByRole("button", { name: /search/i }));
     expect(onSearch).toHaveBeenCalledWith({
       city: "Houston",
       state: "TX",
       radius_miles: 100,
-      order_count: 3,
     });
   });
 
   it("normalizes the state code to uppercase", () => {
     const onSearch = vi.fn();
     render(<FilterBar onSearch={onSearch} />);
-    fireEvent.change(screen.getByLabelText(/location/i), {
-      target: { value: "memphis, tn" },
-    });
+    fireEvent.change(screen.getByLabelText(/location/i), { target: { value: "memphis, tn" } });
     fireEvent.click(screen.getByRole("button", { name: /search/i }));
     expect(onSearch).toHaveBeenCalledWith({
       city: "memphis",
       state: "TN",
       radius_miles: 100,
-      order_count: 3,
     });
   });
 

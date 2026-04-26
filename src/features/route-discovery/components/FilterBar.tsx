@@ -10,7 +10,6 @@ export interface FilterBarValues {
   city: string;
   state: string;
   radius_miles: number;
-  order_count: 2 | 3 | 4;
 }
 
 interface Props {
@@ -20,7 +19,6 @@ interface Props {
 export function FilterBar({ onSearch }: Props) {
   const [location, setLocation] = useState("");
   const [radius, setRadius] = useState(100);
-  const [orders, setOrders] = useState<2 | 3 | 4>(3);
 
   const parsed = useMemo(() => parseCityState(location), [location]);
   const isValid = parsed !== null && radius >= 50 && radius <= 500;
@@ -31,7 +29,6 @@ export function FilterBar({ onSearch }: Props) {
       city: parsed.city,
       state: parsed.state,
       radius_miles: radius,
-      order_count: orders,
     });
   };
 
@@ -71,24 +68,6 @@ export function FilterBar({ onSearch }: Props) {
           onChange={(e) => setRadius(Number(e.target.value))}
           onKeyDown={handleKeyDown}
         />
-      </div>
-
-      <div>
-        <span className="block text-sm font-medium mb-1.5">Orders</span>
-        <div role="group" className="flex gap-1">
-          {([2, 3, 4] as const).map((n) => (
-            <Button
-              key={n}
-              type="button"
-              variant={orders === n ? "default" : "outline"}
-              size="sm"
-              onClick={() => setOrders(n)}
-              className="w-10"
-            >
-              {n}
-            </Button>
-          ))}
-        </div>
       </div>
 
       <Button type="button" onClick={handleSubmit} disabled={!isValid}>
