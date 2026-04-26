@@ -297,28 +297,35 @@ export function RouteMap({
         },
       });
 
-      // Fit bounds to route (include deadhead segments)
-      const bounds = new maplibregl.LngLatBounds();
-      for (const leg of legs) {
-        bounds.extend(leg.origin);
-        bounds.extend(leg.dest);
-      }
-      for (const seg of deadheadSegments) {
-        for (const coord of seg.coords) bounds.extend(coord);
-      }
+      // Collect all route coordinates for bounds computation
+      const allCoords: [number, number][] = [
+        ...legs.flatMap(l => [l.origin, l.dest]),
+        ...deadheadSegments.flatMap(s => s.coords),
+      ];
+      const lngs = allCoords.map(c => c[0]);
+      const lats = allCoords.map(c => c[1]);
+      const minLng = Math.min(...lngs);
+      const maxLng = Math.max(...lngs);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
       const mobile = window.innerWidth < 768;
-
-      // Fit route into visible map area with appropriate padding
-      // Ensure the map knows its current container size before computing zoom
-      map.resize();
       const vh = mobile ? window.innerHeight : 0;
       const mobileBotPad = fullScreen ? 60 : Math.round(vh * 0.60);
-      map.fitBounds(bounds, {
-        padding: mobile
-          ? { top: 60, bottom: mobileBotPad, left: 40, right: 40 }
-          : { top: 120, bottom: 120, left: 120, right: 120 },
-        maxZoom: 7,
-        duration: 500,
+      const fitPadding = mobile
+        ? { top: 60, bottom: mobileBotPad, left: 40, right: 40 }
+        : { top: 80, bottom: 80, left: 80, right: 80 };
+
+      // Wait until the map is idle (layers rendered, container settled) before
+      // fitting — calling fitBounds synchronously after addLayer can race with
+      // the flex layout calculation and produce a zoom that's too tight.
+      map.once("idle", () => {
+        if (cancelled) return;
+        map.resize();
+        map.fitBounds([[minLng, minLat], [maxLng, maxLat]], {
+          padding: fitPadding,
+          maxZoom: 7,
+          duration: 600,
+        });
       });
 
       // Upgrade all lines (loaded + deadhead) to road geometries in background
