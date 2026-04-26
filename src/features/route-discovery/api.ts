@@ -10,7 +10,6 @@ export interface RoutesQuery {
   city: string;
   state: string;
   radius_miles: number;
-  order_count: 2 | 3 | 4;
 }
 
 export async function fetchDiscoveredRoutes(
@@ -21,10 +20,17 @@ export async function fetchDiscoveredRoutes(
     city: q.city,
     state: q.state,
     radius_miles: q.radius_miles.toString(),
-    order_count: q.order_count.toString(),
   });
   return fetchApi<RouteDiscoveryResult>(
     `/analytics/route-discovery/${encodeURIComponent(companyId)}/routes?${params.toString()}`,
+  );
+}
+
+export async function fetchTopRoutes(
+  companyId: string,
+): Promise<RouteDiscoveryResult> {
+  return fetchApi<RouteDiscoveryResult>(
+    `/analytics/route-discovery/${encodeURIComponent(companyId)}/top-routes`,
   );
 }
 
