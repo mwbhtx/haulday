@@ -91,11 +91,8 @@ export function RouteRow({ route, index, selected, onClick }: Props) {
             </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-xs">
-            Likelihood every leg has at least one matching order within the
-            3-day wait tolerance. Per leg:{" "}
-            <span className="whitespace-nowrap">1 − e^(−rate × 3)</span>, where
-            rate = historical matching orders per day on that lane. Composite =
-            per-leg probabilities multiplied (assumes legs are independent).
+            How often you&apos;ll find loads to fill every leg of this route
+            within 3 days. Higher is better.
           </TooltipContent>
         </Tooltip>
       </div>
