@@ -70,7 +70,7 @@ export function RouteMap({
       center: [-95.7, 37.1],
       zoom: 4,
       attributionControl: false,
-      maxBounds: [[-130, 15], [-50, 55]],
+      maxBounds: [[-130, 15], [-60, 55]],
     });
 
     mapRef.current = map;
