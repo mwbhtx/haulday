@@ -9,6 +9,8 @@ import { ChurnChart } from "@/features/dashboard/components/churn-chart";
 import { TopCitiesTable } from "@/features/dashboard/components/top-cities-table";
 import { TopStatesTable } from "@/features/dashboard/components/top-states-table";
 import { TopLanesTable } from "@/features/dashboard/components/top-lanes-table";
+import { TopRegionsTable } from "@/features/dashboard/components/top-regions-table";
+import { TopRegionLanesTable } from "@/features/dashboard/components/top-region-lanes-table";
 import { AvailabilityChart } from "@/features/dashboard/components/availability-chart";
 import { useAuth } from "@/core/services/auth-provider";
 
@@ -125,7 +127,7 @@ export function DesktopDashboardView() {
         </div>
       </div>
 
-      {/* Top Cities + States + Lanes — origin/destination 2x3 grid */}
+      {/* Top Cities + States + Regions + Lanes — origin/destination 3x3 grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <TopCitiesTable companyId={companyId} side="origin"      from={from} to={to} />
         <TopCitiesTable companyId={companyId} side="destination" from={from} to={to} />
@@ -134,6 +136,10 @@ export function DesktopDashboardView() {
         <TopStatesTable companyId={companyId} side="origin"      from={from} to={to} />
         <TopStatesTable companyId={companyId} side="destination" from={from} to={to} />
         <TopLanesTable  companyId={companyId} granularity="state" from={from} to={to} />
+
+        <TopRegionsTable     companyId={companyId} side="origin"      from={from} to={to} />
+        <TopRegionsTable     companyId={companyId} side="destination" from={from} to={to} />
+        <TopRegionLanesTable companyId={companyId}                    from={from} to={to} />
       </div>
 
       {/* Rate & Pay + Churn + Availability */}
