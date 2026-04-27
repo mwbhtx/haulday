@@ -11,6 +11,8 @@ import type {
   AnalyticsTopCityEntry,
   AnalyticsTopStateEntry,
   AnalyticsTopLaneEntry,
+  AnalyticsTopRegionEntry,
+  AnalyticsTopRegionLaneEntry,
   AnalyticsSide,
   AnalyticsLaneGranularity,
 } from "@/core/types";
@@ -148,6 +150,37 @@ export function useAnalyticsTopStates(
     queryKey: ["analytics", companyId, "top-states", side, from, to],
     queryFn: () =>
       fetchApi<AnalyticsTopStateEntry[]>(`analytics/${companyId}/top-states${qs}`),
+    refetchInterval: 60_000,
+    enabled: !!companyId,
+  });
+}
+
+export function useAnalyticsTopRegions(
+  companyId: string,
+  side: AnalyticsSide,
+  from?: string,
+  to?: string,
+) {
+  const qs = buildQuery({ side, from, to });
+  return useQuery<AnalyticsTopRegionEntry[]>({
+    queryKey: ["analytics", companyId, "top-regions", side, from, to],
+    queryFn: () =>
+      fetchApi<AnalyticsTopRegionEntry[]>(`analytics/${companyId}/top-regions${qs}`),
+    refetchInterval: 60_000,
+    enabled: !!companyId,
+  });
+}
+
+export function useAnalyticsTopRegionLanes(
+  companyId: string,
+  from?: string,
+  to?: string,
+) {
+  const qs = buildQuery({ granularity: 'region', from, to });
+  return useQuery<AnalyticsTopRegionLaneEntry[]>({
+    queryKey: ["analytics", companyId, "top-lanes", "region", from, to],
+    queryFn: () =>
+      fetchApi<AnalyticsTopRegionLaneEntry[]>(`analytics/${companyId}/top-lanes${qs}`),
     refetchInterval: 60_000,
     enabled: !!companyId,
   });
