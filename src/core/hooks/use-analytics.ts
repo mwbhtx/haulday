@@ -178,7 +178,7 @@ export function useAnalyticsTopRegionLanes(
 ) {
   const qs = buildQuery({ granularity: 'region', from, to });
   return useQuery<AnalyticsTopRegionLaneEntry[]>({
-    queryKey: ["analytics", companyId, "top-lanes", "region", from, to],
+    queryKey: ["analytics", companyId, "top-region-lanes", from, to],
     queryFn: () =>
       fetchApi<AnalyticsTopRegionLaneEntry[]>(`analytics/${companyId}/top-lanes${qs}`),
     refetchInterval: 60_000,
