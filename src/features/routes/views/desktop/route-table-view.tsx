@@ -204,6 +204,11 @@ export function RouteTableView({
                       {chain.legs.length > 1 && (
                         <span className="text-xs text-muted-foreground">{chain.legs.length} orders</span>
                       )}
+                      {chain.legs.some(l => (l.similar_count ?? 0) > 1) && (
+                        <span className="text-xs text-muted-foreground">
+                          {chain.legs.reduce((sum, l) => sum + (l.similar_count ?? 1), 0) - chain.legs.length} similar available
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-right tabular-nums font-bold">

@@ -473,6 +473,9 @@ function RouteChainCard({
                                 )}
                               </div>
                             )}
+                            {leg.similar_order_ids && leg.similar_order_ids.length > 0 && (
+                              <p className="text-xs text-muted-foreground/70 mt-0.5">{leg.similar_count} identical runs — alt IDs: {leg.similar_order_ids.join(', ')}</p>
+                            )}
                           </div>
                       </div>
                     </div>

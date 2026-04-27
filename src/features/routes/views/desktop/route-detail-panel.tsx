@@ -541,6 +541,11 @@ function RouteDetailContent({
                   {leg.commodity && (
                     <p className="text-sm text-muted-foreground mt-1">Commodity: {leg.commodity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}</p>
                   )}
+                  {leg.similar_order_ids && leg.similar_order_ids.length > 0 && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {leg.similar_count} identical runs available — alt IDs: {leg.similar_order_ids.join(', ')}
+                    </p>
+                  )}
                 </div>
               </div>
             );
