@@ -433,25 +433,25 @@ export function DesktopSettingsView() {
           <div className="inline-flex rounded-md border border-border overflow-hidden">
             <button
               type="button"
-              onClick={() => handleCostModeChange("simple")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                costMode === "simple"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-background text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Simple
-            </button>
-            <button
-              type="button"
               onClick={() => handleCostModeChange("auto")}
-              className={`px-4 py-2 text-sm font-medium border-l border-border transition-colors ${
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
                 costMode === "auto"
                   ? "bg-primary text-primary-foreground"
                   : "bg-background text-muted-foreground hover:text-foreground"
               }`}
             >
               Auto
+            </button>
+            <button
+              type="button"
+              onClick={() => handleCostModeChange("simple")}
+              className={`px-4 py-2 text-sm font-medium border-l border-border transition-colors ${
+                costMode === "simple"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Simple
             </button>
             <button
               type="button"
@@ -487,12 +487,12 @@ export function DesktopSettingsView() {
           {costMode === "auto" && (
             <div className="space-y-5">
               <p className="text-sm text-muted-foreground">
-                Auto mode estimates operating cost using industry averages plus the current regional diesel price refreshed weekly from the U.S. Energy Information Administration (EIA). Nothing to configure — your effective cost-per-mile shows below.
+                Auto mode estimates operating cost using industry averages plus the current U.S. national-average diesel price refreshed weekly from the U.S. Energy Information Administration (EIA). Nothing to configure — your effective cost-per-mile shows below.
               </p>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">Diesel</div>
-                  <div className="font-medium">EIA (home region)</div>
+                  <div className="font-medium">EIA (national avg)</div>
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">Maintenance</div>
