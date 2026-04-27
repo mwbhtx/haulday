@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -23,7 +23,17 @@ import {
   TooltipTrigger,
 } from "@/platform/web/components/ui/tooltip";
 import { useAnalyticsTopLanes } from "@/core/hooks/use-analytics";
-import type { AnalyticsLaneGranularity, AnalyticsTopLanesSort } from "@/core/types";
+import type {
+  AnalyticsLaneGranularity,
+  AnalyticsTopLanesSort,
+  AnalyticsTopLaneEntry,
+} from "@/core/types";
+
+const LANE_FIELD: Record<AnalyticsTopLanesSort, keyof AnalyticsTopLaneEntry> = {
+  loads_per_day: "loads_per_day",
+  rate_per_mile: "median_rate_per_mile",
+  median_pay: "median_pay",
+};
 
 const currency2 = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -55,7 +65,6 @@ export function TopLanesTable({
   const { data, isLoading, isError } = useAnalyticsTopLanes(
     companyId,
     granularity,
-    sort,
     from,
     to,
   );
@@ -65,7 +74,19 @@ export function TopLanesTable({
       ? "Top Lanes (City → City)"
       : "Top Lanes (State → State)";
 
-  const rows = data ?? [];
+  const rows = useMemo(() => {
+    if (!data) return [];
+    const fieldKey = LANE_FIELD[sort];
+    return [...data].sort((a, b) => {
+      const av = a[fieldKey] as number | null;
+      const bv = b[fieldKey] as number | null;
+      // NULLS LAST: nulls always sort to the bottom regardless of direction
+      if (av === null && bv === null) return 0;
+      if (av === null) return 1;
+      if (bv === null) return -1;
+      return bv - av; // DESC
+    });
+  }, [data, sort]);
 
   return (
     <Card className="h-full flex flex-col">

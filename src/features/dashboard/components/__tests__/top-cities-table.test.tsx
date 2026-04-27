@@ -77,15 +77,48 @@ describe("TopCitiesTable", () => {
     expect(screen.getByText("No data available")).toBeInTheDocument();
   });
 
-  it("clicking $/mi header calls hook with sort=rate_per_mile", () => {
+  it("clicking $/mi header re-ranks rows by median_rate_per_mile DESC client-side", () => {
     (useAnalyticsTopCities as unknown as { mockReturnValue: Function }).mockReturnValue({
-      data: [],
+      data: [
+        {
+          city: "HighVol",
+          state: "TN",
+          load_count: 100,
+          loads_per_day: 10,
+          median_rate_per_mile: 2.0,
+          entropy_h: 2.5,
+        },
+        {
+          city: "HighRate",
+          state: "TX",
+          load_count: 50,
+          loads_per_day: 5,
+          median_rate_per_mile: 3.5,
+          entropy_h: 1.0,
+        },
+      ],
       isLoading: false,
       isError: false,
     });
     render(<TopCitiesTable companyId="c-1" side="origin" />);
+
+    // Default sort is loads_per_day DESC, so HighVol should be first
+    let rows = screen.getAllByRole("row");
+    // first row is the header; data rows start at index 1
+    expect(rows[1]).toHaveTextContent("HighVol");
+    expect(rows[2]).toHaveTextContent("HighRate");
+
+    // Click $/mi
     fireEvent.click(screen.getByText("$/mi"));
+
+    rows = screen.getAllByRole("row");
+    expect(rows[1]).toHaveTextContent("HighRate");
+    expect(rows[2]).toHaveTextContent("HighVol");
+
+    // Hook signature is now (companyId, side, from, to) — no sort arg
     const calls = (useAnalyticsTopCities as unknown as { mock: { calls: unknown[][] } }).mock.calls;
-    expect(calls[calls.length - 1]).toEqual(["c-1", "origin", "rate_per_mile", undefined, undefined]);
+    for (const call of calls) {
+      expect(call.length).toBeLessThanOrEqual(4);
+    }
   });
 });

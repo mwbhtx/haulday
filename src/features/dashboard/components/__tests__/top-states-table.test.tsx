@@ -50,15 +50,44 @@ describe("TopStatesTable", () => {
     expect(screen.getByText("No data available")).toBeInTheDocument();
   });
 
-  it("clicking $/mi header calls hook with sort=rate_per_mile", () => {
+  it("clicking $/mi header re-ranks rows by median_rate_per_mile DESC client-side", () => {
     (useAnalyticsTopStates as unknown as { mockReturnValue: Function }).mockReturnValue({
-      data: [],
+      data: [
+        {
+          state: "HV",
+          load_count: 100,
+          loads_per_day: 10,
+          median_rate_per_mile: 2.0,
+          entropy_h: 2.5,
+        },
+        {
+          state: "HR",
+          load_count: 50,
+          loads_per_day: 5,
+          median_rate_per_mile: 3.5,
+          entropy_h: 1.0,
+        },
+      ],
       isLoading: false,
       isError: false,
     });
     render(<TopStatesTable companyId="c-1" side="origin" />);
+
+    // Default sort is loads_per_day DESC, so HV (state) should be first
+    let rows = screen.getAllByRole("row");
+    expect(rows[1]).toHaveTextContent("HV");
+    expect(rows[2]).toHaveTextContent("HR");
+
     fireEvent.click(screen.getByText("$/mi"));
+
+    rows = screen.getAllByRole("row");
+    expect(rows[1]).toHaveTextContent("HR");
+    expect(rows[2]).toHaveTextContent("HV");
+
+    // Hook signature is now (companyId, side, from, to) — no sort arg
     const calls = (useAnalyticsTopStates as unknown as { mock: { calls: unknown[][] } }).mock.calls;
-    expect(calls[calls.length - 1]).toEqual(["c-1", "origin", "rate_per_mile", undefined, undefined]);
+    for (const call of calls) {
+      expect(call.length).toBeLessThanOrEqual(4);
+    }
   });
 });

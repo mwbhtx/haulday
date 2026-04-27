@@ -73,15 +73,54 @@ describe("TopLanesTable", () => {
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("clicking Median Pay header calls hook with sort=median_pay", () => {
+  it("clicking Median Pay header re-ranks rows by median_pay DESC client-side", () => {
     (useAnalyticsTopLanes as unknown as { mockReturnValue: Function }).mockReturnValue({
-      data: [],
+      data: [
+        {
+          origin_city: "HighVolO",
+          origin_state: "TN",
+          destination_city: "HighVolD",
+          destination_state: "TX",
+          origin_label: "HighVolO, TN",
+          destination_label: "HighVolD, TX",
+          load_count: 100,
+          loads_per_day: 10,
+          median_rate_per_mile: 2.0,
+          median_pay: 1000,
+        },
+        {
+          origin_city: "HighPayO",
+          origin_state: "AL",
+          destination_city: "HighPayD",
+          destination_state: "GA",
+          origin_label: "HighPayO, AL",
+          destination_label: "HighPayD, GA",
+          load_count: 50,
+          loads_per_day: 5,
+          median_rate_per_mile: 3.5,
+          median_pay: 5000,
+        },
+      ],
       isLoading: false,
       isError: false,
     });
     render(<TopLanesTable companyId="c-1" granularity="city" />);
+
+    // Default sort is loads_per_day DESC, so HighVol lane should be first
+    let rows = screen.getAllByRole("row");
+    expect(rows[1]).toHaveTextContent("HighVolO, TN → HighVolD, TX");
+    expect(rows[2]).toHaveTextContent("HighPayO, AL → HighPayD, GA");
+
     fireEvent.click(screen.getByText("Median Pay"));
+
+    rows = screen.getAllByRole("row");
+    expect(rows[1]).toHaveTextContent("HighPayO, AL → HighPayD, GA");
+    expect(rows[2]).toHaveTextContent("HighVolO, TN → HighVolD, TX");
+
+    // Hook signature is now (companyId, granularity, from, to) — no sort arg
     const calls = (useAnalyticsTopLanes as unknown as { mock: { calls: unknown[][] } }).mock.calls;
-    expect(calls[calls.length - 1]).toEqual(["c-1", "city", "median_pay", undefined, undefined]);
+    for (const call of calls) {
+      expect(call.length).toBeLessThanOrEqual(4);
+    }
   });
 });

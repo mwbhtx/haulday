@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -23,7 +23,17 @@ import {
   TooltipTrigger,
 } from "@/platform/web/components/ui/tooltip";
 import { useAnalyticsTopCities } from "@/core/hooks/use-analytics";
-import type { AnalyticsSide, AnalyticsTopPlacesSort } from "@/core/types";
+import type {
+  AnalyticsSide,
+  AnalyticsTopPlacesSort,
+  AnalyticsTopCityEntry,
+} from "@/core/types";
+
+const CITY_FIELD: Record<AnalyticsTopPlacesSort, keyof AnalyticsTopCityEntry> = {
+  loads_per_day: "loads_per_day",
+  rate_per_mile: "median_rate_per_mile",
+  entropy_h: "entropy_h",
+};
 
 const currency2 = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -63,7 +73,6 @@ export function TopCitiesTable({
   const { data, isLoading, isError } = useAnalyticsTopCities(
     companyId,
     side,
-    sort,
     from,
     to,
   );
@@ -73,7 +82,19 @@ export function TopCitiesTable({
   const diversityHeader =
     side === "origin" ? "Outbound Diversity" : "Inbound Diversity";
 
-  const rows = data ?? [];
+  const rows = useMemo(() => {
+    if (!data) return [];
+    const fieldKey = CITY_FIELD[sort];
+    return [...data].sort((a, b) => {
+      const av = a[fieldKey] as number | null;
+      const bv = b[fieldKey] as number | null;
+      // NULLS LAST: nulls always sort to the bottom regardless of direction
+      if (av === null && bv === null) return 0;
+      if (av === null) return 1;
+      if (bv === null) return -1;
+      return bv - av; // DESC
+    });
+  }, [data, sort]);
 
   return (
     <Card className="h-full flex flex-col">
