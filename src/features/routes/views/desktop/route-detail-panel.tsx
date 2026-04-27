@@ -579,7 +579,7 @@ function RouteDetailContent({
                             <span className="flex-1 truncate text-foreground">
                               {s.city}, {s.state}
                             </span>
-                            {badge && (
+                            {badge && !s.early_date_local && (
                               <span
                                 className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
                                   badge.kind === "LATE"
@@ -597,11 +597,27 @@ function RouteDetailContent({
                             )}
                           </div>
                           {s.early_date_local && (
-                            <div className="flex items-baseline gap-2 mt-1 pl-[82px] text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 mt-1 pl-[82px] text-xs text-muted-foreground">
                               <span className="tabular-nums">
                                 {formatDateTime(s.early_date_local)}
                                 {s.late_date_local ? ` – ${formatDateTime(s.late_date_local)}` : ""}
                               </span>
+                              {badge && (
+                                <span
+                                  className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
+                                    badge.kind === "LATE"
+                                      ? "bg-destructive/15 text-destructive border-destructive/50"
+                                      : "bg-blue-500/15 text-blue-400 border-blue-500/50"
+                                  }`}
+                                  title={
+                                    badge.kind === "LATE"
+                                      ? `Our model arrives ${fmtScheduleOffset(badge.hours)} past the window close`
+                                      : `Our model arrives ${fmtScheduleOffset(badge.hours)} before the window opens`
+                                  }
+                                >
+                                  {badge.kind} {fmtScheduleOffset(badge.hours)}
+                                </span>
+                              )}
                             </div>
                           )}
                         </li>
