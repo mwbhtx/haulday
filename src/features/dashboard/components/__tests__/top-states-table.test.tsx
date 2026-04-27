@@ -14,14 +14,14 @@ afterEach(() => {
 });
 
 describe("TopStatesTable", () => {
-  it("renders 'Top Origin States' for side=origin", () => {
+  it("renders 'Top Export States' for side=origin", () => {
     (useAnalyticsTopStates as unknown as { mockReturnValue: Function }).mockReturnValue({
       data: [],
       isLoading: false,
       isError: false,
     });
     render(<TopStatesTable companyId="c-1" side="origin" />);
-    expect(screen.getByText("Top Origin States")).toBeInTheDocument();
+    expect(screen.getByText("Top Export States")).toBeInTheDocument();
     expect(screen.getByText("Outbound Diversity")).toBeInTheDocument();
   });
 

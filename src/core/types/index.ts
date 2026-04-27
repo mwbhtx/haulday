@@ -46,7 +46,7 @@ export interface AnalyticsAvailabilityEntry {
 }
 
 export type AnalyticsSide = 'origin' | 'destination';
-export type AnalyticsLaneGranularity = 'city' | 'state';
+export type AnalyticsLaneGranularity = 'city' | 'state' | 'region';
 export type AnalyticsTopPlacesSort = 'loads_per_day' | 'rate_per_mile' | 'entropy_h';
 export type AnalyticsTopLanesSort = 'loads_per_day' | 'rate_per_mile' | 'median_pay';
 
@@ -72,6 +72,34 @@ export interface AnalyticsTopLaneEntry {
   origin_state: string;
   destination_city: string | null;
   destination_state: string;
+  origin_label: string;
+  destination_label: string;
+  load_count: number;
+  loads_per_day: number;
+  median_rate_per_mile: number | null;
+  median_pay: number | null;
+}
+
+export interface AnalyticsTopRegionEntry {
+  cell_lat: number;
+  cell_lng: number;
+  display_city: string;
+  display_state: string;
+  load_count: number;
+  loads_per_day: number;
+  median_rate_per_mile: number | null;
+  entropy_h: number;
+}
+
+export interface AnalyticsTopRegionLaneEntry {
+  origin_cell_lat: number;
+  origin_cell_lng: number;
+  origin_display_city: string;
+  origin_display_state: string;
+  destination_cell_lat: number;
+  destination_cell_lng: number;
+  destination_display_city: string;
+  destination_display_state: string;
   origin_label: string;
   destination_label: string;
   load_count: number;

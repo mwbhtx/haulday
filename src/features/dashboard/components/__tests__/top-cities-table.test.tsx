@@ -15,24 +15,24 @@ describe("TopCitiesTable", () => {
   });
 
 
-  it("renders 'Top Origin Cities' for side=origin", () => {
+  it("renders 'Top Export Cities' for side=origin", () => {
     (useAnalyticsTopCities as unknown as { mockReturnValue: Function }).mockReturnValue({
       data: [],
       isLoading: false,
       isError: false,
     });
     render(<TopCitiesTable companyId="c-1" side="origin" />);
-    expect(screen.getByText("Top Origin Cities")).toBeInTheDocument();
+    expect(screen.getByText("Top Export Cities")).toBeInTheDocument();
   });
 
-  it("renders 'Top Destination Cities' for side=destination and 'Inbound Diversity' header", () => {
+  it("renders 'Top Import Cities' for side=destination and 'Inbound Diversity' header", () => {
     (useAnalyticsTopCities as unknown as { mockReturnValue: Function }).mockReturnValue({
       data: [],
       isLoading: false,
       isError: false,
     });
     render(<TopCitiesTable companyId="c-1" side="destination" />);
-    expect(screen.getByText("Top Destination Cities")).toBeInTheDocument();
+    expect(screen.getByText("Top Import Cities")).toBeInTheDocument();
     expect(screen.getByText("Inbound Diversity")).toBeInTheDocument();
   });
 

@@ -14,24 +14,24 @@ afterEach(() => {
 });
 
 describe("TopLanesTable", () => {
-  it("renders 'Top Lanes (City → City)' for granularity=city", () => {
+  it("renders 'Top Lanes (Cities)' for granularity=city", () => {
     (useAnalyticsTopLanes as unknown as { mockReturnValue: Function }).mockReturnValue({
       data: [],
       isLoading: false,
       isError: false,
     });
     render(<TopLanesTable companyId="c-1" granularity="city" />);
-    expect(screen.getByText("Top Lanes (City → City)")).toBeInTheDocument();
+    expect(screen.getByText("Top Lanes (Cities)")).toBeInTheDocument();
   });
 
-  it("renders 'Top Lanes (State → State)' for granularity=state", () => {
+  it("renders 'Top Lanes (States)' for granularity=state", () => {
     (useAnalyticsTopLanes as unknown as { mockReturnValue: Function }).mockReturnValue({
       data: [],
       isLoading: false,
       isError: false,
     });
     render(<TopLanesTable companyId="c-1" granularity="state" />);
-    expect(screen.getByText("Top Lanes (State → State)")).toBeInTheDocument();
+    expect(screen.getByText("Top Lanes (States)")).toBeInTheDocument();
   });
 
   it("renders rows with arrow-joined OD label and integer Median Pay; null pay -> em dash", () => {

@@ -78,7 +78,7 @@ export function TopCitiesTable({
   );
 
   const title =
-    side === "origin" ? "Top Origin Cities" : "Top Destination Cities";
+    side === "origin" ? "Top Export Cities" : "Top Import Cities";
   const diversityHeader =
     side === "origin" ? "Outbound Diversity" : "Inbound Diversity";
 

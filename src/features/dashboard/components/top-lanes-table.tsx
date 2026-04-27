@@ -70,9 +70,9 @@ export function TopLanesTable({
   );
 
   const title =
-    granularity === "city"
-      ? "Top Lanes (City → City)"
-      : "Top Lanes (State → State)";
+    granularity === "city"    ? "Top Lanes (Cities)" :
+    granularity === "region"  ? "Top Lanes (Regions)" :
+                                "Top Lanes (States)";
 
   const rows = useMemo(() => {
     if (!data) return [];

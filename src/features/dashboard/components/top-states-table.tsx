@@ -68,7 +68,7 @@ export function TopStatesTable({
   );
 
   const title =
-    side === "origin" ? "Top Origin States" : "Top Destination States";
+    side === "origin" ? "Top Export States" : "Top Import States";
   const diversityHeader =
     side === "origin" ? "Outbound Diversity" : "Inbound Diversity";
 
