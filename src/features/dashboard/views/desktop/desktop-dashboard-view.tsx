@@ -93,7 +93,7 @@ export function DesktopDashboardView() {
 
       {/* Historical — time range selector + charts */}
       <div className="flex items-center gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Historical Trends</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Time Range</p>
         <div className="flex items-center rounded-lg border bg-muted/50 p-0.5 text-sm">
           {TIME_RANGE_OPTIONS.map((opt) => (
             <button
