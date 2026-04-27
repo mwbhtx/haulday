@@ -466,6 +466,11 @@ function RouteChainCard({
                               <div>
                                 {leg.pickup_date_early_local && <p>Pickup: {formatDateRange(leg.pickup_date_early_local, leg.pickup_date_late_local)}</p>}
                                 {leg.delivery_date_early_local && <p>Delivery: {formatDateRange(leg.delivery_date_early_local, leg.delivery_date_late_local)}</p>}
+                                {leg.window_projected && (
+                                  <span className="inline-block font-semibold uppercase tracking-wide text-warning bg-black px-1.5 py-0.5 text-xs mt-0.5">
+                                    DATES EST.
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>

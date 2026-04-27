@@ -532,6 +532,11 @@ function RouteDetailContent({
                         TARP {leg.tarp_height}
                       </span>
                     )}
+                    {leg.window_projected && (
+                      <span className="font-semibold uppercase tracking-wide text-warning bg-black px-1.5 py-0.5">
+                        DATES EST.
+                      </span>
+                    )}
                   </div>
                   {leg.commodity && (
                     <p className="text-sm text-muted-foreground mt-1">Commodity: {leg.commodity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}</p>
