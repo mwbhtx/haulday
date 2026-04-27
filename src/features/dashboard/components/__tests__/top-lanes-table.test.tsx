@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { TopLanesTable } from "../top-lanes-table";
 
 vi.mock("@/core/hooks/use-analytics", () => ({
@@ -10,6 +10,7 @@ import { useAnalyticsTopLanes } from "@/core/hooks/use-analytics";
 
 afterEach(() => {
   cleanup();
+  (useAnalyticsTopLanes as unknown as { mockClear: () => void }).mockClear();
 });
 
 describe("TopLanesTable", () => {
@@ -70,5 +71,17 @@ describe("TopLanesTable", () => {
     expect(screen.getByText("TN → TX")).toBeInTheDocument();
     // null median_pay AND null $/mi => two em-dashes; just assert at least one render
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("clicking Median Pay header calls hook with sort=median_pay", () => {
+    (useAnalyticsTopLanes as unknown as { mockReturnValue: Function }).mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+    });
+    render(<TopLanesTable companyId="c-1" granularity="city" />);
+    fireEvent.click(screen.getByText("Median Pay"));
+    const calls = (useAnalyticsTopLanes as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    expect(calls[calls.length - 1]).toEqual(["c-1", "city", "median_pay", undefined, undefined]);
   });
 });

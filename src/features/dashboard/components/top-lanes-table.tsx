@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -22,7 +23,7 @@ import {
   TooltipTrigger,
 } from "@/platform/web/components/ui/tooltip";
 import { useAnalyticsTopLanes } from "@/core/hooks/use-analytics";
-import type { AnalyticsLaneGranularity } from "@/core/types";
+import type { AnalyticsLaneGranularity, AnalyticsTopLanesSort } from "@/core/types";
 
 const currency2 = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -50,9 +51,11 @@ export function TopLanesTable({
   from?: string;
   to?: string;
 }) {
+  const [sort, setSort] = useState<AnalyticsTopLanesSort>("loads_per_day");
   const { data, isLoading, isError } = useAnalyticsTopLanes(
     companyId,
     granularity,
+    sort,
     from,
     to,
   );
@@ -79,15 +82,60 @@ export function TopLanesTable({
                 <TableHead className="text-right">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span>Opened/day</span>
+                      <button
+                        type="button"
+                        onClick={() => setSort("loads_per_day")}
+                        className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        <span>Opened/day</span>
+                        <span
+                          className={
+                            sort === "loads_per_day"
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }
+                        >
+                          ▼
+                        </span>
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       {OPENED_PER_DAY_TOOLTIP}
                     </TooltipContent>
                   </Tooltip>
                 </TableHead>
-                <TableHead className="text-right">$/mi</TableHead>
-                <TableHead className="text-right">Median Pay</TableHead>
+                <TableHead className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => setSort("rate_per_mile")}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <span>$/mi</span>
+                    <span
+                      className={
+                        sort === "rate_per_mile" ? "opacity-100" : "opacity-0"
+                      }
+                    >
+                      ▼
+                    </span>
+                  </button>
+                </TableHead>
+                <TableHead className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => setSort("median_pay")}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <span>Median Pay</span>
+                    <span
+                      className={
+                        sort === "median_pay" ? "opacity-100" : "opacity-0"
+                      }
+                    >
+                      ▼
+                    </span>
+                  </button>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

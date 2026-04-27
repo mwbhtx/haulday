@@ -47,6 +47,8 @@ export interface AnalyticsAvailabilityEntry {
 
 export type AnalyticsSide = 'origin' | 'destination';
 export type AnalyticsLaneGranularity = 'city' | 'state';
+export type AnalyticsTopPlacesSort = 'loads_per_day' | 'rate_per_mile' | 'entropy_h';
+export type AnalyticsTopLanesSort = 'loads_per_day' | 'rate_per_mile' | 'median_pay';
 
 export interface AnalyticsTopCityEntry {
   city: string;

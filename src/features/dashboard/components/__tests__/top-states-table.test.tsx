@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { TopStatesTable } from "../top-states-table";
 
 vi.mock("@/core/hooks/use-analytics", () => ({
@@ -10,6 +10,7 @@ import { useAnalyticsTopStates } from "@/core/hooks/use-analytics";
 
 afterEach(() => {
   cleanup();
+  (useAnalyticsTopStates as unknown as { mockClear: () => void }).mockClear();
 });
 
 describe("TopStatesTable", () => {
@@ -47,5 +48,17 @@ describe("TopStatesTable", () => {
     });
     render(<TopStatesTable companyId="c-1" side="destination" />);
     expect(screen.getByText("No data available")).toBeInTheDocument();
+  });
+
+  it("clicking $/mi header calls hook with sort=rate_per_mile", () => {
+    (useAnalyticsTopStates as unknown as { mockReturnValue: Function }).mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+    });
+    render(<TopStatesTable companyId="c-1" side="origin" />);
+    fireEvent.click(screen.getByText("$/mi"));
+    const calls = (useAnalyticsTopStates as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    expect(calls[calls.length - 1]).toEqual(["c-1", "origin", "rate_per_mile", undefined, undefined]);
   });
 });

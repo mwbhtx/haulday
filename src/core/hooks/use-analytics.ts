@@ -13,6 +13,8 @@ import type {
   AnalyticsTopLaneEntry,
   AnalyticsSide,
   AnalyticsLaneGranularity,
+  AnalyticsTopPlacesSort,
+  AnalyticsTopLanesSort,
 } from "@/core/types";
 
 function buildQuery(params: Record<string, string | undefined>): string {
@@ -57,12 +59,13 @@ export function useAnalyticsHistory(
 export function useAnalyticsTopLanes(
   companyId: string,
   granularity: AnalyticsLaneGranularity,
+  sort: AnalyticsTopLanesSort,
   from?: string,
   to?: string,
 ) {
-  const qs = buildQuery({ granularity, from, to });
+  const qs = buildQuery({ granularity, sort, from, to });
   return useQuery<AnalyticsTopLaneEntry[]>({
-    queryKey: ["analytics", companyId, "top-lanes", granularity, from, to],
+    queryKey: ["analytics", companyId, "top-lanes", granularity, sort, from, to],
     queryFn: () =>
       fetchApi<AnalyticsTopLaneEntry[]>(`analytics/${companyId}/top-lanes${qs}`),
     refetchInterval: 60_000,
@@ -124,12 +127,13 @@ export function useAnalyticsAvailability(
 export function useAnalyticsTopCities(
   companyId: string,
   side: AnalyticsSide,
+  sort: AnalyticsTopPlacesSort,
   from?: string,
   to?: string,
 ) {
-  const qs = buildQuery({ side, from, to });
+  const qs = buildQuery({ side, sort, from, to });
   return useQuery<AnalyticsTopCityEntry[]>({
-    queryKey: ["analytics", companyId, "top-cities", side, from, to],
+    queryKey: ["analytics", companyId, "top-cities", side, sort, from, to],
     queryFn: () =>
       fetchApi<AnalyticsTopCityEntry[]>(`analytics/${companyId}/top-cities${qs}`),
     refetchInterval: 60_000,
@@ -140,12 +144,13 @@ export function useAnalyticsTopCities(
 export function useAnalyticsTopStates(
   companyId: string,
   side: AnalyticsSide,
+  sort: AnalyticsTopPlacesSort,
   from?: string,
   to?: string,
 ) {
-  const qs = buildQuery({ side, from, to });
+  const qs = buildQuery({ side, sort, from, to });
   return useQuery<AnalyticsTopStateEntry[]>({
-    queryKey: ["analytics", companyId, "top-states", side, from, to],
+    queryKey: ["analytics", companyId, "top-states", side, sort, from, to],
     queryFn: () =>
       fetchApi<AnalyticsTopStateEntry[]>(`analytics/${companyId}/top-states${qs}`),
     refetchInterval: 60_000,

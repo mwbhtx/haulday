@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -22,7 +23,7 @@ import {
   TooltipTrigger,
 } from "@/platform/web/components/ui/tooltip";
 import { useAnalyticsTopStates } from "@/core/hooks/use-analytics";
-import type { AnalyticsSide } from "@/core/types";
+import type { AnalyticsSide, AnalyticsTopPlacesSort } from "@/core/types";
 
 const currency2 = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -48,9 +49,11 @@ export function TopStatesTable({
   from?: string;
   to?: string;
 }) {
+  const [sort, setSort] = useState<AnalyticsTopPlacesSort>("loads_per_day");
   const { data, isLoading, isError } = useAnalyticsTopStates(
     companyId,
     side,
+    sort,
     from,
     to,
   );
@@ -77,18 +80,61 @@ export function TopStatesTable({
                 <TableHead className="text-right">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span>Opened/day</span>
+                      <button
+                        type="button"
+                        onClick={() => setSort("loads_per_day")}
+                        className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        <span>Opened/day</span>
+                        <span
+                          className={
+                            sort === "loads_per_day"
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }
+                        >
+                          ▼
+                        </span>
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       {OPENED_PER_DAY_TOOLTIP}
                     </TooltipContent>
                   </Tooltip>
                 </TableHead>
-                <TableHead className="text-right">$/mi</TableHead>
+                <TableHead className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => setSort("rate_per_mile")}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    <span>$/mi</span>
+                    <span
+                      className={
+                        sort === "rate_per_mile" ? "opacity-100" : "opacity-0"
+                      }
+                    >
+                      ▼
+                    </span>
+                  </button>
+                </TableHead>
                 <TableHead className="text-right">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span>{diversityHeader}</span>
+                      <button
+                        type="button"
+                        onClick={() => setSort("entropy_h")}
+                        className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        <span>{diversityHeader}</span>
+                        <span
+                          className={
+                            sort === "entropy_h" ? "opacity-100" : "opacity-0"
+                          }
+                        >
+                          ▼
+                        </span>
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       {DIVERSITY_TOOLTIP}
