@@ -20,7 +20,7 @@ interface StatCardProps {
 function Sparkline({ data, color }: { data: number[]; color: string }) {
   const chartData = data.map((v, i) => ({ v, i }));
   return (
-    <div className="h-8 w-full mt-2">
+    <div className="h-6 w-full mt-1.5">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData}>
           <Line
@@ -40,7 +40,7 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
 function StatCard({ title, value, indicator, sparklineData, sparklineColor }: StatCardProps) {
   return (
     <Card>
-      <CardContent className="pt-4 pb-3 px-4">
+      <CardContent className="pt-3 pb-2.5 px-4">
         <div className="flex items-center gap-1.5 mb-1">
           {indicator && (
             <span
@@ -65,7 +65,7 @@ function StatCard({ title, value, indicator, sparklineData, sparklineColor }: St
 function StatCardSkeleton() {
   return (
     <Card>
-      <CardContent className="pt-4 pb-3 px-4">
+      <CardContent className="pt-3 pb-2.5 px-4">
         <Skeleton className="h-3 w-24 mb-2" />
         <Skeleton className="h-8 w-16 mb-2" />
         <Skeleton className="h-8 w-full" />
