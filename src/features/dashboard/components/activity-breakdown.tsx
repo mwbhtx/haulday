@@ -18,14 +18,12 @@ interface StatRowProps {
 
 function StatRow({ label, sublabel, value, valueColor }: StatRowProps) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-border last:border-b-0">
-      <div>
-        <p className="text-sm font-medium">{label}</p>
-        {sublabel && (
-          <p className="text-xs text-muted-foreground">{sublabel}</p>
-        )}
-      </div>
-      <span className={`text-lg font-bold tabular-nums ${valueColor ?? ""}`}>
+    <div className="flex flex-col gap-1 bg-card px-4 py-3">
+      <p className="text-xs font-medium text-foreground">{label}</p>
+      {sublabel && (
+        <p className="text-[11px] text-muted-foreground leading-tight">{sublabel}</p>
+      )}
+      <span className={`text-xl font-bold tabular-nums mt-1 ${valueColor ?? ""}`}>
         {value}
       </span>
     </div>
@@ -109,23 +107,23 @@ export function ActivityBreakdown({
   })();
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
+    <Card>
+      <CardHeader className="pb-2">
         <CardTitle>Activity Breakdown</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 overflow-y-auto">
+      <CardContent className="pt-0">
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-10 w-full" />
             ))}
           </div>
         ) : !derived ? (
-          <div className="flex h-full items-center justify-center text-muted-foreground py-8">
+          <div className="flex items-center justify-center text-muted-foreground py-4">
             No data available
           </div>
         ) : (
-          <div>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-px border border-border rounded-lg overflow-hidden">
             <StatRow
               label="Peak Active"
               sublabel={derived.peakTimeLabel}

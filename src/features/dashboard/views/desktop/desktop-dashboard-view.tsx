@@ -114,18 +114,14 @@ export function DesktopDashboardView() {
         </div>
       </div>
 
-      {/* Available Orders + Order Flow + Activity Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 [&>*]:h-full">
-        <div className="lg:col-span-2">
-          <ActiveOrdersChart companyId={companyId} from={from} to={to} bucket={bucket} />
-        </div>
-        <div className="lg:col-span-2">
-          <OrderFlowChart companyId={companyId} from={from} to={to} bucket={bucket} />
-        </div>
-        <div className="lg:col-span-1">
-          <ActivityBreakdown companyId={companyId} from={from} to={to} bucket={bucket} />
-        </div>
+      {/* Available Orders + Order Flow */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 [&>*]:h-64">
+        <ActiveOrdersChart companyId={companyId} from={from} to={to} bucket={bucket} />
+        <OrderFlowChart companyId={companyId} from={from} to={to} bucket={bucket} />
       </div>
+
+      {/* Activity Breakdown — full width, content-height */}
+      <ActivityBreakdown companyId={companyId} from={from} to={to} bucket={bucket} />
 
       {/* Top Cities + States + Regions + Lanes — origin/destination 3x3 grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
