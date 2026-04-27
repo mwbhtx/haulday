@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { XIcon, ChevronRightIcon, ChevronLeftIcon, FlameIcon, BookmarkIcon, ClipboardListIcon } from "lucide-react";
 import { Button } from "@/platform/web/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/platform/web/components/ui/dialog";
+import { SimilarOrdersButton } from "@/features/routes/components/similar-orders-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/platform/web/components/ui/tooltip";
 import { useAuth } from "@/core/services/auth-provider";
 import { fetchApi } from "@/core/services/api";
@@ -474,7 +475,13 @@ function RouteChainCard({
                               </div>
                             )}
                             {leg.similar_order_ids && leg.similar_order_ids.length > 0 && (
-                              <p className="text-xs text-muted-foreground/70 mt-0.5">{leg.similar_count} identical runs — alt IDs: {leg.similar_order_ids.join(', ')}</p>
+                              <div className="mt-0.5">
+                                <SimilarOrdersButton
+                                  similarCount={leg.similar_count!}
+                                  similarOrderIds={leg.similar_order_ids}
+                                  orderUrlTemplate={orderUrlTemplate}
+                                />
+                              </div>
                             )}
                           </div>
                       </div>

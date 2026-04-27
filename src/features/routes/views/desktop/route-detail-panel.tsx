@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, FlameIcon, ClipboardListIcon, BookmarkIcon } from "lucide-react";
+import { SimilarOrdersButton } from "@/features/routes/components/similar-orders-button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/platform/web/components/ui/tooltip";
 import { RouteInspector } from "@/features/routes/components/route-inspector";
 import { useTimeline, type ExpensesBreakdown } from "@/core/hooks/use-timeline";
@@ -542,9 +543,13 @@ function RouteDetailContent({
                     <p className="text-sm text-muted-foreground mt-1">Commodity: {leg.commodity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}</p>
                   )}
                   {leg.similar_order_ids && leg.similar_order_ids.length > 0 && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {leg.similar_count} identical runs available — alt IDs: {leg.similar_order_ids.join(', ')}
-                    </p>
+                    <div className="mt-1">
+                      <SimilarOrdersButton
+                        similarCount={leg.similar_count!}
+                        similarOrderIds={leg.similar_order_ids}
+                        orderUrlTemplate={orderUrlTemplate}
+                      />
+                    </div>
                   )}
                 </div>
               </div>
