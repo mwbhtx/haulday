@@ -102,6 +102,12 @@ export function FreightNetworkMap({ data, period }: Props) {
     mapRef.current.setStyle(protomapsStyle(resolvedTheme === "dark" ? "dark" : "light"));
   }, [resolvedTheme]);
 
+  // Clear stale hover state when the dataset changes (e.g. user switches period).
+  useEffect(() => {
+    setHoveredZone(null);
+    setArcTooltip(null);
+  }, [data]);
+
   // Update deck.gl layers when data or interaction state changes
   useEffect(() => {
     if (!overlayRef.current) return;
@@ -282,7 +288,7 @@ export function FreightNetworkMap({ data, period }: Props) {
         </div>
       )}
 
-      {arcTooltip && !selectedZone && (
+      {arcTooltip && !selectedZone && !hoveredZone && (
         <div
           className="absolute z-10 bg-background/95 border rounded-md shadow-md px-3 py-2 text-xs pointer-events-none min-w-[200px]"
           style={{ left: arcTooltip.x + 12, top: arcTooltip.y - 40 }}
