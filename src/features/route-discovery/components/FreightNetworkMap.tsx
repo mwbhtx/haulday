@@ -193,15 +193,6 @@ export function FreightNetworkMap({ data, period }: Props) {
     const { lanes, zones } = data;
     const allCounts = lanes.map((l) => l.load_count);
 
-    // Only zones that are endpoints of top lanes, excluding low_data and filtered buckets
-    const laneZoneKeys = new Set(lanes.flatMap((l) => [l.origin_zone_key, l.destination_zone_key]));
-    const activeZones = zones.filter(
-      (z) => laneZoneKeys.has(z.zone_key) &&
-             z.optionality_bucket !== 'low_data' &&
-             activeBuckets.has(z.optionality_bucket as OptionalityBucket),
-    );
-    const maxOutbound = Math.max(1, ...activeZones.map((z) => z.outbound_load_count));
-
     // Lines only visible when a zone is selected
     const outboundLanes = selectedZoneKey
       ? lanes.filter((l) => l.origin_zone_key === selectedZoneKey)
@@ -210,10 +201,20 @@ export function FreightNetworkMap({ data, period }: Props) {
       ? lanes.filter((l) => l.destination_zone_key === selectedZoneKey && l.origin_zone_key !== selectedZoneKey)
       : [];
 
-    // Zones connected to selected (for dimming)
+    // All endpoints of selected zone's lanes — always shown so lines have visible targets
     const connectedZoneKeys = selectedZoneKey
       ? new Set([...outboundLanes, ...inboundLanes].flatMap((l) => [l.origin_zone_key, l.destination_zone_key]))
       : null;
+
+    // Zones: filter by bucket in idle; when selected always reveal connected endpoints
+    const laneZoneKeys = new Set(lanes.flatMap((l) => [l.origin_zone_key, l.destination_zone_key]));
+    const activeZones = zones.filter(
+      (z) => laneZoneKeys.has(z.zone_key) &&
+             z.optionality_bucket !== 'low_data' &&
+             (activeBuckets.has(z.optionality_bucket as OptionalityBucket) ||
+              (connectedZoneKeys !== null && connectedZoneKeys.has(z.zone_key))),
+    );
+    const maxOutbound = Math.max(1, ...activeZones.map((z) => z.outbound_load_count));
 
     const zoneAlpha = (z: FreightZoneSummary) => {
       if (!connectedZoneKeys) return 0.85;
