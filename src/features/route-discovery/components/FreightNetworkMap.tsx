@@ -437,7 +437,7 @@ export function FreightNetworkMap({ data, period }: Props) {
         </div>
       )}
 
-      <div className="absolute bottom-4 right-4 bg-background/90 border rounded-lg px-5 py-4 text-base space-y-3 min-w-[300px]">
+      <div className="absolute bottom-4 right-4 bg-background border rounded-lg px-5 py-4 text-base space-y-3 min-w-[300px]">
 
         {/* Zone Type */}
         <p className="font-semibold text-base">Zone Type</p>
