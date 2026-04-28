@@ -77,6 +77,9 @@ export function FreightNetworkMap({ data, period }: Props) {
       style: protomapsStyle(isDark ? "dark" : "light"),
       center: [-95, 38],
       zoom: 3.5,
+      minZoom: 3,
+      maxZoom: 12,
+      maxBounds: [[-175, 15], [-50, 72]],
       attributionControl: false,
     });
 
