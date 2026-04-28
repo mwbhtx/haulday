@@ -438,8 +438,8 @@ export function FreightNetworkMap({ data, period }: Props) {
         {/* Zone Type */}
         <p className="font-semibold text-base">Zone Type</p>
         {([
-          { type: 'source',  dot: 'bg-blue-500',    label: 'Outbound' },
           { type: 'transit', dot: 'bg-emerald-500', label: 'Transit' },
+          { type: 'source',  dot: 'bg-blue-500',    label: 'Outbound' },
           { type: 'sink',    dot: 'bg-red-500',     label: 'Inbound' },
         ] as const).map(({ type, dot, label }) => {
           const active = activeFlowTypes.has(type);
