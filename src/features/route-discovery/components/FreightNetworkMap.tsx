@@ -435,12 +435,12 @@ export function FreightNetworkMap({ data, period }: Props) {
 
       <div className="absolute bottom-4 right-4 bg-background/90 border rounded-lg px-5 py-4 text-base space-y-3 min-w-[300px]">
 
-        {/* Hub type */}
-        <p className="font-semibold text-base">Hub type</p>
+        {/* Zone type */}
+        <p className="font-semibold text-base">Zone type</p>
         {([
-          { type: 'source',  dot: 'bg-blue-500',  label: 'Mostly outbound' },
+          { type: 'source',  dot: 'bg-blue-500',  label: 'Exports' },
           { type: 'transit', dot: 'bg-amber-500', label: 'Balanced' },
-          { type: 'sink',    dot: 'bg-red-500',   label: 'Mostly inbound' },
+          { type: 'sink',    dot: 'bg-red-500',   label: 'Imports' },
         ] as const).map(({ type, dot, label }) => {
           const active = activeFlowTypes.has(type);
           return (
@@ -454,8 +454,9 @@ export function FreightNetworkMap({ data, period }: Props) {
           );
         })}
 
-        {/* Outbound options (entropy of lane distribution) */}
-        <p className="font-semibold text-base pt-2 border-t border-border/50">Outbound options</p>
+        {/* Outbound Volume — currently bucketed by entropy (variety), not load count.
+            Confirm with product whether to swap to data_support (count) to match label. */}
+        <p className="font-semibold text-base pt-2 border-t border-border/50">Outbound Volume</p>
         {([
           { bucket: 'high',   dot: 'bg-emerald-500', label: 'High' },
           { bucket: 'medium', dot: 'bg-amber-500',   label: 'Medium' },
