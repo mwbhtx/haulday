@@ -155,23 +155,39 @@ export function FreightNetworkMap({ data, period }: Props) {
       : laneZoneKeys;
 
     // Lines only visible when a zone is selected
-    const outboundLanes = selectedZoneKey
+    const allOutbound = selectedZoneKey
       ? visibleLanes.filter((l) => l.origin_zone_key === selectedZoneKey)
       : [];
-    const inboundLanes = selectedZoneKey
-      ? visibleLanes.filter((l) => l.destination_zone_key === selectedZoneKey && l.origin_zone_key !== selectedZoneKey)
+    // Transit = strong bidirectional; Outbound = one-way out
+    const transitLanes = allOutbound.filter(
+      (l) => l.reverse_strength === 'strong_visible' || l.reverse_strength === 'strong_truncated',
+    );
+    const pureOutboundLanes = allOutbound.filter(
+      (l) => l.reverse_strength !== 'strong_visible' && l.reverse_strength !== 'strong_truncated',
+    );
+    // Transit destination keys — skip those in inbound layer (already shown as transit)
+    const transitDestKeys = new Set(transitLanes.map((l) => l.destination_zone_key));
+    const pureInboundLanes = selectedZoneKey
+      ? visibleLanes.filter(
+          (l) =>
+            l.destination_zone_key === selectedZoneKey &&
+            l.origin_zone_key !== selectedZoneKey &&
+            !transitDestKeys.has(l.origin_zone_key),
+        )
       : [];
+
+    const allShownLanes = [...transitLanes, ...pureOutboundLanes, ...pureInboundLanes];
 
     // All endpoints of selected zone's lanes — always shown so lines have visible targets
     const connectedZoneKeys = selectedZoneKey
-      ? new Set([...outboundLanes, ...inboundLanes].flatMap((l) => [l.origin_zone_key, l.destination_zone_key]))
+      ? new Set(allShownLanes.flatMap((l) => [l.origin_zone_key, l.destination_zone_key]))
       : null;
 
-    // Zones: connected endpoints always shown so lines have visible targets;
-    // idle view filtered by both flow type + optionality.
+    // When zone selected: show ONLY connected endpoints + selected zone.
+    // Idle view: filter by flow type + optionality.
     const activeZones = zones.filter((z) => {
+      if (connectedZoneKeys) return connectedZoneKeys.has(z.zone_key);
       if (!strictLaneZoneKeys.has(z.zone_key)) return false;
-      if (connectedZoneKeys?.has(z.zone_key)) return true;
       return zonePassesFilters(z);
     });
     const maxOutbound = Math.max(1, ...activeZones.map((z) => z.outbound_load_count));
@@ -182,39 +198,34 @@ export function FreightNetworkMap({ data, period }: Props) {
       return connectedZoneKeys.has(z.zone_key) ? 0.9 : 0.2;
     };
 
-    // Outbound lanes: brand green
-    const outboundLineLayer = new LineLayer<FreightLaneEntry>({
-      id: 'outbound-lanes',
-      data: outboundLanes,
-      getSourcePosition: (l) => [l.origin_centroid_lng, l.origin_centroid_lat],
-      getTargetPosition: (l) => [l.destination_centroid_lng, l.destination_centroid_lat],
-      getColor: [163, 230, 53, 220],
-      getWidth: (l) => arcWidth(l.load_count, allCounts),
-      widthUnits: 'pixels',
+    const lineLayerBase = {
+      getSourcePosition: (l: FreightLaneEntry) => [l.origin_centroid_lng, l.origin_centroid_lat] as [number, number],
+      getTargetPosition: (l: FreightLaneEntry) => [l.destination_centroid_lng, l.destination_centroid_lat] as [number, number],
+      getWidth: (l: FreightLaneEntry) => arcWidth(l.load_count, allCounts),
+      widthUnits: 'pixels' as const,
       widthMinPixels: 1.5,
       pickable: true,
-      onHover: ({ object, x, y }) => {
+      onHover: ({ object, x, y }: { object?: FreightLaneEntry; x: number; y: number }) => {
         setArcTooltip(object ? { lane: object, x, y } : null);
       },
-    });
+    };
 
-    // Inbound lanes: blue, fainter
-    const inboundLineLayer = new LineLayer<FreightLaneEntry>({
-      id: 'inbound-lanes',
-      data: inboundLanes,
-      getSourcePosition: (l) => [l.origin_centroid_lng, l.origin_centroid_lat],
-      getTargetPosition: (l) => [l.destination_centroid_lng, l.destination_centroid_lat],
-      getColor: [99, 179, 237, 140],
-      getWidth: (l) => arcWidth(l.load_count, allCounts),
-      widthUnits: 'pixels',
-      widthMinPixels: 1,
-      pickable: false,
-    });
+    // Transit (strong bidirectional): lime
+    const transitLineLayer = new LineLayer<FreightLaneEntry>({ ...lineLayerBase, id: 'transit-lanes', data: transitLanes, getColor: [163, 230, 53, 220] });
+    // Outbound (one-way out): blue
+    const outboundLineLayer = new LineLayer<FreightLaneEntry>({ ...lineLayerBase, id: 'outbound-lanes', data: pureOutboundLanes, getColor: [59, 130, 246, 200] });
+    // Inbound (one-way in): red
+    const inboundLineLayer = new LineLayer<FreightLaneEntry>({ ...lineLayerBase, id: 'inbound-lanes', data: pureInboundLanes, getColor: [239, 68, 68, 180] });
 
-    // Arrow at lane midpoint (not endpoint) — cleaner direction signal
+    // Arrows at midpoint for outbound + transit (direction signal)
+    const arrowData = [...transitLanes, ...pureOutboundLanes];
+    const arrowColors: Record<string, [number, number, number, number]> = {};
+    transitLanes.forEach((l) => { arrowColors[l.origin_zone_key + l.destination_zone_key] = [163, 230, 53, 220]; });
+    pureOutboundLanes.forEach((l) => { arrowColors[l.origin_zone_key + l.destination_zone_key] = [59, 130, 246, 200]; });
+
     const arrowLayer = new TextLayer<FreightLaneEntry>({
       id: 'arrowheads',
-      data: outboundLanes,
+      data: arrowData,
       getPosition: (l) => {
         const [midLat, midLng] = midpoint(
           l.origin_centroid_lat, l.origin_centroid_lng,
@@ -226,7 +237,7 @@ export function FreightNetworkMap({ data, period }: Props) {
       getAngle: (l) =>
         90 - bearing(l.origin_centroid_lat, l.origin_centroid_lng, l.destination_centroid_lat, l.destination_centroid_lng),
       getSize: 13,
-      getColor: [163, 230, 53, 220],
+      getColor: (l) => arrowColors[l.origin_zone_key + l.destination_zone_key] ?? [163, 230, 53, 220],
       sizeUnits: 'pixels',
       pickable: false,
     });
@@ -283,7 +294,7 @@ export function FreightNetworkMap({ data, period }: Props) {
     });
 
     overlayRef.current.setProps({
-      layers: [inboundLineLayer, outboundLineLayer, arrowLayer, nodeLayer, labelLayer],
+      layers: [inboundLineLayer, transitLineLayer, outboundLineLayer, arrowLayer, nodeLayer, labelLayer],
       onClick: (info) => {
         if (!info.picked) {
           setSelectedZoneKey(null);
@@ -427,8 +438,9 @@ export function FreightNetworkMap({ data, period }: Props) {
 
         {/* Lane legend */}
         <div className="space-y-0.5 text-[10px] text-muted-foreground/60 pt-1 border-t border-border/50">
-          <div className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-[#a3e635] inline-block" />Outbound</div>
-          <div className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-[#63b3ed] inline-block opacity-60" />Inbound</div>
+          <div className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-[#a3e635] inline-block" />Transit (both ways)</div>
+          <div className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-blue-500 inline-block" />Outbound (one-way)</div>
+          <div className="flex items-center gap-1.5"><span className="w-4 h-0.5 bg-red-500 inline-block" />Inbound (one-way)</div>
         </div>
       </div>
     </div>
