@@ -308,7 +308,7 @@ export function FreightNetworkMap({ data, period }: Props) {
 
   return (
     <div className="relative">
-      <div ref={containerRef} className="w-full h-[520px] rounded-lg overflow-hidden" />
+      <div ref={containerRef} className="w-full h-[calc(100vh-20rem)] min-h-[400px] rounded-lg overflow-hidden" />
 
       {noData && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

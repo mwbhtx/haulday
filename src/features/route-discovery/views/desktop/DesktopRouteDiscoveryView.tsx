@@ -130,7 +130,7 @@ export function DesktopRouteDiscoveryView() {
         {/* ── Map tab ── */}
         <TabsContent value="map" className="mt-4">
           {networkLoading && (
-            <Skeleton className="h-[500px] w-full rounded-lg" />
+            <Skeleton className="h-[calc(100vh-20rem)] min-h-[400px] w-full rounded-lg" />
           )}
 
           {!networkLoading && networkData && (
