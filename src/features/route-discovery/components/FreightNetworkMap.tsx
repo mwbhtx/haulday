@@ -1,30 +1,98 @@
 "use client";
 
-// v1 note: reverse lane arcs (weak/none) use faint solid ArcLayer, not dashed.
-// Dashed rendering via PathStyleExtension is deferred to v2.
-
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useTheme } from "next-themes";
 import maplibregl from "maplibre-gl";
 import { layersWithCustomTheme } from "protomaps-themes-base";
+import type { Theme } from "protomaps-themes-base";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { ArcLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
+import { LineLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 import type { FreightNetworkMapResponse, FreightLaneEntry, FreightZoneSummary } from "@mwbhtx/haulvisor-core";
-import { MOONLIGHT_THEME, DARK_THEME } from "@/core/utils/map/themes";
-import { arcWidth, arcOpacity, bearing } from "../utils/freight-network";
+import { arcWidth, bearing } from "../utils/freight-network";
 import { ZoneTooltip } from "./ZoneTooltip";
 
 const PROTOMAPS_API_KEY = process.env.NEXT_PUBLIC_PROTOMAPS_API_KEY ?? "";
 
-const NODE_COLOR: Record<FreightZoneSummary['optionality_bucket'], [number, number, number]> = {
-  high:     [34,  197,  94],   // #22c55e
-  medium:   [245, 158,  11],   // #f59e0b
-  low:      [244,  63,  94],   // #f43f5e
-  low_data: [ 71,  85, 105],   // #475569
+// Near-black map: land/ocean nearly identical dark navy, only borders visible.
+// Roads, labels, landuse all match earth → invisible.
+const FREIGHT_DARK_THEME: Theme = {
+  background:              "#07090e",
+  earth:                   "#0c1018",
+  park_a:                  "#0c1018",
+  park_b:                  "#0c1018",
+  hospital:                "#0c1018",
+  industrial:              "#0c1018",
+  school:                  "#0c1018",
+  wood_a:                  "#0c1018",
+  wood_b:                  "#0c1018",
+  pedestrian:              "#0c1018",
+  scrub_a:                 "#0c1018",
+  scrub_b:                 "#0c1018",
+  glacier:                 "#0c1018",
+  sand:                    "#0c1018",
+  beach:                   "#0c1018",
+  aerodrome:               "#0c1018",
+  runway:                  "#0c1018",
+  water:                   "#070a14",
+  zoo:                     "#0c1018",
+  military:                "#0c1018",
+  tunnel_other_casing:     "#0c1018",
+  tunnel_minor_casing:     "#0c1018",
+  tunnel_link_casing:      "#0c1018",
+  tunnel_major_casing:     "#0c1018",
+  tunnel_highway_casing:   "#0c1018",
+  tunnel_other:            "#0c1018",
+  tunnel_minor:            "#0c1018",
+  tunnel_link:             "#0c1018",
+  tunnel_major:            "#0c1018",
+  tunnel_highway:          "#0c1018",
+  pier:                    "#0c1018",
+  buildings:               "#0c1018",
+  minor_service_casing:    "#0c1018",
+  minor_casing:            "#0c1018",
+  link_casing:             "#0c1018",
+  major_casing_late:       "#0c1018",
+  highway_casing_late:     "#0c1018",
+  major_casing_early:      "#0c1018",
+  highway_casing_early:    "#0c1018",
+  other:                   "#0c1018",
+  minor_service:           "#0c1018",
+  minor_a:                 "#0c1018",
+  minor_b:                 "#0c1018",
+  link:                    "#0c1018",
+  major:                   "#0c1018",
+  highway:                 "#0c1018",
+  railway:                 "#0c1018",
+  boundaries:              "#1e3060",
+  bridges_other_casing:    "#0c1018",
+  bridges_minor_casing:    "#0c1018",
+  bridges_link_casing:     "#0c1018",
+  bridges_major_casing:    "#0c1018",
+  bridges_highway_casing:  "#0c1018",
+  bridges_other:           "#0c1018",
+  bridges_minor:           "#0c1018",
+  bridges_link:            "#0c1018",
+  bridges_major:           "#0c1018",
+  bridges_highway:         "#0c1018",
+  roads_label_minor:       "#0c1018",
+  roads_label_major:       "#0c1018",
+  ocean_label:             "#07090e",
+  subplace_label:          "#0c1018",
+  city_label:              "#0c1018",
+  state_label:             "#0c1018",
+  country_label:           "#0c1018",
+  address_label:           "#0c1018",
+  roads_label_minor_halo:  "#0c1018",
+  roads_label_major_halo:  "#0c1018",
+  subplace_label_halo:     "#0c1018",
+  city_label_halo:         "#0c1018",
+  state_label_halo:        "#0c1018",
+  address_label_halo:      "#0c1018",
+  peak_label:              "#0c1018",
+  waterway_label:          "#07090e",
 };
 
-function protomapsStyle(theme: "light" | "dark"): maplibregl.StyleSpecification {
+function protomapsStyle(): maplibregl.StyleSpecification {
   return {
     version: 8,
     glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
@@ -36,9 +104,16 @@ function protomapsStyle(theme: "light" | "dark"): maplibregl.StyleSpecification 
         attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
     },
-    layers: layersWithCustomTheme("protomaps", theme === "light" ? MOONLIGHT_THEME : DARK_THEME, "en"),
+    layers: layersWithCustomTheme("protomaps", FREIGHT_DARK_THEME, "en"),
   };
 }
+
+const NODE_COLOR: Record<FreightZoneSummary['optionality_bucket'], [number, number, number]> = {
+  high:     [ 34, 197,  94],  // green-500
+  medium:   [245, 158,  11],  // amber-500
+  low:      [244,  63,  94],  // rose-500
+  low_data: [ 71,  85, 105],  // slate-500
+};
 
 interface ArcTooltipData {
   lane: FreightLaneEntry;
@@ -51,15 +126,26 @@ interface Props {
   period: '30d' | '60d' | '90d';
 }
 
+type OptionalityBucket = 'high' | 'medium' | 'low';
+
 export function FreightNetworkMap({ data, period }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
-  const { resolvedTheme } = useTheme();
 
   const [selectedZoneKey, setSelectedZoneKey] = useState<string | null>(null);
   const [hoveredZone, setHoveredZone] = useState<FreightZoneSummary | null>(null);
   const [arcTooltip, setArcTooltip] = useState<ArcTooltipData | null>(null);
+  const [activeBuckets, setActiveBuckets] = useState<Set<OptionalityBucket>>(new Set(['high']));
+
+  const toggleBucket = (bucket: OptionalityBucket) => {
+    setActiveBuckets((prev) => {
+      const next = new Set(prev);
+      if (next.has(bucket)) next.delete(bucket);
+      else next.add(bucket);
+      return next;
+    });
+  };
 
   const selectedZone = selectedZoneKey
     ? data.zones.find((z) => z.zone_key === selectedZoneKey) ?? null
@@ -67,14 +153,12 @@ export function FreightNetworkMap({ data, period }: Props) {
 
   const handleCloseZonePanel = useCallback(() => setSelectedZoneKey(null), []);
 
-  // Init map once
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const isDark = document.documentElement.classList.contains("dark");
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: protomapsStyle(isDark ? "dark" : "light"),
+      style: protomapsStyle(),
       center: [-95, 38],
       zoom: 3.5,
       minZoom: 3,
@@ -98,135 +182,114 @@ export function FreightNetworkMap({ data, period }: Props) {
     };
   }, []);
 
-  // Swap Protomaps style on theme change.
-  // MapboxOverlay is a map control and survives style reloads.
-  useEffect(() => {
-    if (!mapRef.current) return;
-    mapRef.current.setStyle(protomapsStyle(resolvedTheme === "dark" ? "dark" : "light"));
-  }, [resolvedTheme]);
-
-  // Clear stale hover state when the dataset changes (e.g. user switches period).
   useEffect(() => {
     setHoveredZone(null);
     setArcTooltip(null);
   }, [data]);
 
-  // Update deck.gl layers when data or interaction state changes
   useEffect(() => {
     if (!overlayRef.current) return;
 
     const { lanes, zones } = data;
     const allCounts = lanes.map((l) => l.load_count);
-    const allRates = lanes.map((l) => l.loads_per_day);
 
-    // Zones connected to the selected zone (for dimming unconnected items)
+    // Only zones that are endpoints of top lanes, excluding low_data and filtered buckets
+    const laneZoneKeys = new Set(lanes.flatMap((l) => [l.origin_zone_key, l.destination_zone_key]));
+    const activeZones = zones.filter(
+      (z) => laneZoneKeys.has(z.zone_key) &&
+             z.optionality_bucket !== 'low_data' &&
+             activeBuckets.has(z.optionality_bucket as OptionalityBucket),
+    );
+    const maxOutbound = Math.max(1, ...activeZones.map((z) => z.outbound_load_count));
+
+    // Lines only visible when a zone is selected
+    const outboundLanes = selectedZoneKey
+      ? lanes.filter((l) => l.origin_zone_key === selectedZoneKey)
+      : [];
+    const inboundLanes = selectedZoneKey
+      ? lanes.filter((l) => l.destination_zone_key === selectedZoneKey && l.origin_zone_key !== selectedZoneKey)
+      : [];
+
+    // Zones connected to selected (for dimming)
     const connectedZoneKeys = selectedZoneKey
-      ? new Set(
-          lanes
-            .filter((l) => l.origin_zone_key === selectedZoneKey || l.destination_zone_key === selectedZoneKey)
-            .flatMap((l) => [l.origin_zone_key, l.destination_zone_key]),
-        )
+      ? new Set([...outboundLanes, ...inboundLanes].flatMap((l) => [l.origin_zone_key, l.destination_zone_key]))
       : null;
-
-    const laneAlpha = (l: FreightLaneEntry) => {
-      const base = arcOpacity(l.loads_per_day, allRates);
-      if (!connectedZoneKeys) return base;
-      return connectedZoneKeys.has(l.origin_zone_key) || connectedZoneKeys.has(l.destination_zone_key)
-        ? base
-        : 0.05;
-    };
 
     const zoneAlpha = (z: FreightZoneSummary) => {
       if (!connectedZoneKeys) return 0.85;
-      return connectedZoneKeys.has(z.zone_key) ? 1 : 0.15;
+      if (z.zone_key === selectedZoneKey) return 1;
+      return connectedZoneKeys.has(z.zone_key) ? 0.9 : 0.2;
     };
 
-    const mainArcLayer = new ArcLayer<FreightLaneEntry>({
-      id: 'main-arcs',
-      data: lanes,
+    // Outbound lanes: brand green
+    const outboundLineLayer = new LineLayer<FreightLaneEntry>({
+      id: 'outbound-lanes',
+      data: outboundLanes,
       getSourcePosition: (l) => [l.origin_centroid_lng, l.origin_centroid_lat],
       getTargetPosition: (l) => [l.destination_centroid_lng, l.destination_centroid_lat],
-      getSourceColor: (l) => [59, 130, 246, Math.round(laneAlpha(l) * 255)],   // blue-500
-      getTargetColor: (l) => [139, 92, 246, Math.round(laneAlpha(l) * 255)],   // violet-500
+      getColor: [163, 230, 53, 220],
       getWidth: (l) => arcWidth(l.load_count, allCounts),
+      widthUnits: 'pixels',
+      widthMinPixels: 1.5,
       pickable: true,
       onHover: ({ object, x, y }) => {
         setArcTooltip(object ? { lane: object, x, y } : null);
       },
     });
 
-    const weakRevLanes = lanes.filter((l) => l.reverse_strength === 'weak');
-    const weakArcLayer = new ArcLayer<FreightLaneEntry>({
-      id: 'weak-reverse-arcs',
-      data: weakRevLanes,
-      getSourcePosition: (l) => [l.destination_centroid_lng, l.destination_centroid_lat],
-      getTargetPosition: (l) => [l.origin_centroid_lng, l.origin_centroid_lat],
-      getSourceColor: (l) => [148, 163, 184, Math.round(laneAlpha(l) * 0.20 * 255)],
-      getTargetColor: (l) => [148, 163, 184, Math.round(laneAlpha(l) * 0.20 * 255)],
-      getWidth: 1,
+    // Inbound lanes: blue, fainter
+    const inboundLineLayer = new LineLayer<FreightLaneEntry>({
+      id: 'inbound-lanes',
+      data: inboundLanes,
+      getSourcePosition: (l) => [l.origin_centroid_lng, l.origin_centroid_lat],
+      getTargetPosition: (l) => [l.destination_centroid_lng, l.destination_centroid_lat],
+      getColor: [99, 179, 237, 140],
+      getWidth: (l) => arcWidth(l.load_count, allCounts),
+      widthUnits: 'pixels',
+      widthMinPixels: 1,
       pickable: false,
     });
 
-    const ghostLanes = (() => {
-      const fromSelected = selectedZoneKey
-        ? lanes.filter(
-            (l) =>
-              l.reverse_strength === 'none' &&
-              (l.origin_zone_key === selectedZoneKey || l.destination_zone_key === selectedZoneKey),
-          )
-        : [];
-      const fromHover = arcTooltip?.lane.reverse_strength === 'none' ? [arcTooltip.lane] : [];
-      const seen = new Set<string>();
-      return [...fromSelected, ...fromHover].filter((l) => {
-        const k = `${l.origin_zone_key}:${l.destination_zone_key}`;
-        if (seen.has(k)) return false;
-        seen.add(k);
-        return true;
-      });
-    })();
-    const ghostArcLayer = new ArcLayer<FreightLaneEntry>({
-      id: 'ghost-reverse-arcs',
-      data: ghostLanes,
-      getSourcePosition: (l) => [l.destination_centroid_lng, l.destination_centroid_lat],
-      getTargetPosition: (l) => [l.origin_centroid_lng, l.origin_centroid_lat],
-      getSourceColor: [148, 163, 184, Math.round(0.08 * 255)],
-      getTargetColor: [148, 163, 184, Math.round(0.08 * 255)],
-      getWidth: 1,
-      pickable: false,
-    });
-
+    // Arrowheads on outbound lanes only
     const arrowLayer = new TextLayer<FreightLaneEntry>({
       id: 'arrowheads',
-      data: lanes,
+      data: outboundLanes,
       getPosition: (l) => [l.destination_centroid_lng, l.destination_centroid_lat],
       getText: () => '▶',
       getAngle: (l) =>
         90 - bearing(l.origin_centroid_lat, l.origin_centroid_lng, l.destination_centroid_lat, l.destination_centroid_lng),
-      getSize: 12,
-      getColor: (l) => [99, 102, 241, Math.round(laneAlpha(l) * 180)],
+      getSize: 11,
+      getColor: [163, 230, 53, 200],
       sizeUnits: 'pixels',
       pickable: false,
     });
 
-    const laneZoneKeys = new Set(lanes.flatMap((l) => [l.origin_zone_key, l.destination_zone_key]));
-    const activeZones = zones.filter((z) => laneZoneKeys.has(z.zone_key));
-
-    const maxOutbound = Math.max(1, ...activeZones.map((z) => z.outbound_load_count));
-
+    // Zone dots — always visible, small, clickable
     const nodeLayer = new ScatterplotLayer<FreightZoneSummary>({
       id: 'zone-nodes',
       data: activeZones,
       getPosition: (z) => [z.centroid_lng, z.centroid_lat],
       radiusUnits: 'pixels',
-      getRadius: (z) => Math.max(5, Math.min(22, (z.outbound_load_count / maxOutbound) * 22)),
+      getRadius: (z) => {
+        const base = Math.max(4, Math.min(14, (z.outbound_load_count / maxOutbound) * 14));
+        return z.zone_key === selectedZoneKey ? base + 3 : base;
+      },
+      filled: true,
+      stroked: true,
+      lineWidthUnits: 'pixels',
+      getLineWidth: (z) => z.zone_key === selectedZoneKey ? 2 : 1,
       getFillColor: (z) => {
         const [r, g, b] = NODE_COLOR[z.optionality_bucket];
-        return [r, g, b, Math.round(zoneAlpha(z) * 220)];
+        return [r, g, b, Math.round(zoneAlpha(z) * 160)];
+      },
+      getLineColor: (z) => {
+        const [r, g, b] = NODE_COLOR[z.optionality_bucket];
+        return [r, g, b, Math.round(zoneAlpha(z) * 255)];
       },
       pickable: true,
       onClick: ({ object }) => {
         if (object) {
-          setSelectedZoneKey(object.zone_key);
+          setSelectedZoneKey(object.zone_key === selectedZoneKey ? null : object.zone_key);
           setHoveredZone(null);
           setArcTooltip(null);
         }
@@ -236,21 +299,24 @@ export function FreightNetworkMap({ data, period }: Props) {
       },
     });
 
-    const labelZones = activeZones;
+    // City labels — only for selected zone's connected endpoints
+    const labelZones = connectedZoneKeys
+      ? activeZones.filter((z) => connectedZoneKeys.has(z.zone_key))
+      : [];
     const labelLayer = new TextLayer<FreightZoneSummary>({
       id: 'zone-labels',
       data: labelZones,
       getPosition: (z) => [z.centroid_lng, z.centroid_lat],
       getText: (z) => `${z.display_city}, ${z.display_state}`,
       getSize: 11,
-      getColor: (z) => [255, 255, 255, Math.round(zoneAlpha(z) * 180)],
-      getPixelOffset: [0, -20],
+      getColor: [255, 255, 255, 200],
+      getPixelOffset: [0, -18],
       sizeUnits: 'pixels',
       pickable: false,
     });
 
     overlayRef.current.setProps({
-      layers: [mainArcLayer, weakArcLayer, ghostArcLayer, arrowLayer, nodeLayer, labelLayer],
+      layers: [inboundLineLayer, outboundLineLayer, arrowLayer, nodeLayer, labelLayer],
       onClick: (info) => {
         if (!info.picked) {
           setSelectedZoneKey(null);
@@ -258,13 +324,13 @@ export function FreightNetworkMap({ data, period }: Props) {
         }
       },
     });
-  }, [data, selectedZoneKey, arcTooltip]);
+  }, [data, selectedZoneKey, arcTooltip, activeBuckets]);
 
   const noData = data.lanes.length === 0 && data.zones.length === 0;
 
   return (
     <div className="relative">
-      <div ref={containerRef} className="w-full h-[500px] rounded-lg overflow-hidden" />
+      <div ref={containerRef} className="w-full h-[520px] rounded-lg overflow-hidden" />
 
       {noData && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -272,6 +338,12 @@ export function FreightNetworkMap({ data, period }: Props) {
             <p className="text-sm font-medium">No historical lanes found for this period.</p>
             <p className="text-xs text-muted-foreground mt-1">Try a longer period or check that orders are synced.</p>
           </div>
+        </div>
+      )}
+
+      {!selectedZoneKey && !hoveredZone && (
+        <div className="absolute inset-0 flex items-end justify-center pb-16 pointer-events-none">
+          <p className="text-xs text-muted-foreground/60 italic">Click any hub to see its lanes</p>
         </div>
       )}
 
@@ -327,34 +399,48 @@ export function FreightNetworkMap({ data, period }: Props) {
               Weak reverse — {arcTooltip.lane.reverse_load_count} loads
             </p>
           )}
-          {arcTooltip.lane.reverse_strength === 'strong_truncated' && (
-            <p className="text-muted-foreground mt-1 italic">
-              Healthy reverse — {arcTooltip.lane.reverse_load_count} loads (not in top {data.metadata.lane_limit})
-            </p>
-          )}
         </div>
       )}
 
-      <div className="absolute bottom-4 right-4 bg-background/90 border rounded-md px-3 py-2 text-xs space-y-1">
+      <div className="absolute bottom-4 right-4 bg-background/90 border rounded-md px-3 py-2 text-xs space-y-1.5">
         <p className="font-semibold text-[11px] mb-1">Outbound optionality</p>
         {(["high", "medium", "low"] as const).map((bucket) => {
-          const colors: Record<string, string> = {
+          const dot: Record<string, string> = {
             high:   "bg-green-500",
             medium: "bg-amber-500",
             low:    "bg-rose-500",
           };
-          const labels: Record<string, string> = {
+          const label: Record<string, string> = {
             high:   `High  (H ≥ ${data.metadata.optionality_thresholds.medium_max} bits)`,
             medium: `Medium  (${data.metadata.optionality_thresholds.low_max}–${data.metadata.optionality_thresholds.medium_max} bits)`,
             low:    `Low  (H < ${data.metadata.optionality_thresholds.low_max} bits)`,
           };
+          const active = activeBuckets.has(bucket);
           return (
-            <div key={bucket} className="flex items-center gap-1.5">
-              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${colors[bucket]}`} />
-              <span className="text-muted-foreground">{labels[bucket]}</span>
-            </div>
+            <label key={bucket} className="flex items-center gap-1.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={() => toggleBucket(bucket)}
+                className="sr-only"
+              />
+              <span className={`w-3 h-3 rounded-sm border flex items-center justify-center shrink-0 transition-colors ${active ? `${dot[bucket].replace('bg-', 'border-').replace('500', '600')} ${dot[bucket]}` : 'border-border bg-transparent'}`}>
+                {active && <svg className="w-2 h-2 text-white" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </span>
+              <span className={active ? "text-foreground" : "text-muted-foreground/50"}>{label[bucket]}</span>
+            </label>
           );
         })}
+        <div className="pt-1 mt-0.5 border-t border-border/50 space-y-0.5 text-[10px] text-muted-foreground/60">
+          <div className="flex items-center gap-1.5">
+            <span className="w-4 h-0.5 bg-[#a3e635] inline-block" />
+            Outbound
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-4 h-0.5 bg-[#63b3ed] inline-block opacity-60" />
+            Inbound
+          </div>
+        </div>
       </div>
     </div>
   );
