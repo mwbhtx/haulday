@@ -272,11 +272,11 @@ export function FreightNetworkMap({ data, period }: Props) {
       lineWidthUnits: 'pixels',
       getLineWidth: (z) => DATA_SUPPORT_STROKE[z.data_support],
       getFillColor: (z) => {
-        const [r, g, b] = OPT_COLOR[z.optionality_bucket];
+        const [r, g, b] = FLOW_COLOR[zoneFlowType(z)];
         return [r, g, b, Math.round(zoneAlpha(z) * 230)];
       },
       getLineColor: (z) => {
-        const [r, g, b] = OPT_COLOR[z.optionality_bucket];
+        const [r, g, b] = FLOW_COLOR[zoneFlowType(z)];
         // Slightly brighter ring than fill so the data-support encoding is legible.
         return [Math.min(255, r + 30), Math.min(255, g + 30), Math.min(255, b + 30), Math.round(zoneAlpha(z) * 255)];
       },
@@ -435,8 +435,8 @@ export function FreightNetworkMap({ data, period }: Props) {
 
       <div className="absolute bottom-4 right-4 bg-background/90 border rounded-lg px-5 py-4 text-base space-y-3 min-w-[300px]">
 
-        {/* Zone type */}
-        <p className="font-semibold text-base">Zone type</p>
+        {/* Zone Type */}
+        <p className="font-semibold text-base">Zone Type</p>
         {([
           { type: 'source',  dot: 'bg-blue-500',  label: 'Exports' },
           { type: 'transit', dot: 'bg-amber-500', label: 'Balanced' },
@@ -490,7 +490,7 @@ export function FreightNetworkMap({ data, period }: Props) {
 
         {/* Node size key */}
         <div className="space-y-1.5 text-base text-muted-foreground/80 pt-2 border-t border-border/50">
-          <p className="font-semibold text-base text-foreground">Node size</p>
+          <p className="font-semibold text-base text-foreground">Node Size</p>
           <div className="flex items-center gap-2.5">
             <span className="inline-block rounded-full bg-muted-foreground/40" style={{ width: 8, height: 8 }} />
             <span className="inline-block rounded-full bg-muted-foreground/40" style={{ width: 16, height: 16 }} />
@@ -500,7 +500,7 @@ export function FreightNetworkMap({ data, period }: Props) {
 
         {/* Data confidence ring */}
         <div className="space-y-1.5 text-base text-muted-foreground/80 pt-2 border-t border-border/50">
-          <p className="font-semibold text-base text-foreground">Ring thickness</p>
+          <p className="font-semibold text-base text-foreground">Ring Thickness</p>
           <div className="flex items-center gap-2.5">
             <span className="inline-block rounded-full bg-muted-foreground/30" style={{ width: 16, height: 16, border: '1px solid currentColor' }} />
             <span className="inline-block rounded-full bg-muted-foreground/30" style={{ width: 16, height: 16, border: '3px solid currentColor' }} />
@@ -510,7 +510,7 @@ export function FreightNetworkMap({ data, period }: Props) {
 
         {/* Lane legend */}
         <div className="space-y-1.5 text-base text-muted-foreground/80 pt-2 border-t border-border/50">
-          <p className="font-semibold text-base text-foreground">Lane color</p>
+          <p className="font-semibold text-base text-foreground">Lane Color</p>
           <div className="flex items-center gap-2.5"><span className="w-6 h-[2px] bg-amber-500 inline-block" />Transit</div>
           <div className="flex items-center gap-2.5"><span className="w-6 h-[2px] bg-blue-500 inline-block" />Outbound</div>
           <div className="flex items-center gap-2.5"><span className="w-6 h-[2px] bg-red-500 inline-block" />Inbound</div>
