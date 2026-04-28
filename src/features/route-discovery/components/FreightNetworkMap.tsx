@@ -93,9 +93,9 @@ export function FreightNetworkMap({ data, period }: Props) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: protomapsStyle(isDark ? "dark" : "light"),
-      center: [-97, 40],
-      zoom: 4,
-      minZoom: 3.5,
+      bounds: [[-125, 24], [-66, 49]],
+      fitBoundsOptions: { padding: 60 },
+      minZoom: 3,
       maxZoom: 12,
       maxBounds: [[-175, 15], [-50, 72]],
       attributionControl: false,
@@ -193,9 +193,9 @@ export function FreightNetworkMap({ data, period }: Props) {
     const maxOutbound = Math.max(1, ...activeZones.map((z) => z.outbound_load_count));
 
     const zoneAlpha = (z: FreightZoneSummary) => {
-      if (!connectedZoneKeys) return 0.85;
-      if (z.zone_key === selectedZoneKey) return 1;
-      return connectedZoneKeys.has(z.zone_key) ? 0.9 : 0.2;
+      if (!connectedZoneKeys) return 1.0;
+      if (z.zone_key === selectedZoneKey) return 1.0;
+      return connectedZoneKeys.has(z.zone_key) ? 1.0 : 0.25;
     };
 
     const lineLayerBase = {
@@ -249,16 +249,16 @@ export function FreightNetworkMap({ data, period }: Props) {
       getPosition: (z) => [z.centroid_lng, z.centroid_lat],
       radiusUnits: 'pixels',
       getRadius: (z) => {
-        const base = Math.max(4, Math.min(14, (z.outbound_load_count / maxOutbound) * 14));
-        return z.zone_key === selectedZoneKey ? base + 3 : base;
+        const base = Math.max(7, Math.min(20, (z.outbound_load_count / maxOutbound) * 20));
+        return z.zone_key === selectedZoneKey ? base + 4 : base;
       },
       filled: true,
       stroked: true,
       lineWidthUnits: 'pixels',
-      getLineWidth: (z) => z.zone_key === selectedZoneKey ? 2 : 1,
+      getLineWidth: (z) => z.zone_key === selectedZoneKey ? 3 : 1.5,
       getFillColor: (z) => {
         const [r, g, b] = FLOW_COLOR[zoneFlowType(z)];
-        return [r, g, b, Math.round(zoneAlpha(z) * 160)];
+        return [r, g, b, Math.round(zoneAlpha(z) * 255)];
       },
       getLineColor: (z) => {
         const [r, g, b] = FLOW_COLOR[zoneFlowType(z)];
