@@ -147,11 +147,13 @@ export function FreightNetworkMap({ data, period }: Props) {
     const { lanes, zones } = data;
     const allCounts = lanes.map((l) => l.load_count);
 
-    // Zone passes both active filters (flow type + optionality bucket)
+    // Zone passes both active filters (zone type + outbound volume bucket).
+    // Outbound Volume bucket = data_support (load-count tier) so it matches the
+    // node-size encoding (which is also outbound_load_count).
     const zonePassesFilters = (z: FreightZoneSummary) =>
       z.optionality_bucket !== 'low_data' &&
       activeFlowTypes.has(zoneFlowType(z)) &&
-      activeOptBuckets.has(z.optionality_bucket);
+      activeOptBuckets.has(z.data_support);
 
     // Strict mode: lanes only shown when BOTH endpoints pass filters
     const laneZoneKeys = new Set(lanes.flatMap((l) => [l.origin_zone_key, l.destination_zone_key]));
