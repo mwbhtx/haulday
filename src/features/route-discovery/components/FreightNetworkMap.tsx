@@ -424,43 +424,40 @@ export function FreightNetworkMap({ data, period }: Props) {
         </div>
       )}
 
-      <div className="absolute bottom-4 right-4 bg-background/90 border rounded-md px-4 py-3 text-sm space-y-2.5 min-w-[240px]">
+      <div className="absolute bottom-4 right-4 bg-background/90 border rounded-lg px-5 py-4 text-base space-y-3 min-w-[300px]">
 
         {/* Flow type */}
-        <p className="font-semibold text-[13px]">Flow type</p>
+        <p className="font-semibold text-base">Flow type</p>
         {([
-          { type: 'source',  dot: 'bg-blue-500',  label: 'Mostly outbound', sub: 'source' },
-          { type: 'transit', dot: 'bg-amber-500', label: 'Balanced',        sub: 'transit' },
-          { type: 'sink',    dot: 'bg-red-500',   label: 'Mostly inbound',  sub: 'sink' },
-        ] as const).map(({ type, dot, label, sub }) => {
+          { type: 'source',  dot: 'bg-blue-500',  label: 'Mostly outbound' },
+          { type: 'transit', dot: 'bg-amber-500', label: 'Balanced' },
+          { type: 'sink',    dot: 'bg-red-500',   label: 'Mostly inbound' },
+        ] as const).map(({ type, dot, label }) => {
           const active = activeFlowTypes.has(type);
           return (
             <label key={type} className="flex items-center gap-1.5 cursor-pointer select-none">
               <input type="checkbox" checked={active} onChange={() => toggleFlowType(type)} className="sr-only" />
-              <span className={`w-3 h-3 rounded-sm border flex items-center justify-center shrink-0 ${active ? `${dot} border-transparent` : 'border-border'}`}>
-                {active && <svg className="w-2 h-2 text-white" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              <span className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 ${active ? `${dot} border-transparent` : 'border-border'}`}>
+                {active && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </span>
-              <span className={active ? 'text-foreground' : 'text-muted-foreground/50'}>
-                {label}
-                <span className="text-muted-foreground/50 ml-1">({sub})</span>
-              </span>
+              <span className={active ? 'text-foreground' : 'text-muted-foreground/50'}>{label}</span>
             </label>
           );
         })}
 
         {/* Optionality */}
-        <p className="font-semibold text-[13px] pt-1.5 border-t border-border/50">Optionality</p>
+        <p className="font-semibold text-base pt-2 border-t border-border/50">Optionality</p>
         {([
-          { bucket: 'high',   dot: 'bg-emerald-500', label: `High  (H ≥ ${data.metadata.optionality_thresholds.medium_max} bits)` },
-          { bucket: 'medium', dot: 'bg-amber-500',   label: `Medium  (${data.metadata.optionality_thresholds.low_max}–${data.metadata.optionality_thresholds.medium_max} bits)` },
-          { bucket: 'low',    dot: 'bg-rose-500',    label: `Low  (H < ${data.metadata.optionality_thresholds.low_max} bits)` },
+          { bucket: 'high',   dot: 'bg-emerald-500', label: 'High' },
+          { bucket: 'medium', dot: 'bg-amber-500',   label: 'Medium' },
+          { bucket: 'low',    dot: 'bg-rose-500',    label: 'Low' },
         ]).map(({ bucket, dot, label }) => {
           const active = activeOptBuckets.has(bucket);
           return (
             <label key={bucket} className="flex items-center gap-1.5 cursor-pointer select-none">
               <input type="checkbox" checked={active} onChange={() => toggleOptBucket(bucket)} className="sr-only" />
-              <span className={`w-3 h-3 rounded-sm border flex items-center justify-center shrink-0 ${active ? `${dot} border-transparent` : 'border-border'}`}>
-                {active && <svg className="w-2 h-2 text-white" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              <span className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 ${active ? `${dot} border-transparent` : 'border-border'}`}>
+                {active && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </span>
               <span className={active ? 'text-foreground' : 'text-muted-foreground/50'}>{label}</span>
             </label>
@@ -468,47 +465,45 @@ export function FreightNetworkMap({ data, period }: Props) {
         })}
 
         {/* Strict mode */}
-        <label className="flex items-center gap-1.5 cursor-pointer select-none pt-1 border-t border-border/50">
+        <label className="flex items-center gap-2 cursor-pointer select-none pt-2 border-t border-border/50">
           <input type="checkbox" checked={strictMode} onChange={() => setStrictMode((v) => !v)} className="sr-only" />
-          <span className={`w-3 h-3 rounded-sm border flex items-center justify-center shrink-0 ${strictMode ? 'bg-primary border-transparent' : 'border-border'}`}>
-            {strictMode && <svg className="w-2 h-2 text-primary-foreground" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+          <span className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 ${strictMode ? 'bg-primary border-transparent' : 'border-border'}`}>
+            {strictMode && <svg className="w-2.5 h-2.5 text-primary-foreground" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
           </span>
           <span className={strictMode ? 'text-foreground font-medium' : 'text-muted-foreground/70'}>
             Matching endpoints only
           </span>
         </label>
-        {strictMode && (
-          <p className="text-xs text-muted-foreground/60 -mt-1 pl-[22px]">
-            Lanes where both hubs pass all filters
-          </p>
-        )}
+        <p className="text-base text-muted-foreground/60 -mt-1 pl-[26px]">
+          Lanes where both hubs pass all filters
+        </p>
 
         {/* Node size key */}
-        <div className="space-y-1.5 text-xs text-muted-foreground/70 pt-1.5 border-t border-border/50">
-          <p className="font-semibold text-[13px] text-foreground">Node size</p>
-          <div className="flex items-center gap-2">
-            <span className="inline-block rounded-full bg-muted-foreground/40" style={{ width: 7, height: 7 }} />
-            <span className="inline-block rounded-full bg-muted-foreground/40" style={{ width: 14, height: 14 }} />
+        <div className="space-y-1.5 text-base text-muted-foreground/80 pt-2 border-t border-border/50">
+          <p className="font-semibold text-base text-foreground">Node size</p>
+          <div className="flex items-center gap-2.5">
+            <span className="inline-block rounded-full bg-muted-foreground/40" style={{ width: 8, height: 8 }} />
+            <span className="inline-block rounded-full bg-muted-foreground/40" style={{ width: 16, height: 16 }} />
             <span>= more outbound loads</span>
           </div>
         </div>
 
         {/* Data confidence ring */}
-        <div className="space-y-1.5 text-xs text-muted-foreground/70 pt-1.5 border-t border-border/50">
-          <p className="font-semibold text-[13px] text-foreground">Ring thickness</p>
-          <div className="flex items-center gap-2">
-            <span className="inline-block rounded-full bg-muted-foreground/30" style={{ width: 14, height: 14, border: '1px solid currentColor' }} />
-            <span className="inline-block rounded-full bg-muted-foreground/30" style={{ width: 14, height: 14, border: '3px solid currentColor' }} />
+        <div className="space-y-1.5 text-base text-muted-foreground/80 pt-2 border-t border-border/50">
+          <p className="font-semibold text-base text-foreground">Ring thickness</p>
+          <div className="flex items-center gap-2.5">
+            <span className="inline-block rounded-full bg-muted-foreground/30" style={{ width: 16, height: 16, border: '1px solid currentColor' }} />
+            <span className="inline-block rounded-full bg-muted-foreground/30" style={{ width: 16, height: 16, border: '3px solid currentColor' }} />
             <span>= confidence in data</span>
           </div>
         </div>
 
         {/* Lane legend */}
-        <div className="space-y-1 text-xs text-muted-foreground/70 pt-1.5 border-t border-border/50">
-          <p className="font-semibold text-[13px] text-foreground">Lane color</p>
-          <div className="flex items-center gap-2"><span className="w-5 h-[2px] bg-amber-500 inline-block" />Transit (both ways)</div>
-          <div className="flex items-center gap-2"><span className="w-5 h-[2px] bg-blue-500 inline-block" />Outbound (one-way)</div>
-          <div className="flex items-center gap-2"><span className="w-5 h-[2px] bg-red-500 inline-block" />Inbound (one-way)</div>
+        <div className="space-y-1.5 text-base text-muted-foreground/80 pt-2 border-t border-border/50">
+          <p className="font-semibold text-base text-foreground">Lane color</p>
+          <div className="flex items-center gap-2.5"><span className="w-6 h-[2px] bg-amber-500 inline-block" />Transit</div>
+          <div className="flex items-center gap-2.5"><span className="w-6 h-[2px] bg-blue-500 inline-block" />Outbound</div>
+          <div className="flex items-center gap-2.5"><span className="w-6 h-[2px] bg-red-500 inline-block" />Inbound</div>
         </div>
       </div>
     </div>

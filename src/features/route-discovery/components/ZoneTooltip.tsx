@@ -32,11 +32,11 @@ const PERIOD_LABEL: Record<string, string> = {
 
 export function ZoneTooltip({ zone, period, periodNote, showClose = false, onClose }: ZoneTooltipProps) {
   return (
-    <div className="bg-background/95 border rounded-lg shadow-lg p-5 min-w-[280px] max-w-[340px]">
+    <div className="bg-background/95 border rounded-lg shadow-lg p-5 min-w-[300px] max-w-[360px] text-base">
       <div className="flex items-start justify-between gap-2 mb-4">
         <div>
           <p className="font-semibold text-base">{zone.display_city}, {zone.display_state}</p>
-          <p className={`text-sm mt-1 ${BUCKET_COLOR[zone.optionality_bucket]}`}>
+          <p className={`text-base mt-1 ${BUCKET_COLOR[zone.optionality_bucket]}`}>
             {BUCKET_LABEL[zone.optionality_bucket]}
           </p>
         </div>
@@ -51,7 +51,7 @@ export function ZoneTooltip({ zone, period, periodNote, showClose = false, onClo
         )}
       </div>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-base">
         <dt className="text-muted-foreground">Outbound loads</dt>
         <dd className="font-medium">{zone.outbound_load_count.toLocaleString()}</dd>
         <dt className="text-muted-foreground">Inbound loads</dt>
@@ -68,7 +68,7 @@ export function ZoneTooltip({ zone, period, periodNote, showClose = false, onClo
         <dd className="font-medium capitalize">{zone.data_support}</dd>
       </dl>
 
-      <p className="text-xs text-muted-foreground mt-4">
+      <p className="text-base text-muted-foreground mt-4">
         {`Based on ${PERIOD_LABEL[period]} historical orders`}
       </p>
     </div>
